@@ -1,0 +1,6 @@
+capture-kit-captures/
+src/fsincos_itanium
+src/fsincos_ref
+src/fsincos_skylake
+src/x87_capture
+capture-kit/x87_capture

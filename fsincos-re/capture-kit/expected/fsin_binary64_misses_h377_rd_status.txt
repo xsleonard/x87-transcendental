@@ -1,0 +1,12 @@
+OK bffe fbc1f3e33525ec3f SW 3820
+OK 3ffe b4e30487f78b51d2 SW 3820
+OK 3ffe b57c4cd22edfff90 SW 3820
+OK 3ffe b4cabe9065c949e0 SW 3820
+OK bffe b444b2ce43058cd4 SW 3a20
+OK 3ffe b4f66a46a4d3ef1d SW 3820
+OK bffe b40f38d792e9901d SW 3a20
+OK bffd 83f823fcd97bfd55 SW 3a20
+OK 3ffe f85bca6c81ce1d86 SW 3820
+OK bffe b50371bab3ecaefc SW 3a20
+OK 3ffe b3eea5892f3ceca5 SW 3820
+OK bffe b4b6cae7b603d2ca SW 3a20

@@ -1,0 +1,27 @@
+# User-owned proprietary binaries stay local.
+binaries/*
+
+# Local scratch/cache.
+.workbench/
+.cache/
+.pycache-probe/
+.venv/
+downloads/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Local secrets and machine-specific credentials.
+/.local/
+
+*.zip
+
+capture-kit-captures/
+
+fsincos-re/supplemental/
+
+# Private local x87 standalone models.
+fsincos-re/src/standalone/
+
+*.tar.gz
+*.gz
