@@ -161,3 +161,35 @@ The correct status is therefore:
 - F2XM1 complete architectural behavior: signaling-NaN handling incomplete.
 - FPTAN reconstruction: incomplete for rare large finite arguments and
   special-value push behavior.
+
+## 2026-08-08 re-run: h403 fixes close every residual class
+
+With the h403 changes — unconditional exact-division FPTAN quotient,
+F2XM1 signaling-NaN quieting, and the NaN/indefinite FPTAN push rule in
+both the batch model and this harness's expectation — the `2^24`
+deterministic traversals are completely clean for both instructions:
+
+```text
+fptan : inputs=16777216 observations=50331648
+        output/C1/C2/C2-output/pushed/interval misses = 0/0/0/0/0/0
+f2xm1 : inputs=16777216 observations=50331648
+        output/C1/C2/C2-output/pushed/interval misses = 0/0/0/0/0/0
+```
+
+This closes the FPTAN 25-result/18-C1 large-argument class (all 18 inputs
+now exact under all modes), the 24,945 sampled pushed-value differences,
+and the F2XM1 signaling-NaN class from the earlier trials.
+
+```text
+fsincos_skylake.c    2d72aee97a911d60e187db7e3030454ea59c92259a51a1b13eb0ab212f01aa70
+sibling_exhaustive.c 2f7acce7dd447b9c7f344f022f276d56b5344efc82ddd9421418e356b14474cf
+```
+
+The `2^32` extensions completed on the capture host
+(`fsincos-residual-20260807-1/h403/sibling_{f2xm1,fptan}_32.log`) with the
+same result: both instructions traverse all 4,294,967,296 deterministic
+counter values (12,884,901,888 RN/RD/RU observations each) with zero
+output, C1, C2, C2-output, pushed-value, or model-interval differences.
+For F2XM1 this removes the 3,134,754 signaling-NaN differences of the
+earlier `2^32` trial; for FPTAN it is the first complete `2^32` traversal,
+and it is entirely clean.

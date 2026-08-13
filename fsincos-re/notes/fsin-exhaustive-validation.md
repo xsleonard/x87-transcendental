@@ -160,3 +160,46 @@ At the full-pass rate, a `2^32` run would take about 24 minutes and a `2^40`
 run about 4.3 days on this VPS if throughput remains stable. The 12 cases
 should be localized before expanding the scan because they provide much
 stronger diagnostic seeds than another undifferentiated mismatch count.
+
+## h404 triangulation of the three remaining inputs (2026-08-08)
+
+Fresh Skylake captures of FSIN, FCOS, FSINCOS, and FPTAN on the three
+surviving h377 inputs and their +-4-ulp neighbors (all modes) show:
+
+- Only FSIN (and, where the residual is table-path, the paired sine lane)
+  misses; FCOS, FPTAN, and the paired cosine lane are exact at all three
+  inputs, and no neighbor misses anything.  The shared reduction state is
+  therefore consistent with three independent consumers; the residue is
+  local to the sine producer.
+- `401a:ed5c03467a232800` (exp 27) and `c01c:ccb8a935dddf4000` (exp 29):
+  reduced entry, odd quadrant (internal-cosine producer), residual exponent
+  -3 (polynomial path).  Directed-bound inversion of the captures gives a
+  strict three-way ladder of hidden sine states at both inputs — paired
+  below standalone, model above hardware-standalone (exp 27: hardware
+  behaves as exactly representable, model a sub-ulp higher; exp 29:
+  model exactly representable, hardware strictly below).  The model's
+  hidden state is a sub-ulp too large in magnitude in both cases.
+- `c006:8a7da33ed97f1000` (exp 7): reduced entry, even quadrant, table
+  path.  Hardware and model straddle the RN midpoint (hardware below,
+  model above); paired and standalone agree bit-exactly in both hardware
+  and model, directly confirming the Round-54 table sharing on a live
+  residual.
+- Direction is uniform: all three need the hidden sine state nudged down
+  by a sub-ulp, the same sign family as the Round-43..49 carrier-interval
+  corrections.  The natural next pass is to feed these three seeds (and
+  the paired-vs-standalone ladder constraints at exponents 27/29) into the
+  carrier-interval boundary analysis for the reduced-entry producers.
+- Captures and matrix: `experiments/h404_h377_triangulate.sh`; raw streams
+  in the remote workdir `fsincos-residual-20260807-1/h403/`.
+
+## Round 55 resolution of the exponent-7 seed (2026-08-08)
+
+The `c006:8a7da33ed97f1000` residual is resolved: its operation-class
+sine-state FADD carries exactly the Round-51 carrier signature, and the
+Round-51 leaf — dead on every promoted corpus since Round 53's
+exact-division quotient — was selecting the non-incrementing sum where
+hardware keeps plain RN64.  Retiring the leaf fixes the seed in all three
+modes with zero regression on any corpus (see the Round 55 section of
+`skylake-comparison.md`).  The frozen fixture now scores 2 result/3 C1
+differences (`BASELINE_RESULT`/`BASELINE_C1` updated in the gate); both
+remaining inputs are the exponent-27/29 internal-cosine cases.

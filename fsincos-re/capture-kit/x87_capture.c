@@ -166,7 +166,7 @@ static uint16_t do_fsin1(
 }
 
 /*
- * NOT_FROM_ORIGINAL_SOURCE: capture FPTAN's architectural pair in the same
+ * capture FPTAN's architectural pair in the same
  * mathematical-result-first order used by the FSINCOS output format.
  */
 static uint16_t do_fptan_once(
@@ -208,7 +208,7 @@ static uint16_t do_fptan_once(
     return sw;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: repeated-minimum timing wrapper for FPTAN. */
+/* repeated-minimum timing wrapper for FPTAN. */
 static uint16_t do_fptan(
     const struct x80mem *x, struct x80mem *tangent, struct x80mem *one,
     uint64_t *best_cycles)

@@ -18,7 +18,7 @@ standalone/f2xm1_model: standalone/f2xm1_model.c
 fsincos_itanium: fsincos_itanium.c ia64_sf.h ../data/frcpa-recip-table.h
 	$(CC) $(CFLAGS) -o $@ fsincos_itanium.c $(LDLIBS)
 
-fsincos_skylake: fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h
+fsincos_skylake: fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h fsincos_r57_tables.h ../data/frcpa-recip-table.h
 	$(CC) $(CFLAGS) -Wno-unused-const-variable -o $@ fsincos_skylake.c $(LDLIBS)
 
 fsin_exhaustive: fsin_exhaustive.c fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h

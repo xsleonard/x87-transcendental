@@ -21,8 +21,8 @@ INPUTS = ROOT / "capture-kit" / "inputs" / "fsin_binary64_misses_h377.txt"
 EXPECTED = ROOT / "capture-kit" / "expected"
 RCS = ("rn", "rd", "ru")
 STATUS_C1 = 0x0200
-BASELINE_RESULT = 3
-BASELINE_C1 = 4
+BASELINE_RESULT = 1
+BASELINE_C1 = 2
 
 FIXTURE_HASHES = {
     INPUTS: "90beb327ff4eb7c59a626a223c6ce28f6489182f2947a7bb1b94eee89ad39175",
@@ -63,6 +63,7 @@ MODEL_FLAGS = (
     "--round49-p6-carrier-interval",
     "--round50-fsin-operation-classes",
     "--round51-fsin-fadd-signature",
+    "--round56-fsin-cosine-carrier",
     "--fsin-standalone",
 )
 
@@ -177,7 +178,7 @@ def main() -> None:
     policy.add_argument(
         "--expect-baseline",
         action="store_true",
-        help="require exactly the current 3 result and 4 C1 residuals",
+        help="require exactly the current 1 result and 2 C1 residuals",
     )
     policy.add_argument(
         "--require-zero",

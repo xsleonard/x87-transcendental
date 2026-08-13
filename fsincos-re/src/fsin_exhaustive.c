@@ -86,7 +86,7 @@ static pthread_mutex_t g_fsin_exhaustive_report_lock =
 static uint64_t g_fsin_exhaustive_reports;
 
 /*
- * NOT_FROM_ORIGINAL_SOURCE: bijective SplitMix64 output permutation.  Addition,
+ * bijective SplitMix64 output permutation.  Addition,
  * odd multiplication, and right-xor shifts are each invertible modulo 2^64.
  */
 static uint64_t fsin_exhaustive_permute(uint64_t counter, uint64_t seed)
@@ -98,7 +98,7 @@ static uint64_t fsin_exhaustive_permute(uint64_t counter, uint64_t seed)
 }
 
 /*
- * NOT_FROM_ORIGINAL_SOURCE: exact binary64-bit-pattern to x87-register value
+ * exact binary64-bit-pattern to x87-register value
  * conversion.  Binary64 subnormals become normalized extended values, as they
  * do after a successful FLD.
  */
@@ -132,7 +132,7 @@ static x80_t fsin_exhaustive_binary64_to_x80(uint64_t bits)
     return result;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: inventory the binary64 classes actually sampled. */
+/* inventory the binary64 classes actually sampled. */
 static void fsin_exhaustive_count_class(
     fsin_exhaustive_counts_t *counts, uint64_t bits)
 {
@@ -155,7 +155,7 @@ static void fsin_exhaustive_count_class(
 }
 
 /*
- * NOT_FROM_ORIGINAL_SOURCE: execute one real FSIN and capture its result and
+ * execute one real FSIN and capture its result and
  * instruction-local status.  The x87 stack is balanced on every path.
  */
 static uint16_t fsin_exhaustive_hardware(
@@ -186,14 +186,14 @@ static uint16_t fsin_exhaustive_hardware(
     return status;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: compare exact x87 result encodings. */
+/* compare exact x87 result encodings. */
 static int fsin_exhaustive_x80_equal(x80_t left, x80_t right)
 {
     return left.se == right.se && left.sig == right.sig;
 }
 
 /*
- * NOT_FROM_ORIGINAL_SOURCE: derive the model's final magnitude-increment bit
+ * derive the model's final magnitude-increment bit
  * from its directed bounds.  This is the same quantity exposed as x87 C1:
  * the away-from-zero bound is incrementing and the toward-zero bound is not.
  */
@@ -220,7 +220,7 @@ static int fsin_exhaustive_model_c1(
 }
 
 /*
- * NOT_FROM_ORIGINAL_SOURCE: install the validated standalone-FSIN model
+ * install the validated standalone-FSIN model
  * configuration once before worker threads begin.
  */
 static void fsin_exhaustive_configure_model(void)
@@ -257,7 +257,7 @@ static void fsin_exhaustive_configure_model(void)
 }
 
 /*
- * NOT_FROM_ORIGINAL_SOURCE: report a bounded mismatch record.  Exhaustive
+ * report a bounded mismatch record.  Exhaustive
  * runs count every mismatch but never permit an unexpected failure population
  * to create unbounded output.
  */
@@ -295,7 +295,7 @@ static void fsin_exhaustive_report(
     pthread_mutex_unlock(&g_fsin_exhaustive_report_lock);
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: independently process one counter shard. */
+/* independently process one counter shard. */
 static void *fsin_exhaustive_worker(void *opaque)
 {
     fsin_exhaustive_worker_t *worker = opaque;
@@ -378,7 +378,7 @@ static void *fsin_exhaustive_worker(void *opaque)
     return NULL;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: parse one unsigned command-line integer. */
+/* parse one unsigned command-line integer. */
 static uint64_t fsin_exhaustive_parse_u64(const char *text, const char *name)
 {
     char *end = NULL;
@@ -391,7 +391,7 @@ static uint64_t fsin_exhaustive_parse_u64(const char *text, const char *name)
     return (uint64_t)value;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: monotonic elapsed seconds. */
+/* monotonic elapsed seconds. */
 static double fsin_exhaustive_seconds(
     const struct timespec *start, const struct timespec *end)
 {
@@ -399,7 +399,7 @@ static double fsin_exhaustive_seconds(
         + (double)(end->tv_nsec - start->tv_nsec) / 1000000000.0;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: exhaustive comparison command-line entry point. */
+/* exhaustive comparison command-line entry point. */
 int main(int argc, char **argv)
 {
     uint64_t start = 0;

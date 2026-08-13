@@ -1,0 +1,14 @@
+#!/bin/sh
+# h589 inputs under the PAIRED schedule: sincos x rn/rd/ru.
+cd "$(dirname "$0")"
+RUNNER=/root/x87_capture_x86_64
+N=$(wc -l < h589_inputs.txt)
+for mode in rn rd ru; do
+    taskset -c 2 "$RUNNER" sincos "$mode" --status \
+        < h589_inputs.txt > "h589_sc_${mode}_status.txt" || exit 1
+done
+for mode in rn rd ru; do
+    lines=$(wc -l < "h589_sc_${mode}_status.txt")
+    [ "$lines" -eq "$N" ] || { echo "BAD count $mode: $lines"; exit 1; }
+done
+echo DONE > h589sc.done

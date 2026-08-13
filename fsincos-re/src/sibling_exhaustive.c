@@ -101,7 +101,7 @@ typedef struct {
 static pthread_mutex_t g_sibling_report_lock = PTHREAD_MUTEX_INITIALIZER;
 static uint64_t g_sibling_reports;
 
-/* NOT_FROM_ORIGINAL_SOURCE: bijective SplitMix64 output permutation. */
+/* bijective SplitMix64 output permutation. */
 static uint64_t sibling_permute(uint64_t counter, uint64_t seed)
 {
     uint64_t value = counter + seed + UINT64_C(0x9e3779b97f4a7c15);
@@ -111,7 +111,7 @@ static uint64_t sibling_permute(uint64_t counter, uint64_t seed)
 }
 
 /*
- * NOT_FROM_ORIGINAL_SOURCE: exact binary64-bit-pattern to x87-register value
+ * exact binary64-bit-pattern to x87-register value
  * conversion, including normalization of successfully loaded subnormals.
  */
 static x80_t sibling_binary64_to_x80(uint64_t bits)
@@ -144,7 +144,7 @@ static x80_t sibling_binary64_to_x80(uint64_t bits)
     return result;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: inventory the binary64 classes sampled. */
+/* inventory the binary64 classes sampled. */
 static void sibling_count_class(sibling_counts_t *counts, uint64_t bits)
 {
     unsigned exponent = (unsigned)((bits >> 52) & 0x7ffu);
@@ -166,7 +166,7 @@ static void sibling_count_class(sibling_counts_t *counts, uint64_t bits)
 }
 
 /*
- * NOT_FROM_ORIGINAL_SOURCE: classify the architecturally documented finite
+ * classify the architecturally documented finite
  * input range separately from empirical out-of-range and special behavior.
  */
 static sibling_scope_t sibling_scope(
@@ -186,7 +186,7 @@ static sibling_scope_t sibling_scope(
     return SIBLING_SCOPE_OUT_OF_RANGE;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: execute and balance one hardware F2XM1. */
+/* execute and balance one hardware F2XM1. */
 static uint16_t sibling_hardware_f2xm1(
     x80_t input, uint16_t control_word, x80_t *output)
 {
@@ -214,7 +214,7 @@ static uint16_t sibling_hardware_f2xm1(
 }
 
 /*
- * NOT_FROM_ORIGINAL_SOURCE: execute one hardware FPTAN, retaining the input on
+ * execute one hardware FPTAN, retaining the input on
  * C2 and recording both the tangent and pushed exact-one on success.
  */
 static uint16_t sibling_hardware_fptan(
@@ -260,14 +260,14 @@ static uint16_t sibling_hardware_fptan(
     return status;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: compare exact x87 result encodings. */
+/* compare exact x87 result encodings. */
 static int sibling_x80_equal(x80_t left, x80_t right)
 {
     return left.se == right.se && left.sig == right.sig;
 }
 
 /*
- * NOT_FROM_ORIGINAL_SOURCE: derive the model's magnitude-increment/C1 bit from
+ * derive the model's magnitude-increment/C1 bit from
  * its directed bounds.
  */
 static int sibling_model_c1(
@@ -292,7 +292,7 @@ static int sibling_model_c1(
     return -1;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: bounded mismatch reporting. */
+/* bounded mismatch reporting. */
 static void sibling_report(
     const sibling_worker_t *worker,
     uint64_t counter, uint64_t raw, x80_t input, unsigned mode,
@@ -328,7 +328,7 @@ static void sibling_report(
     pthread_mutex_unlock(&g_sibling_report_lock);
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: process one deterministic counter shard. */
+/* process one deterministic counter shard. */
 static void *sibling_worker(void *opaque)
 {
     sibling_worker_t *worker = opaque;
@@ -428,9 +428,15 @@ static void *sibling_worker(void *opaque)
                     model[mode], model_status[mode], model_c1,
                     hardware, hardware_status);
             }
+            /* NaN/indefinite tangents push a second copy of the result
+             * rather than exact one. */
+            x80_t expected_push =
+                (model[mode].se & 0x7fff) == 0x7fff
+                    ? model[mode]
+                    : exact_one;
             if (
                 worker->instruction == SIBLING_FPTAN
-                && !sibling_x80_equal(pushed_one, exact_one)
+                && !sibling_x80_equal(pushed_one, expected_push)
             ) {
                 worker->counts.pushed_one_misses++;
                 sibling_report(
@@ -453,7 +459,7 @@ static void *sibling_worker(void *opaque)
     return NULL;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: parse one unsigned command-line integer. */
+/* parse one unsigned command-line integer. */
 static uint64_t sibling_parse_u64(const char *text, const char *name)
 {
     char *end = NULL;
@@ -466,7 +472,7 @@ static uint64_t sibling_parse_u64(const char *text, const char *name)
     return (uint64_t)value;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: monotonic elapsed seconds. */
+/* monotonic elapsed seconds. */
 static double sibling_seconds(
     const struct timespec *start, const struct timespec *end)
 {
@@ -474,7 +480,7 @@ static double sibling_seconds(
         + (double)(end->tv_nsec - start->tv_nsec) / 1000000000.0;
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: add one worker's counters to the total. */
+/* add one worker's counters to the total. */
 static void sibling_add_counts(
     sibling_counts_t *total, const sibling_counts_t *part)
 {
@@ -501,7 +507,7 @@ static void sibling_add_counts(
 #undef SIBLING_ADD
 }
 
-/* NOT_FROM_ORIGINAL_SOURCE: exhaustive comparison command-line entry point. */
+/* exhaustive comparison command-line entry point. */
 int main(int argc, char **argv)
 {
     uint64_t start = 0;
