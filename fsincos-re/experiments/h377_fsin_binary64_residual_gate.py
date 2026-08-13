@@ -135,11 +135,13 @@ def signed_step(predicted: X80, expected: X80) -> int | str:
 
 
 def load_model(
-    model: pathlib.Path, input_text: str
+    model: pathlib.Path, input_text: str,
+    extra_flags: tuple[str, ...] = (),
 ) -> dict[str, list[X80 | None]]:
     result = {}
     for rc in RCS:
-        command = [str(model.resolve()), *MODEL_FLAGS]
+        command = [str(model.resolve()), *MODEL_FLAGS,
+                   *extra_flags]
         if rc != "rn":
             command.append(f"--rc={rc}")
         lines = subprocess.run(
@@ -186,12 +188,20 @@ def main() -> None:
         help="require complete result/C1/C2 parity",
     )
     parser.add_argument("--show-misses", type=int, default=0)
+    parser.add_argument(
+        "--model-flag",
+        action="append",
+        default=[],
+        help="extra model flag (repeatable), e.g. "
+             "--model-flag=--round58-fsin-borrow-rule",
+    )
     args = parser.parse_args()
 
     verify_fixture()
     input_text = INPUTS.read_text()
     input_lines = input_text.splitlines()
-    model = load_model(args.model, input_text)
+    model = load_model(args.model, input_text,
+                       tuple(args.model_flag))
     hardware = load_hardware()
     all_rows = tuple(model.values()) + tuple(hardware.values())
     if any(len(rows) != len(input_lines) for rows in all_rows):
