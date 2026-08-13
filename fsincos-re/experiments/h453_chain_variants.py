@@ -85,6 +85,24 @@ def recover_m(square_sig):
     return None
 
 
+def recover_m_branches(square_sig):
+    """Both sqrt(2)-branch inverses of a chop67 square pattern
+    (h630: chop67(s^2) patterns are satisfiable from the
+    127-bit AND 128-bit square branches, values sqrt(2) apart;
+    recover_m returns only one and picks wrongly on ~250 of
+    282k corpus rows).  Callers must validate against known
+    downstream values (e.g. traced chains)."""
+    out = []
+    for s in (58, 59, 60, 61):
+        m = math.isqrt(square_sig << s)
+        for cand in (m - 1, m, m + 1, m + 2):
+            sq = cand * cand
+            if sq >> s == square_sig and                     sq.bit_length() - 67 == s:
+                if cand not in out:
+                    out.append(cand)
+    return out
+
+
 def build_chain(fourth, c_lead, c_mid, c_last, prod_bits, add_bits,
                 add_mode, fuse_last, fuse_all, sticky):
     """One Horner chain: lead const -> xf4 -> +mid -> xf4 -> +last."""
