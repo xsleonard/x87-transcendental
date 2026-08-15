@@ -225,34 +225,9 @@ static int fsin_exhaustive_model_c1(
  */
 static void fsin_exhaustive_configure_model(void)
 {
-    g_round18_poly = 1;
-    g_round21_narrow_bias = 4;
-    g_round21_wide_bias = 5;
-    g_round23_narrow_coefficient = 1;
-    g_round24_table_delta_rn67 = 1;
-    g_round29_p5_fmul_route = 1;
-    g_round30_fsin_cosine_square = 1;
-    g_round31_fsin_cosine_tail = 1;
-    g_round32_fsin_cosine_horner = 1;
-    g_round33_fsin_cosine_product = 1;
-    g_round34_table_lookup_firc = 1;
-    g_round35_table_p_terminal = 1;
-    g_round36_table_fadd_microcontrol = 1;
-    g_round37_p6_four_term = 1;
-    g_round38_p6_cosine_split = 1;
-    g_round39_fcos_tiny = 1;
-    g_round40_fsincos_tiny = 1;
-    g_round41_fsin_cosine_split = 1;
-    g_round42_p6_sine_split = 1;
-    g_round43_p6_sine_bias = 1;
-    g_round44_p6_sine_bias = 1;
-    g_round45_p6_sine_fraction = 1;
-    g_round46_p6_narrow_sine_fraction = 1;
-    g_round47_p6_narrow_sine_fraction = 1;
-    g_round48_p6_narrow_sine_fraction = 1;
-    g_round49_p6_carrier_interval = 1;
-    g_round50_fsin_operation_classes = 1;
-    g_round51_fsin_fadd_signature = 1;
+    /* the validated rounds are inlined unconditionally in
+     * fsincos_skylake.c (2026-08-15 master-algorithm fold); only
+     * the instruction-path selector remains configurable. */
     g_fsin_standalone_path = 1;
 }
 

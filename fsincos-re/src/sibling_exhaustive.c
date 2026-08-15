@@ -562,8 +562,6 @@ int main(int argc, char **argv)
             mode_mask = 1u << SIBLING_RU;
         } else if (!strcmp(argument, "--mode=all")) {
             mode_mask = (1u << SIBLING_MODE_COUNT) - 1;
-        } else if (!strcmp(argument, "--round66-fptan-lane-exact")) {
-            g_round66_fptan_lane_exact = 1;
         } else {
             fprintf(stderr, "unknown argument: %s\n", argument);
             return 2;
