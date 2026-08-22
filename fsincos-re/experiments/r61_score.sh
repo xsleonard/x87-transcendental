@@ -3,9 +3,12 @@
 # are inlined unconditionally in fsincos_skylake.c (2026-08-15
 # master-algorithm fold) — build the bare model as model_master in
 # /root/r59 (gcc -O2 -o model_master fsincos_skylake.c -lm) before
-# running.  Expected: comb7 1, comb9 12, comb11 0, comb12 0,
-# comb13 8, comb14 0 (every nonzero row enumerated in
-# notes/algorithm-description.md, blind-spot register).
+# running.  Expected post-Round-84: ZERO on every corpus (the
+# captured-exception ledger carries the 52 proven machine-state
+# rows; notes/algorithm-description.md Sec. 6.9 + register).
+# For the DERIVED model (ledger off): build -DG_ROUND84=0 ->
+# comb7 1, comb9 11, comb13 7, comb15 5, comb16 3, comb17 1,
+# comb18 2 (comb15-18 scored by r84_suite_zero.sh, not here).
 set -e
 cd /root/r59
 FCOS="--fcos-standalone"

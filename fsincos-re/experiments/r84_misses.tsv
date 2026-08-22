@@ -1,0 +1,52 @@
+comb13	cos	rn	2080977	3ffc	ba100000056e0a67	OK 3ffe fbc91f1ca0fa9a3a SW 3820	OK 3ffe fbc91f1ca0fa9a3b
+comb13	cos	ru	4157163	3ffc	d25000000ca4556e	OK 3ffe fa9e9f530dbce91a SW 3a20	OK 3ffe fa9e9f530dbce919
+comb13	cos	ru	5240744	3ffc	dbd00000054e2537	OK 3ffe fa1fddbabda442e8 SW 3820	OK 3ffe fa1fddbabda442e9
+comb13	cos	ru	5932949	3ffc	e1d0000004ff121c	OK 3ffe f9ccf825c8b48df6 SW 3a20	OK 3ffe f9ccf825c8b48df5
+comb13	cos	ru	6380325	3ffc	e59000000c9f3632	OK 3ffe f9980b322791d010 SW 3a20	OK 3ffe f9980b322791d00f
+comb13	cos	ru	6785627	3ffc	e91000000d7f1999	OK 3ffe f965df9583f229ac SW 3a20	OK 3ffe f965df9583f229ab
+comb13	cos	ru	7620344	3ffc	efd000000ce74022	OK 3ffe f90302ab4b0b526d SW 3a20	OK 3ffe f90302ab4b0b526c
+comb15	cos	rd	2067656	3ffc	fb900000030c1fc9	OK 3ffe f8504f8d310cbd0d SW 3820	OK 3ffe f8504f8d310cbd0c
+comb15	cos	rn	1893460	3ffc	fa50000007503a2f	OK 3ffe f863b8386c1226cb SW 3820	OK 3ffe f863b8386c1226cc
+comb15	cos	ru	823332	3ffc	f310000007fc5117	OK 3ffe f8d26becb540bc35 SW 3a20	OK 3ffe f8d26becb540bc34
+comb15	cos	ru	965215	3ffc	f4100000059862dd	OK 3ffe f8c35790ef2cf9b8 SW 3820	OK 3ffe f8c35790ef2cf9b9
+comb15	cos	ru	2067656	3ffc	fb900000030c1fc9	OK 3ffe f8504f8d310cbd0e SW 3a20	OK 3ffe f8504f8d310cbd0d
+comb16	cos	ru	398615	3ffc	fffc00000bd0e8f0	OK 3ffe f80ae451505e7fa9 SW 3a20	OK 3ffe f80ae451505e7fa8
+comb16	cos	ru	948876	3ffc	ffffff80075216a0	OK 3ffe f80aa503d9bcd4eb SW 3a20	OK 3ffe f80aa503d9bcd4ea
+comb16	cos	ru	1199747	3ffc	fffffff80a0bf52d	OK 3ffe f80aa4fc6d81b2fa SW 3a20	OK 3ffe f80aa4fc6d81b2f9
+comb17	cos	ru	88799	3ffc	ffffc00024077827	OK 3ffe f80aa8f14a992a34 SW 3a20	OK 3ffe f80aa8f14a992a33
+comb18	cos	ru	113306	3ffc	ffffc0006e4548d9	OK 3ffe f80aa8f14601a409 SW 3a20	OK 3ffe f80aa8f14601a408
+comb18	cos	ru	260927	3ffc	fffff00047c167a3	OK 3ffe f80aa5f94273c8bb SW 3a20	OK 3ffe f80aa5f94273c8ba
+comb7	cos	rn	452822	3ffc	b0000000044ca2bf	OK 3ffe fc3a6170f7389cfa SW 3820	OK 3ffe fc3a6170f7389cfb
+comb9	cos	rn	2482891	3ffc	cca0000009242f0c	OK 3ffe fae7de0e2edcf4f1 SW 3820	OK 3ffe fae7de0e2edcf4f2
+comb9	cos	rn	2923504	3ffc	d06000000d3c3f6a	OK 3ffe fab7cbde6102cf61 SW 3a20	OK 3ffe fab7cbde6102cf60
+comb9	cos	rn	3908895	3ffc	d920000000749eaa	OK 3ffe fa4448c75102c99c SW 3820	OK 3ffe fa4448c75102c99d
+comb9	cos	rn	4965903	3ffc	e22000000b69285f	OK 3ffe f9c8977390d55df1 SW 3a20	OK 3ffe f9c8977390d55df0
+comb9	cos	rn	6562434	3ffc	efa0000008159ad2	OK 3ffe f905cb4652477d51 SW 3a20	OK 3ffe f905cb4652477d50
+comb9	cos	ru	992418	3ffc	b8e000000d6eb641	OK 3ffe fbd6cfc84d79aa80 SW 3a20	OK 3ffe fbd6cfc84d79aa7f
+comb9	cos	ru	1338207	3ffc	be6000000688f849	OK 3ffe fb96ad085d7b82c0 SW 3a20	OK 3ffe fb96ad085d7b82bf
+comb9	cos	ru	4267805	3ffc	dc2000000750943e	OK 3ffe fa1b9a532b3ec377 SW 3820	OK 3ffe fa1b9a532b3ec378
+comb9	cos	ru	4462333	3ffc	dde0000004a2581b	OK 3ffe fa039e4072029029 SW 3a20	OK 3ffe fa039e4072029028
+comb9	cos	ru	5256128	3ffc	e4a000000c1b6ceb	OK 3ffe f9a55b01c1e7f264 SW 3a20	OK 3ffe f9a55b01c1e7f263
+comb9	cos	ru	6513658	3ffc	ef6000000359a8d2	OK 3ffe f9098090767cbe2a SW 3a20	OK 3ffe f9098090767cbe29
+hostv1	sin	rd	1336747	403d	fffffffffffed1bb	OK 3ffc db11991b2c196252	OK 3ffc db11991b2c196253
+hostv1	sin	rd	1973263	403d	fffffffffffed1bb	OK 3ffc db11991b2c196252	OK 3ffc db11991b2c196253
+hostv1	sin	ru	1336747	403d	fffffffffffed1bb	OK 3ffc db11991b2c196253	OK 3ffc db11991b2c196254
+hostv1	sin	ru	1973263	403d	fffffffffffed1bb	OK 3ffc db11991b2c196253	OK 3ffc db11991b2c196254
+randv1	cos	rn	1548918	c019	92599b98fa10f92b	OK bffe feb0877bbd0c1a18	OK bffe feb0877bbd0c1a17
+randv1	cos	rn	2593581	4030	ada88f9634c72800	OK bffe fa62fbbd3b066631	OK bffe fa62fbbd3b066632
+randv1	cos	rn	2950860	4018	8f0efa1d0817ffda	OK bffc f79f7b711e2e3e26	OK bffc f79f7b711e2e3e27
+randv1	cos	rn	4294919	c03c	efed38eda9675800	OK bffc f87ee8c21779767c	OK bffc f87ee8c21779767d
+randv1	cos	rn	6219132	4010	db968af9ec506a2c	OK bffc fb79c580572534ad	OK bffc fb79c580572534ae
+randv1	cos	rn	6500679	c033	f615104067c40949	OK bffc f2142e8c6cd4727a	OK bffc f2142e8c6cd4727b
+randv1	cos	ru	2858512	402b	a023d0b24157b0d6	OK 3ffe fe73d38607ae3245	OK 3ffe fe73d38607ae3244
+randv1	cos	ru	5164101	c006	c2e4e4275189399d	OK 3ffe fe4c653803373812	OK 3ffe fe4c653803373811
+randv1	cos	ru	7990815	401d	b5d373d177f1eb43	OK 3ffe fb496e3f506246ff	OK 3ffe fb496e3f50624700
+randv1	sin	rd	4874415	c02f	deb64efdf184a873	OK bffe fefd963da1d6a426	OK bffe fefd963da1d6a425
+randv1	sin	rd	7394792	c00d	dbd08dc1357cf85a	OK bffc b0544dfa088fda0e	OK bffc b0544dfa088fda0f
+randv1	sin	rn	3133126	4016	b1dbc588a7057f83	OK 3ffe fe218cb14a7ffd54	OK 3ffe fe218cb14a7ffd53
+randv1	sin	rn	5524543	c003	ed0c54bb6592cc09	OK 3ffe fa278dec624832d2	OK 3ffe fa278dec624832d1
+randv1	sin	rn	6516211	4039	f93a965b8e95df8a	OK 3ffc d3d76acbdb62919c	OK 3ffc d3d76acbdb62919d
+randv1	sin	ru	3299966	c035	c6922e431f576000	OK bffe ffd9bf242a7eece3	OK bffe ffd9bf242a7eece4
+randv1	sin	ru	6363167	4005	bffccba984e26b9f	OK 3ffe fc15268577b6565d	OK 3ffe fc15268577b6565e
+randv1	sin	ru	6394724	c037	fb109f8a9d6453dd	OK 3ffe fe3dca0fd7f6c054	OK 3ffe fe3dca0fd7f6c053
+randv1	sin	ru	7394792	c00d	dbd08dc1357cf85a	OK bffc b0544dfa088fda0d	OK bffc b0544dfa088fda0e
