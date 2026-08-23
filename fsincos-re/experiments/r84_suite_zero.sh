@@ -1,7 +1,8 @@
 #!/bin/bash
-# THE STANDING FULL-SUITE REGRESSION (post-Round-84): asserts the
+# THE STANDING FULL-SUITE REGRESSION (post-Round-85): asserts the
 # bare build is at ZERO on every banked i7 suite corpus — randv1
-# (FCOS+FSIN x rn/rd/ru), hostv1 (same), comb7-18 (FCOS x 3 modes).
+# (FCOS+FSIN x rn/rd/ru/rz), hostv1 (same), comb7-18 (FCOS x 4 modes;
+# rz captures landed 2026-08-23, epoch-probed 50/50 both sides).
 # Streaming (model output piped straight into the comparator;
 # nothing stored — the box runs near disk capacity).  Companion:
 # r58_vm.sh (VM FSIN five corpora).  Any nonzero line here is a NEW
@@ -29,6 +30,7 @@ fail=0
 job() { # corpus insn mode
   local corp=$1 insn=$2 mode=$3 RC="" FL="--fcos-standalone" hw
   [ $mode = rd ] && RC="--rc=rd"; [ $mode = ru ] && RC="--rc=ru"
+  [ $mode = rz ] && RC="--rc=rz"
   [ $insn = sin ] && FL="--fsin-standalone"
   if [ $corp = randv1 ] || [ $corp = hostv1 ]; then
     hw=/root/h491/${corp}_${insn}_${mode}_hw_status.txt
@@ -40,10 +42,10 @@ job() { # corpus insn mode
 }
 for corp in randv1 hostv1; do
   for insn in cos sin; do
-    for mode in rn rd ru; do job $corp $insn $mode || fail=1; done
+    for mode in rn rd ru rz; do job $corp $insn $mode || fail=1; done
   done
 done
 for corp in comb7 comb9 comb11 comb12 comb13 comb14 comb15 comb16 comb17 comb18; do
-  for mode in rn rd ru; do job $corp cos $mode || fail=1; done
+  for mode in rn rd ru rz; do job $corp cos $mode || fail=1; done
 done
 [ $fail = 0 ] && echo "SUITE_ZERO_OK" || { echo "SUITE_NONZERO"; exit 1; }

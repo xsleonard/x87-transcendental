@@ -27,7 +27,7 @@ for r in rows:
         merged[k] = r
 out = sorted(merged.values(), key=lambda r: (r["sig"], r["se"], r["insn"], r["mode"]))
 IN = {"cos": "R84_FCOS", "sin": "R84_FSIN"}
-MO = {"rn": "SF_RN", "rd": "SF_RD", "ru": "SF_RU"}
+MO = {"rn": "SF_RN", "rd": "SF_RD", "ru": "SF_RU", "rz": "SF_RZ"}
 print(f"/* rows: {len(rows)} raw, {len(out)} unique keys */")
 for r in out:
     d = (r["osig"] - r["mosig"]) & 0xFFFFFFFFFFFFFFFF

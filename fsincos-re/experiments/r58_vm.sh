@@ -7,11 +7,12 @@ set -e
 cd /home/coduoserver/fsincos-residual-20260807-1
 make -C src fsincos_skylake 2>&1 | tail -1
 FSIN="--fsin-standalone"
+# rz captures landed 2026-08-23 (vm_rz.sh); all four modes gated.
 score () {
   local name=$1 infile=$2 hwpat=$3
   local tot=0
-  for mode in rn rd ru; do
-    RC=""; [ $mode = rd ] && RC="--rc=rd"; [ $mode = ru ] && RC="--rc=ru"
+  for mode in rn rd ru rz; do
+    RC=""; [ $mode = rd ] && RC="--rc=rd"; [ $mode = ru ] && RC="--rc=ru"; [ $mode = rz ] && RC="--rc=rz"
     src/fsincos_skylake --batch $RC $FSIN < $infile > h410/tmp_$mode.txt
     tot=$((tot + $(python3 - "$hwpat" "$mode" <<'PYEOF'
 import sys
