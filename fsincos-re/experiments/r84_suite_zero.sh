@@ -5,7 +5,9 @@
 # rz captures landed 2026-08-23, epoch-probed 50/50 both sides).
 # Streaming (model output piped straight into the comparator;
 # nothing stored — the box runs near disk capacity).  Companion:
-# r58_vm.sh (VM FSIN five corpora).  Any nonzero line here is a NEW
+# vmfsin_check.sh (promoted build vs banked VM-captured FSIN truth,
+# h347+sweep+dense x rn/rd/ru; r58_vm.sh is DEAD — the VM working
+# tree was deleted 2026-08-26, see HANDOFF h908).  Any nonzero line here is a NEW
 # OPEN PROBLEM: census it and decide (derive / isolate / ledger
 # WITH a suite gate) — never silently append to r84_ledger[].
 set -e
