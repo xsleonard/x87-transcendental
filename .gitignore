@@ -26,3 +26,6 @@ fsincos-re/src/standalone/
 *.tar.gz
 *.gz
 fsincos-re/stageA/
+
+# Regenerable pandoc render of the paper (see paper/README.md).
+fsincos-re/paper/skylake-x87-preview.html
