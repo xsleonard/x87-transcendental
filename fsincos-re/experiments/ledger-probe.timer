@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily x87 ledger epoch probe
+
+[Timer]
+OnCalendar=*-*-* 04:17:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

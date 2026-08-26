@@ -1,4 +1,7 @@
 #!/bin/bash
+# DEPRECATED (2026-08-26): paths died with the VM working tree
+# (h908).  Successor: vm_probe_ledger.sh (home /root/fsincos-r88/
+# probe/ on the VM, installed on cron; see HANDOFF h910).
 set -e
 cd /tmp/vmepoch
 for insn in cos sin; do

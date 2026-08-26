@@ -1,0 +1,6 @@
+[Unit]
+Description=x87 ledger epoch probe (capture 40 keys, compare to banked labels)
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /root/r84/probe_cron.sh
