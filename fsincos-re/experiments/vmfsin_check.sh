@@ -6,6 +6,9 @@
 # h405/h409 and all VM-side RZ captures are lost (inputs were
 # VM-local).  Comparison host: i7; truth: VM silicon captures
 # (skylake-trig-h347 2026-07-22, skylake-perinsn-20260807).
+# RZ legs restored 2026-08-26 (re-captured on the re-provisioned VM,
+# /root/fsincos-r88, banked in capture-kit-captures/
+# skylake-vm-r88-rz-20260826/) — the check now covers all four modes.
 set -e
 cd /root/r84
 cat > /tmp/vmf_cmp.py <<'PYEOF'
@@ -23,10 +26,13 @@ print(f"{tag}: {bad} / {n}")
 sys.exit(0 if bad == 0 else 1)
 PYEOF
 fail=0
-for mode in rn rd ru; do
+for mode in rn rd ru rz; do
   RC=""; [ $mode = rd ] && RC="--rc=rd"; [ $mode = ru ] && RC="--rc=ru"
+  [ $mode = rz ] && RC="--rc=rz"
+  h347hw=vmfsin/fsin_${mode}_status.txt
+  [ $mode = rz ] && h347hw=vmfsin/h347_fsin_rz.txt
   ./model_suite --batch $RC --fsin-standalone < vmfsin/h347_inputs.txt \
-    | python3 /tmp/vmf_cmp.py vmfsin/fsin_${mode}_status.txt vm_h347_$mode || fail=1
+    | python3 /tmp/vmf_cmp.py $h347hw vm_h347_$mode || fail=1
   ./model_suite --batch $RC --fsin-standalone < vmfsin/sweep_inputs.txt \
     | python3 /tmp/vmf_cmp.py vmfsin/sweep_fsin_${mode}.txt vm_sweep_$mode || fail=1
   ./model_suite --batch $RC --fsin-standalone < vmfsin/dense_qn.txt \
