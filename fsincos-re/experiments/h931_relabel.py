@@ -14,7 +14,12 @@ for ln in open("act_tail.tsv"):
     if len(t) != 9:
         continue
     n += 1
-    tag, seed, insn, mode, row, op, hw = t[0], t[1], t[2], t[3], t[4], t[5], t[6]
+    # act_tail columns: tag seed insn mode row op payB payLF hw
+    # (h946 FIX: t[6] is the payB scanner output, NOT hardware —
+    #  the real capture is t[8]; the original read produced the
+    #  phantom h931 census, see HANDOFF h946 entry.)
+    tag, seed, insn, mode, row, op, hw = \
+        t[0], t[1], t[2], t[3], t[4], t[5], t[8]
     h = hw.split()
     if len(h) != 3 or h[0] != "OK":
         continue
