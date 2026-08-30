@@ -70,6 +70,18 @@ ARM = TERM + """#if G_R94BAND
 """
 src = src.replace(TERM, ARM)
 
+# Zero the verdict at every producer entry: FSINCOS/FPTAN run the
+# terminal with no consumer, and early-exit paths (exact zero, NaN,
+# C2) skip the terminal entirely — without this, a stale adjust from
+# a prior call would decrement an unrelated early-exit result.
+CORE = ("static fsincos_status_t sincos_core"
+        "(sf_t x, int n_inc, sf_rc_t rc, sf_t *out)\n{\n")
+assert src.count(CORE) == 1
+src = src.replace(CORE, CORE + """#if G_R94BAND
+    g_r94_adjust = 0;
+#endif
+""")
+
 def app(fn_anchor):
     global src
     assert src.count(fn_anchor) == 1, fn_anchor
@@ -85,7 +97,7 @@ def app(fn_anchor):
         }
     }
 #endif
-    """ % {"out": fn_anchor.split("r84_lookup(in, ")[1].split(", ")[1].rstrip(");\n").split(")")[0]}
+    """ % {"out": fn_anchor.split("r84_lookup(in, ")[1].split(", ")[2].split(")")[0]}
     src = src.replace(fn_anchor, APPLY + fn_anchor)
 
 app("(void)r84_lookup(in, R84_FSIN, rc, sin_out);\n    return FSINCOS_OK;\n}\n\n/* single-output entry point")
