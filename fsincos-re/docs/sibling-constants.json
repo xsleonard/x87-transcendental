@@ -1,0 +1,757 @@
+{
+  "format": "x87-sibling-literals-v1",
+  "encoding": "value = (-1)^sign * integer(significand,16) * 2^scale",
+  "sources": {
+    "src/p5_rom_constants.h": "2189e0063c913ee4004e09c8b80cb17afb16c95715ea579854e152088bbfce97",
+    "src/f2xm1_constants.h": "3ffc62ca492bb03c70a07f8a25976e24d575590532e502d6cf70736a0981692b",
+    "data/pentium-rom/rom-constants.tsv": "9acd2722114318f3f03e46b51be8dbf6794fda853b7148599e3fcb1e2df5d882"
+  },
+  "constants": {
+    "S6": [
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "55555555555555555",
+        "rom_row": 157
+      },
+      {
+        "sign": 0,
+        "scale": -73,
+        "significand": "44444444444443e35",
+        "rom_row": 158
+      },
+      {
+        "sign": 1,
+        "scale": -79,
+        "significand": "6806806806773c774",
+        "rom_row": 159
+      },
+      {
+        "sign": 0,
+        "scale": -85,
+        "significand": "5c778e94f50956d70",
+        "rom_row": 160
+      },
+      {
+        "sign": 1,
+        "scale": -92,
+        "significand": "6b991122efa0532f0",
+        "rom_row": 161
+      },
+      {
+        "sign": 0,
+        "scale": -99,
+        "significand": "58303f02614d5e4d8",
+        "rom_row": 162
+      }
+    ],
+    "C6": [
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "7fffffffffffffffe",
+        "rom_row": 163
+      },
+      {
+        "sign": 0,
+        "scale": -71,
+        "significand": "55555555555554277",
+        "rom_row": 164
+      },
+      {
+        "sign": 1,
+        "scale": -76,
+        "significand": "5b05b05b05a18a1ba",
+        "rom_row": 165
+      },
+      {
+        "sign": 0,
+        "scale": -82,
+        "significand": "680680675b559f2cf",
+        "rom_row": 166
+      },
+      {
+        "sign": 1,
+        "scale": -88,
+        "significand": "49f93af61f5349300",
+        "rom_row": 167
+      },
+      {
+        "sign": 0,
+        "scale": -95,
+        "significand": "47a4f2483514c1af8",
+        "rom_row": 168
+      }
+    ],
+    "S4": [
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "55555555555555445",
+        "rom_row": 169
+      },
+      {
+        "sign": 0,
+        "scale": -73,
+        "significand": "44444444443a3fdb6",
+        "rom_row": 170
+      },
+      {
+        "sign": 1,
+        "scale": -79,
+        "significand": "68068060b2044e9ae",
+        "rom_row": 171
+      },
+      {
+        "sign": 0,
+        "scale": -85,
+        "significand": "5d75716e60f321240",
+        "rom_row": 172
+      }
+    ],
+    "C4": [
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "7fffffffffffffa28",
+        "rom_row": 173
+      },
+      {
+        "sign": 0,
+        "scale": -71,
+        "significand": "555555555539cfae6",
+        "rom_row": 174
+      },
+      {
+        "sign": 1,
+        "scale": -76,
+        "significand": "5b05b050f31b2e713",
+        "rom_row": 175
+      },
+      {
+        "sign": 0,
+        "scale": -82,
+        "significand": "6803988d56e3bff10",
+        "rom_row": 176
+      }
+    ],
+    "F2_LN2": {
+      "sign": 0,
+      "scale": -67,
+      "significand": "58b90bfbe8e7bcd5e",
+      "rom_row": 32
+    },
+    "F2_LONG": [
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "40000000000000000",
+        "rom_row": 39
+      },
+      {
+        "sign": 0,
+        "scale": -69,
+        "significand": "5555555555555558e",
+        "rom_row": 40
+      },
+      {
+        "sign": 0,
+        "scale": -71,
+        "significand": "5555555555555558b",
+        "rom_row": 41
+      },
+      {
+        "sign": 0,
+        "scale": -73,
+        "significand": "444444444443db621",
+        "rom_row": 42
+      },
+      {
+        "sign": 0,
+        "scale": -76,
+        "significand": "5b05b05b05afd42f4",
+        "rom_row": 43
+      },
+      {
+        "sign": 0,
+        "scale": -79,
+        "significand": "68068068163b44194",
+        "rom_row": 44
+      },
+      {
+        "sign": 0,
+        "scale": -82,
+        "significand": "6806806815d1b6d8a",
+        "rom_row": 45
+      },
+      {
+        "sign": 0,
+        "scale": -85,
+        "significand": "5c778d8e0384c73ab",
+        "rom_row": 46
+      },
+      {
+        "sign": 0,
+        "scale": -88,
+        "significand": "49f93e0ef41d6086b",
+        "rom_row": 47
+      },
+      {
+        "sign": 0,
+        "scale": -92,
+        "significand": "6ba8b65b40f9c0ce8",
+        "rom_row": 48
+      },
+      {
+        "sign": 0,
+        "scale": -95,
+        "significand": "47c5b695d0d1289a8",
+        "rom_row": 49
+      }
+    ],
+    "F2_SHORT": [
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "40000000000000000",
+        "rom_row": 39
+      },
+      {
+        "sign": 0,
+        "scale": -69,
+        "significand": "5555555555555584f",
+        "rom_row": 34
+      },
+      {
+        "sign": 0,
+        "scale": -71,
+        "significand": "555555555397fffd4",
+        "rom_row": 35
+      },
+      {
+        "sign": 0,
+        "scale": -73,
+        "significand": "444444444250ced0c",
+        "rom_row": 36
+      },
+      {
+        "sign": 0,
+        "scale": -76,
+        "significand": "5b05c3dd3901cea50",
+        "rom_row": 37
+      },
+      {
+        "sign": 0,
+        "scale": -79,
+        "significand": "6806988938f4f2318",
+        "rom_row": 38
+      }
+    ],
+    "F2_TABLE": [
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "6dfb23c651a2ef221",
+        "rom_row": 50
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "75feb564267c8bf6f",
+        "rom_row": 51
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "7e2f336cf4e62105d",
+        "rom_row": 52
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "4346ccda249764072",
+        "rom_row": 53
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "478d74c8abb9b15cc",
+        "rom_row": 54
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "4bec14fef2727c5cf",
+        "rom_row": 55
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "506333daef2b2594d",
+        "rom_row": 56
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "54f35aabcfedfa1f6",
+        "rom_row": 57
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "599d15c278afd7b60",
+        "rom_row": 58
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "5e60f4825e0e9123e",
+        "rom_row": 59
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "633f8972be8a5a511",
+        "rom_row": 60
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "68396a503c4bdc688",
+        "rom_row": 61
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "6d4f301ed9942b846",
+        "rom_row": 62
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "7281773c59ffb139f",
+        "rom_row": 63
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "77d0df730ad13bb90",
+        "rom_row": 64
+      },
+      {
+        "sign": 0,
+        "scale": -67,
+        "significand": "7d3e0c0cf486c1748",
+        "rom_row": 65
+      },
+      {
+        "sign": 0,
+        "scale": -69,
+        "significand": "642e1f899b0626a74",
+        "rom_row": 66
+      },
+      {
+        "sign": 0,
+        "scale": -69,
+        "significand": "6ad8abf253fe1928c",
+        "rom_row": 67
+      },
+      {
+        "sign": 0,
+        "scale": -69,
+        "significand": "7195cda0bb0cb0b54",
+        "rom_row": 68
+      },
+      {
+        "sign": 0,
+        "scale": -69,
+        "significand": "7865b862751c90800",
+        "rom_row": 69
+      },
+      {
+        "sign": 0,
+        "scale": -69,
+        "significand": "7f48a09590037417f",
+        "rom_row": 70
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "431f5d950a896dc70",
+        "rom_row": 71
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "46a41ed1d00577251",
+        "rom_row": 72
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "4a32af0d7d3de672e",
+        "rom_row": 73
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "4dcb299fddd0d63b3",
+        "rom_row": 74
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "516daa2cf6641c113",
+        "rom_row": 75
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "551a4ca5d920ec52f",
+        "rom_row": 76
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "58d12d497c7fd252c",
+        "rom_row": 77
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "5c9268a5946b701c5",
+        "rom_row": 78
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "605e1b976dc08b077",
+        "rom_row": 79
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "6434634ccc31fc770",
+        "rom_row": 80
+      },
+      {
+        "sign": 0,
+        "scale": -68,
+        "significand": "68155d44ca973081c",
+        "rom_row": 81
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "4cee3bed56eedb76c",
+        "rom_row": 82
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "50c4875296f5bc8b2",
+        "rom_row": 83
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "5485c64a56c12cc8a",
+        "rom_row": 84
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "58326c4b169aca966",
+        "rom_row": 85
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "5bcaea51f6197f61f",
+        "rom_row": 86
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "5f4faef0468eb03de",
+        "rom_row": 87
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "62c12658d30048af2",
+        "rom_row": 88
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "661fba6cdf48059b2",
+        "rom_row": 89
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "696bd2c8dfe7a5ffb",
+        "rom_row": 90
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "6ca5d4d0ec1916d43",
+        "rom_row": 91
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "6fce23bceb994e239",
+        "rom_row": 92
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "72e520a481a4561a5",
+        "rom_row": 93
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "75eb2a8ab6910265f",
+        "rom_row": 94
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "78e09e696172efefc",
+        "rom_row": 95
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "7bc5d73c5321bfb9e",
+        "rom_row": 96
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "7e9b2e0c43fcf88c8",
+        "rom_row": 97
+      },
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "53c94402c0c863f24",
+        "rom_row": 98
+      },
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "58661eccf4ca790d2",
+        "rom_row": 99
+      },
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "5cf6413b5d2cca73f",
+        "rom_row": 100
+      },
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "6179ce61cdcdce7db",
+        "rom_row": 101
+      },
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "65f0e8f35f84645cf",
+        "rom_row": 102
+      },
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "6a5bb3437adf1164b",
+        "rom_row": 103
+      },
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "6eba4f46e003a775a",
+        "rom_row": 104
+      },
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "730cde94abb7410d5",
+        "rom_row": 105
+      },
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "775382675996699ad",
+        "rom_row": 106
+      },
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "7b8e5b9dc385331ad",
+        "rom_row": 107
+      },
+      {
+        "sign": 1,
+        "scale": -69,
+        "significand": "7fbd8abc1e5ee49f2",
+        "rom_row": 108
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "41f097f679f66c1db",
+        "rom_row": 109
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "43fcb5810d1604f33",
+        "rom_row": 110,
+        "published_significand": "43fcb5810d1604f37",
+        "correction": "Saved published literal differs; use the validated replacement listed here."
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "46032dbad3f462152",
+        "rom_row": 111
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "48041035735be183c",
+        "rom_row": 112
+      },
+      {
+        "sign": 1,
+        "scale": -68,
+        "significand": "49ff6c57a12a08945",
+        "rom_row": 113
+      }
+    ],
+    "TABLE": {
+      "18": [
+        {
+          "sign": 0,
+          "scale": -68,
+          "significand": "470df5931ae1d9460",
+          "rom_row": 181
+        },
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "7af8853ddbbe9efd0",
+          "rom_row": 189,
+          "published_significand": "7af8853ddbbe9ffd0",
+          "correction": "Saved published literal differs; use the validated replacement listed here."
+        }
+      ],
+      "22": [
+        {
+          "sign": 0,
+          "scale": -68,
+          "significand": "5646f27e8bd65cbe4",
+          "rom_row": 182
+        },
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "7882fd26b35b03d34",
+          "rom_row": 190
+        }
+      ],
+      "26": [
+        {
+          "sign": 0,
+          "scale": -68,
+          "significand": "6529afa7d51b12963",
+          "rom_row": 183
+        },
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "7594fc1cf900fe89e",
+          "rom_row": 191
+        }
+      ],
+      "30": [
+        {
+          "sign": 0,
+          "scale": -68,
+          "significand": "73a74b8f52947b682",
+          "rom_row": 184
+        },
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "72316fe3386a10d5a",
+          "rom_row": 192
+        }
+      ],
+      "36": [
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "44434312da70edd92",
+          "rom_row": 177
+        },
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "6c4741058a93188ef",
+          "rom_row": 185
+        }
+      ],
+      "44": [
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "513ace073ce1aac13",
+          "rom_row": 178
+        },
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "62ec4169772401864",
+          "rom_row": 186,
+          "published_significand": "62ec41e9772401864",
+          "correction": "Saved published literal differs; use the validated replacement listed here."
+        }
+      ],
+      "52": [
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "5cedda037a95df6ee",
+          "rom_row": 179
+        },
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "5806149bd58f7d46d",
+          "rom_row": 187
+        }
+      ],
+      "60": [
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "672daa6ef3992b586",
+          "rom_row": 180
+        },
+        {
+          "sign": 0,
+          "scale": -67,
+          "significand": "4bc044c9908390c72",
+          "rom_row": 188
+        }
+      ]
+    }
+  }
+}

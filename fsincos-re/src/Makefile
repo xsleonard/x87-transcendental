@@ -44,6 +44,14 @@ check-fsin-h377: fsincos_skylake
 check-paired-regressions: fsincos_skylake
 	python3 test_general_paired.py ./fsincos_skylake
 
+# Saved F2XM1 storage, double-rounding, sign/control and normal-boundary cases.
+test_f2xm1_driver: test_f2xm1_driver.c fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h \
+		general/standalone_polynomial.h general/standalone_table.h general/standalone_tiny.h general/paired.h
+	$(CC) $(CFLAGS) -Wno-unused-const-variable -o $@ test_f2xm1_driver.c $(LDLIBS)
+
+check-f2xm1-regressions: test_f2xm1_driver
+	python3 test_f2xm1.py ./test_f2xm1_driver
+
 test: fsincos_itanium
 	./fsincos_itanium --selftest
 	python3 test_fma_oracle.py ./fsincos_itanium
@@ -51,8 +59,8 @@ test: fsincos_itanium
 
 clean:
 	for file in fsincos_itanium fsincos_skylake fsincos_ref fsin_exhaustive sibling_exhaustive \
-		standalone/fsin_model standalone/fptan_model standalone/f2xm1_model; do \
+		test_f2xm1_driver standalone/fsin_model standalone/fptan_model standalone/f2xm1_model; do \
 		[ ! -e "$$file" ] || rm "$$file"; \
 	done
 
-.PHONY: all standalone general-candidate check-fsin-h377 check-paired-regressions test clean
+.PHONY: all standalone general-candidate check-fsin-h377 check-paired-regressions check-f2xm1-regressions test clean
