@@ -1,20 +1,10 @@
-/* H1713: promoted minimal H1710 paired FSINCOS numerical program.
- * H1712's frozen adversarial hardware campaign and the full retained census
- * validate this fixed last-product materialization. No policy selector,
+/* H1717: promoted all-product H1710 paired FSINCOS numerical program.
+ * The independent review separates this schedule from H1713's last-product
+ * schedule. Every Horner product is CHOP67 before its RN64 add. No policy selector,
  * captured operands or history patches participate in the promoted route.
  * Shared reduction/table/tiny arithmetic is unchanged from H1708.
  * This is a behavioral graph, not a claim that silicon uses a fused unit.
  */
-static wv_t general_paired_fma_rn64(wv_t a, wv_t b, const p5c_t *c)
-{
-    int32_t pe = a.e2 + b.e2;
-    int32_t scale = pe < c->exp2 ? pe : c->exp2;
-    u256 sum = {0, 0};
-    acc_add_product(&sum, a.sign ^ b.sign, a.sig, b.sig, pe, scale);
-    acc_add_product(&sum, c->sign, c->sig, 1, c->exp2, scale);
-    return acc_round_bits_mode(sum, scale, 64, P5_ROUND_RN);
-}
-
 static sf_t general_paired_final(wv_t lead, wv_t tail, int negative,
     sf_rc_t rc, int *c1)
 {
@@ -41,8 +31,10 @@ static void general_paired_polynomial(wv_t magnitude, int residual_sign,
     wv_t p = h1630_literal(sine[5]);
     wv_t q = h1630_literal(cosine[5]);
     for (int i = 4; i >= 1; --i) {
-        p = general_paired_fma_rn64(p, square, sine[i]);
-        q = general_paired_fma_rn64(q, square, cosine[i]);
+        p = p5_wv_mul_round(p, square, 67, P5_ROUND_CHOP);
+        p = h1630_add(p, h1630_literal(sine[i]), 64, P5_ROUND_RN);
+        q = p5_wv_mul_round(q, square, 67, P5_ROUND_CHOP);
+        q = h1630_add(q, h1630_literal(cosine[i]), 64, P5_ROUND_RN);
     }
     /* Both final Horner products are materialized before their RN64 adds.
      * This fixed cut is not conditional on the input or a rounding history. */

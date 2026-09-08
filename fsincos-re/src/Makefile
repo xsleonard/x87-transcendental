@@ -40,6 +40,10 @@ sibling_exhaustive: sibling_exhaustive.c fsincos_skylake.c ia64_sf.h p5_rom_cons
 check-fsin-h377: fsincos_skylake
 	python3 ../experiments/h377_fsin_binary64_residual_gate.py ./fsincos_skylake
 
+# A quick deterministic replay of paired operands that defeated prior graphs.
+check-paired-regressions: fsincos_skylake
+	python3 test_general_paired.py ./fsincos_skylake
+
 test: fsincos_itanium
 	./fsincos_itanium --selftest
 	python3 test_fma_oracle.py ./fsincos_itanium
@@ -51,4 +55,4 @@ clean:
 		[ ! -e "$$file" ] || rm "$$file"; \
 	done
 
-.PHONY: all standalone general-candidate check-fsin-h377 test clean
+.PHONY: all standalone general-candidate check-fsin-h377 check-paired-regressions test clean
