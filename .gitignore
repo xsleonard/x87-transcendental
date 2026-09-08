@@ -18,10 +18,10 @@ __pycache__/
 
 capture-kit-captures/
 
-/fsincos-re/supplemental/
+/research/fsincos-re/supplemental/
 
 # Private local x87 standalone models.
-/fsincos-re/src/standalone/
+/research/fsincos-re/src/standalone/
 
 *.tar.gz
 *.tar
@@ -32,12 +32,12 @@ capture-kit-captures/
 *.gz
 # This bounded hardware regression fixture is required by the offline tests.
 !/tests/data/outcome-witnesses.json.gz
-/fsincos-re/stageA/
+/research/fsincos-re/stageA/
 
 # Regenerable pandoc render of the paper (see paper/README.md).
-/fsincos-re/paper/skylake-x87-preview.html
+/research/fsincos-re/paper/skylake-x87-preview.html
 # Generated manuscript PDF; reference publications under data/ remain versioned.
-/fsincos-re/paper/skylake-x87.pdf
+/research/fsincos-re/paper/skylake-x87.pdf
 
 # Library build tools and generated output.
 /.tools/
@@ -59,14 +59,14 @@ CMakeFiles/
 *.log
 
 # Relocated research retains its previous private/generated exclusions.
-/fsincos-re/output/
-/fsincos-re/deliverables/
-/fsincos-re/paper/generated-suite/
-/fsincos-re/src/test_f2xm1_driver
-/fsincos-re/src/general/fsin_fcos_candidate
+/research/fsincos-re/output/
+/research/fsincos-re/deliverables/
+/research/fsincos-re/paper/generated-suite/
+/research/fsincos-re/src/test_f2xm1_driver
+/research/fsincos-re/src/general/fsin_fcos_candidate
 
 # Archived campaign data and research working files.
-/fsincos-re/tmp/
+/research/fsincos-re/tmp/
 
 # Bulk corpora, exported capture jobs, database indexes and observation banks.
 # Keep the suite's generators and tests; keep regression fixtures in tests/data/.
@@ -74,20 +74,20 @@ CMakeFiles/
 *.sqlite-*
 *.sqlite3
 *.sqlite3-*
-/fsincos-re/corpus-suite/corpus-v1/
-/fsincos-re/corpus-suite/jobs-*/
-/fsincos-re/corpus-suite/releases/
-/fsincos-re/corpus-suite/references/
-/fsincos-re/corpus-suite/captures/
-/fsincos-re/corpus-suite/observations/
-/fsincos-re/corpus-suite/comparisons/
-/fsincos-re/corpus-suite/capture_numeric
-/fsincos-re/transfer-tests/
-/fsincos-re/reports/
+/research/fsincos-re/corpus-suite/corpus-v1/
+/research/fsincos-re/corpus-suite/jobs-*/
+/research/fsincos-re/corpus-suite/releases/
+/research/fsincos-re/corpus-suite/references/
+/research/fsincos-re/corpus-suite/captures/
+/research/fsincos-re/corpus-suite/observations/
+/research/fsincos-re/corpus-suite/comparisons/
+/research/fsincos-re/corpus-suite/capture_numeric
+/research/fsincos-re/transfer-tests/
+/research/fsincos-re/reports/
 
 # Generated historical capture inputs, results and prebuilt executables stay local.
-/fsincos-re/capture-kit/inputs/
-/fsincos-re/capture-kit/crossgen/*.txt
-/fsincos-re/capture-kit/crossgen/*.tsv
-/fsincos-re/capture-kit/bin/*
-!/fsincos-re/capture-kit/bin/SHA256SUMS
+/research/fsincos-re/capture-kit/inputs/
+/research/fsincos-re/capture-kit/crossgen/*.txt
+/research/fsincos-re/capture-kit/crossgen/*.tsv
+/research/fsincos-re/capture-kit/bin/*
+!/research/fsincos-re/capture-kit/bin/SHA256SUMS

@@ -1,0 +1,10 @@
+{
+  "rows": 854,
+  "sha256": "0890f62f03d28c8304e2d9faaf008f12999167196adcfd0a4fd7ab880b906f4c",
+  "source_hardware_sha256": {
+    "l0002": "74ab9ed028d031cc7f3e3d5e9a7a3a08ea001c8f5aa29b3847441e65470e7441",
+    "l0003": "7d74e57a5506eef8551cf86640487cbf53f90c8d572e04a6543493d8e02af9c6",
+    "l0004": "1b695cf7ac37d6fd001cdeac742c0f6914f33f4a093b9234d3bad933e2c4d5b6"
+  },
+  "selection": "L0002 first row per instruction/RC/PC/raw-class-pair/exception/category combination, plus L0003/L0004 tininess and exact-subnormal regression classes. Saved hardware replay only."
+}

@@ -1,171 +1,67 @@
-# x87 Transcendental Reconstruction
+# x87trans
 
-## Source code
+A C library implementing the reconstructed Skylake **FSIN, FCOS, FSINCOS,
+FPTAN, F2XM1, FPATAN, FYL2X and FYL2XP1** numerical programs for emulation.
+Each instruction has a named function and a source file under [src/](src/).
 
-The implementation is C. Start with these files:
+The library takes raw 80-bit operands and explicit guest controls, and returns
+numerical values, available status metadata and writeback information. The
+emulator owns its registers, stack, tags and exception delivery. This is a
+**numerical integration preview**: unary arithmetic exception flags and general
+unmasked completion are still incomplete. Unknown metadata is marked explicitly.
+See the [API contract](docs/api.md) before applying results to guest state.
 
-| Instructions | Source file | Supporting code |
-| --- | --- | --- |
-| FSIN, FCOS, FSINCOS, FPTAN, F2XM1 | [fsincos_skylake.c](fsincos-re/src/fsincos_skylake.c) | [Current trig kernels](fsincos-re/src/general/) |
-| FPATAN | [fpatan_candidate.c](fsincos-re/fpatan-re/fpatan_candidate.c) | [C API](fsincos-re/fpatan-re/fpatan_library.h), [library wrapper](fsincos-re/fpatan-re/fpatan_library.c) |
-| FYL2X, FYL2XP1 | [log_model.c](fsincos-re/fyl2x-re/log_model.c) | [C API](fsincos-re/fyl2x-re/log_library.h), [library wrapper](fsincos-re/fyl2x-re/log_library.c) |
-
-The [source map](SOURCE.md) identifies the entry functions, arithmetic helpers,
-constants, tests and examples. The separate
-[Itanium reference](fsincos-re/src/fsincos_itanium.c) implements the published
-Itanium algorithm. Research scripts, captured data and release copies occupy
-much of the repository; the table above points to the maintained implementations.
-
-From the repository root, `make` builds all models and `make check` runs the
-saved-example and API checks. See [build prerequisites](#build-and-try-it) below.
-
-## Project scope
-
-The main work is reconstructing **FSIN, FCOS and FSINCOS**: the exact
-operation order and intermediate rounding needed to reproduce the tested
-Intel processors. Standalone sine/cosine and paired FSINCOS use different
-polynomial schedules. The reconstruction also identifies the standalone
-operand-width rule and the shared table calculation's rounding destinations.
-It builds on Ken Shirriff's published Pentium constants and explanations.[^ken]
-
-A second family covers **FPTAN and FPATAN**. The shorter **F2XM1, FYL2X
-and FYL2XP1** implementations come last. Together they give programmers a
-complete transcendental reference. A separate program
-translates the published Intel Itanium algorithm. Supported inputs, status
-flags and evidence differ by instruction; see the
-[evidence register](fsincos-re/paper/EVIDENCE.md).
-
-## Build and try it
-
-Build all models from the repository root with Make, a C11 compiler supporting
-`unsigned __int128`, and GMP headers/library (`pkg-config` supplies the GMP paths
-when available). Python 3 is also required for the checks:
+Build with CMake 3.20+, a C11 compiler supporting `unsigned __int128`, and GMP:
 
 ```sh
-make
-make check
+cmake -S . -B build
+cmake --build build
 ```
 
-The individual builds below are also available.
+From this checkout, `make` builds the library, `make check` runs offline checks,
+`make tools` builds command-line clients, and `make examples` builds a C example.
+Python 3 is needed for saved-witness tests, not for the library build or runtime.
 
-The unary models require Make and a C11 compiler with `unsigned __int128`
-support. Their software arithmetic runs on the Apple Silicon development
-host as well as the tested x86 configurations.
+```c
+#include <x87trans/x87trans.h>
 
-```sh
-make -C fsincos-re/src all
-fsincos-re/src/fsincos_skylake --batch --rc=rn < fsincos-re/examples/unary-raw80.txt
+x87t_context *context = x87t_create();
+x87t_control control = X87T_CONTROL_INIT;
+x87t_raw80 x = { 0x3ffe, UINT64_C(0x8000000000000000) }; /* +0.5 */
+x87t_result result;
+
+if (context) {
+    x87t_error error = x87t_fsincos(context, x, &control, &result);
+    if (error == X87T_OK && result.completion == X87T_COMPLETE) {
+        /* result.primary is sine; result.pushed is cosine.
+         * Check cc_known and exceptions_known before updating guest status. */
+    }
+    x87t_destroy(context);
+}
 ```
 
-This evaluates FSINCOS for +0, +0.5 and +1, returning sine and cosine as
-raw80 hexadecimal fields. Select `--fsin-standalone`, `--fcos-standalone`,
-`--fptan` or `--f2xm1` after `--batch` for another unary instruction.
+For CMake consumers, link `x87trans::x87trans` through `add_subdirectory` or an
+installed package. Static consumers also link GMP; the exported target carries
+that dependency. [Integration instructions](docs/integration.md) cover C/C++,
+installation, pkg-config and the [example adapter](examples/emulator_adapter.c).
 
-FPATAN has a separate GMP-backed CLI and C library:
+| Location | Contents |
+| --- | --- |
+| [include/x87trans/x87trans.h](include/x87trans/x87trans.h) | Public types and all eight functions |
+| [src/](src/) | Canonical implementation, private arithmetic and compiled constants |
+| [SOURCE.md](SOURCE.md) | Instruction and helper source map |
+| [tests/](tests/) | Saved hardware regressions, independent references and API tests |
+| [tools/](tools/) | CLI consumers, optional old API adapters, validation and packaging |
+| [docs/](docs/) | Contract, integration, algorithms, provenance and migration |
+| [research/](research/) | Preserved research sources, manuscripts and evidence |
 
-```sh
-make -C fsincos-re/fpatan-re all
-fsincos-re/fpatan-re/build/fpatan < fsincos-re/examples/fpatan-raw80.txt
-```
+Tests include 1,800 saved hardware rows, independent rational-reference replay,
+concurrent calls, compatibility APIs and caller-side writeback. See
+[validation and limits](docs/validation.md). No hardware capture is part of a
+normal build or check. Agreement is scoped to the retained evidence and selected
+profile, without a universal claim across CPU generations.
 
-The logarithm pair has its own GMP-backed CLI and C library:
-
-```sh
-make -C fsincos-re/fyl2x-re all
-fsincos-re/fyl2x-re/build/x87-log < fsincos-re/fyl2x-re/example-inputs.txt
-make -C fsincos-re/fyl2x-re check PYTHON=python3
-```
-
-See the [programmer guide](fsincos-re/docs/PROGRAMMER-GUIDE.md) for
-prerequisites, exact input/output formats, rounding modes, a complete C
-example and the limits of each interface.
-
-## Instructions and algorithms
-
-| Instruction | Mathematical role | Implementation / explanation |
-| --- | --- | --- |
-| FSIN | Sine | [Trig pseudocode](fsincos-re/docs/TRIG-PSEUDOCODE.md), standalone calculation |
-| FCOS | Cosine | [Trig pseudocode](fsincos-re/docs/TRIG-PSEUDOCODE.md), standalone calculation |
-| FSINCOS | Paired sine and cosine | [Trig pseudocode](fsincos-re/docs/TRIG-PSEUDOCODE.md), separate paired calculation |
-| FPTAN | Tangent, with a pushed result | [Tangent guide](fsincos-re/docs/ALGORITHMS.md#tangent-fptan), internal sine/cosine division |
-| FPATAN | Quadrant-sensitive arctangent of y/x | [Executable pseudocode](fsincos-re/fpatan-re/PSEUDOCODE.md), [C interface](fsincos-re/fpatan-re/fpatan_library.h) |
-| F2XM1 | $2^x-1$ | [Exponential guide](fsincos-re/docs/ALGORITHMS.md#exponential-f2xm1), linear/polynomial/table program |
-| FYL2X | $y\log_2(x)$ | [Logarithm algorithm](fsincos-re/fyl2x-re/ALGORITHM.md), [C API](fsincos-re/fyl2x-re/log_library.h) |
-| FYL2XP1 | $y\log_2(1+x)$ | [Logarithm for small increments](fsincos-re/fyl2x-re/ALGORITHM.md), same C API |
-
-All eight architectural transcendental instructions have models.[^intel]
-FSQRT and general x87 arithmetic are
-outside this transcendental reconstruction project.
-
-## Programmer's pseudocode
-
-Start with the [algorithm guide](fsincos-re/docs/ALGORITHMS.md), then
-read the [complete trig walkthrough](fsincos-re/docs/TRIG-PSEUDOCODE.md)
-and the executable [F2XM1/FPTAN specification](fsincos-re/docs/SIBLING-PSEUDOCODE.md)
-or [FPATAN reference pseudocode](fsincos-re/fpatan-re/PSEUDOCODE.md).
-The [logarithm reference](fsincos-re/fyl2x-re/ALGORITHM.md) includes both
-polynomial paths, all four table corrections and final rounding semantics.
-The paper includes these listings directly from their source files, so its
-pseudocode and constants stay in sync with the code.
-
-Keep every rounding step shown in the pseudocode. For example, the
-standalone trig multiply is
-
-$$M(a,b)=T_{67}\!\left(T_{67}(a)T_{64}(b)\right),$$
-
-where $T_p$ truncates to $p$ significant bits. An ordinary host multiply
-need not produce the same value. FSINCOS also has a different order of polynomial evaluation from two standalone calls.
-
-## Checks and evidence
-
-```sh
-fsincos-re/src/fsincos_skylake --selftest
-make -C fsincos-re/src check-paired-regressions
-make -C fsincos-re/fpatan-re check
-python3 fsincos-re/paper/check_witnesses.py
-```
-
-The witness check replays 724 saved hardware examples for the original six
-instructions, including 436 independent rational-reference checks. The
-logarithm `make check` adds 854 hardware witnesses through the CLI, C API
-and independent rational reference.
-The integrated F2XM1 storage correction is covered by
-`make -C fsincos-re/src check-f2xm1-regressions`; its
-[integration record](fsincos-re/paper/evidence/f2xm1-integration.json) retains
-the raw80 boundary evidence. These small checks reuse saved results. The separate
-`make -C fsincos-re/src test` target tests the Itanium reference.
-For larger validation, see the [trig corpus](fsincos-re/corpus-suite/README.md),
-[FPATAN corpus](fsincos-re/fpatan-re/corpus-v1/README.md) and
-[per-instruction evidence](fsincos-re/paper/EVIDENCE.md). New hardware tests use separate capture tools that keep a record of earlier
-inputs.
-
-## Paper and research materials
-
-The article, **Reconstructing FSIN, FCOS and FSINCOS from Public Constants
-and Processor Tests**, is available as [PDF](output/pdf/x87-suite.pdf)
-and [LaTeX source](fsincos-re/paper/x87-suite.tex). Its three family sections run in that order, with each family
-keeping its algorithms, constants and evidence together. The explanation
-focuses on the final calculation and the derivation of the sine/cosine rules;
-development history stays in the research records. The appendices follow
-the same order and preserve all eight specifications and 239 literal entries.
-See [publication and build details](fsincos-re/paper/README.md) and the
-[review record](fsincos-re/paper/PUBLICATION-REVIEW.md).
-
-The [programmer release](output/release/x87-suite-review-v6/README.md) is a
-local package with one Makefile for building and checking the code. Licensing
-of original work is **undecided**. The package has not been published, and no
-archival identifier has been assigned. Earlier trig and FPATAN papers are kept
-in the research archive.
-
-The [source register](fsincos-re/paper/SOURCES.md) connects public source
-material to the new reconstruction and validation. The
-[research README](fsincos-re/README.md) and `fsincos-re/notes/` preserve the
-historical investigation. Current usable models live in `fsincos-re/src/`
-and the `fsincos-re/fpatan-re/` and `fsincos-re/fyl2x-re/` libraries; the programmer guide identifies their entry points.
-
-The tests show agreement on their recorded inputs and processors. They do
-not prove a match for every input or CPU generation. The programs also do
-not emulate every aspect of x87 state or trap handling.
-
-[^ken]: Ken Shirriff, [Pi in the Pentium: reverse-engineering the constants in its floating-point unit](https://www.righto.com/2025/01/pentium-floating-point-ROM.html), January 2025. The project attributes published constants and explanations separately from its behavioral reconstruction.
-[^intel]: Intel, [64 and IA-32 Architectures Software Developer's Manual](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html), transcendental instruction inventory and instruction reference.
+Original-work licensing remains undecided; no distribution license is assigned
+by this reorganization. [Provenance](docs/provenance.md) records the source and
+constant origins. The [migration guide](docs/migration.md) explains the old
+paths and the live campaign directory retained for compatibility.
