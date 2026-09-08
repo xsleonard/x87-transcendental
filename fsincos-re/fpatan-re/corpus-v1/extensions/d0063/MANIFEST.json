@@ -1,0 +1,39 @@
+{
+  "hardware_labels_included": false,
+  "model_predictions_included": false,
+  "name": "d0063",
+  "pack": {
+    "counts": {
+      "pc:24": 4,
+      "pc:53": 4,
+      "pc:64": 864,
+      "rc:rd": 218,
+      "rc:rn": 218,
+      "rc:ru": 218,
+      "rc:rz": 218,
+      "rows": 872
+    },
+    "path": "extensions/d0063/inputs.txt.gz",
+    "sha256": "e5d0af92ad6776ebb07bd60e27458e7486da1ff24b1948888920757a30a24418",
+    "source_manifest_sha256": "b184396b027253abb70b837bc5dd78cfac937769db99733f5c55a712d4751050"
+  },
+  "pool": {
+    "columns": [
+      "node",
+      "search",
+      "cell",
+      "residual_sign",
+      "y_se",
+      "y_sig",
+      "x_se",
+      "x_sig"
+    ],
+    "path": "extensions/d0063/visible-long-odd-tie-input-pool.tsv.gz",
+    "rows": 3,
+    "sha256": "56ac957582faf41ca5ac2d745b4e7ef1214dbd750ffc617cb1796354f4b10813",
+    "status": "CONSTRUCTION_INPUT_POOL_NOT_A_CAPTURE_PROTOCOL_PACK"
+  },
+  "private_data_included": false,
+  "status": "APPEND_ONLY_CPU_INDEPENDENT_INPUT_EXTENSION",
+  "warning": "Already observed on the recorded Skylake context; reuse its labels. Audit destination history before another-context capture."
+}

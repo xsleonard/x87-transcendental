@@ -1,0 +1,35 @@
+{
+  "families": {
+    "family:exhaustive-window": 149112,
+    "family:lattice-math-boundary": 47768,
+    "family:math-bracket": 100104,
+    "family:raw-balanced-ratios": 16512,
+    "family:raw-exponent-permutation": 132092,
+    "generated_pairs": 110839,
+    "private_possible_pair_holds": 192,
+    "public_possible_pair_holds": 112,
+    "rows": 445588,
+    "selected_pairs": 110535
+  },
+  "hardware_labels_included": false,
+  "model_predictions_included": false,
+  "name": "d0066",
+  "pack": {
+    "counts": {
+      "pc:24": 1724,
+      "pc:53": 1724,
+      "pc:64": 442140,
+      "rc:rd": 111397,
+      "rc:rn": 111397,
+      "rc:ru": 111397,
+      "rc:rz": 111397,
+      "rows": 445588
+    },
+    "path": "extensions/d0066/inputs.txt.gz",
+    "sha256": "3b6fa5874f2ecbae7d3c3da3716bd67c9f13334c91fe36d4cc4b60c7ccc53cbc",
+    "source_manifest_sha256": "73ca3fd797bd3eaa90b6f8f00bd7664dc3dd675c44044e06e7e563102cb6b946"
+  },
+  "private_data_included": false,
+  "status": "APPEND_ONLY_CPU_INDEPENDENT_INPUT_EXTENSION",
+  "warning": "Observed once on both recorded contexts (Skylake D0066, i7 D0067). Reuse saved labels. Audit a new context before capture."
+}

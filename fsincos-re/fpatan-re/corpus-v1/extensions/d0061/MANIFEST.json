@@ -1,0 +1,39 @@
+{
+  "hardware_labels_included": false,
+  "model_predictions_included": false,
+  "name": "d0061",
+  "pack": {
+    "counts": {
+      "pc:24": 12,
+      "pc:53": 12,
+      "pc:64": 2880,
+      "rc:rd": 726,
+      "rc:rn": 726,
+      "rc:ru": 726,
+      "rc:rz": 726,
+      "rows": 2904
+    },
+    "path": "extensions/d0061/inputs.txt.gz",
+    "sha256": "a200691821dba0c36edd02f2aeb5c85e17dc19a92b18daa80a1240f95201a636",
+    "source_manifest_sha256": "3ff298ab9c10dae792c08b82befcc8b226d27aa5b7ac265d1a1ef95a75818381"
+  },
+  "pool": {
+    "columns": [
+      "node",
+      "search",
+      "cell",
+      "residual_sign",
+      "y_se",
+      "y_sig",
+      "x_se",
+      "x_sig"
+    ],
+    "path": "extensions/d0061/visible-short-odd-tie-input-pool.tsv.gz",
+    "rows": 10,
+    "sha256": "e954f822e370737d0968aee653784e06b0b1d9339679b2c0cacd519cb18e5cdc",
+    "status": "CONSTRUCTION_INPUT_POOL_NOT_A_CAPTURE_PROTOCOL_PACK"
+  },
+  "private_data_included": false,
+  "status": "APPEND_ONLY_CPU_INDEPENDENT_INPUT_EXTENSION",
+  "warning": "Already observed on the recorded Skylake context; reuse its labels. Audit destination history before another-context capture."
+}

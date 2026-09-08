@@ -1,0 +1,39 @@
+{
+  "hardware_labels_included": false,
+  "model_predictions_included": false,
+  "name": "d0042",
+  "pack": {
+    "counts": {
+      "pc:24": 9596,
+      "pc:53": 9596,
+      "pc:64": 2465856,
+      "rc:rd": 621262,
+      "rc:rn": 621262,
+      "rc:ru": 621262,
+      "rc:rz": 621262,
+      "rows": 2485048
+    },
+    "path": "extensions/d0042/inputs.txt.gz",
+    "sha256": "363301818ebe264c663dee1200632e98566b0598f7d1744e9fb65e77c5daf13d",
+    "source_manifest_sha256": "1a3fb85ce76e8e3cbf5265cfa2d408c53cdd727c7cfc4c9840f6255fddf8e352"
+  },
+  "pool": {
+    "columns": [
+      "node",
+      "search",
+      "cell",
+      "residual_sign",
+      "y_se",
+      "y_sig",
+      "x_se",
+      "x_sig"
+    ],
+    "path": "extensions/d0042/early-table-halfway-input-pool.tsv.gz",
+    "rows": 8562,
+    "sha256": "c382507b5c18f11398d80d5ab16539eaf01be54cbaac5bf31ccf4a0a2f2d911b",
+    "status": "CONSTRUCTION_INPUT_POOL_NOT_A_CAPTURE_PROTOCOL_PACK"
+  },
+  "private_data_included": false,
+  "status": "APPEND_ONLY_CPU_INDEPENDENT_INPUT_EXTENSION",
+  "warning": "These packed tuples have been observed on the recorded Skylake context; reuse those results. Freshness on any other host requires a separate history/ledger audit."
+}
