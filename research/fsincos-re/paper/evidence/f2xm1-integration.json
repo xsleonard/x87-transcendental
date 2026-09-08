@@ -1,0 +1,62 @@
+{
+  "binary_sha256": "4edf97de527ea92101fd18ceb99f2963e86bb0a9e03b4380c4784e818333c170",
+  "cases_per_processor": 54128,
+  "current_c_sha256": "14a9772d147d7a2b0c875f578a8397a3544d63f52f2e21f990edcee9cb0878fc",
+  "current_reference_sha256": "b06d46f2827fb5b83ad3ce17846c630fdd99f966c4a767b07e0a590dd682817f",
+  "frozen_C_correction_before_capture": true,
+  "hardware_executed": false,
+  "jobs": {
+    "f0001": {
+      "complete_sha256": "b272daa479ed4ada1c2ab8137c3ded6156be119eefec2f511cfdf39392897cb0",
+      "counts": {
+        "C_output_misses": 0,
+        "PC:24": 15276,
+        "PC:53": 15276,
+        "PC:64": 23576,
+        "RC:rd": 13532,
+        "RC:rn": 13532,
+        "RC:ru": 13532,
+        "RC:rz": 13532,
+        "reference_C1_misses": 0,
+        "reference_result_misses": 0,
+        "rows": 54128
+      },
+      "hardware_sha256": "ac1fb684725597138269bc85ba81c60c22277abe31b25c0bcb80706dca036eae",
+      "manifest_sha256": "257d76ace99710e97bfec513864548e6e10a7723631a276f0aec851a56453acb",
+      "microcode": "0x1",
+      "signature": "00050654"
+    },
+    "f0002": {
+      "complete_sha256": "92a7c1994573c7e8e59486f2d2c45e9aced971093da4128369fcfb43edca764c",
+      "counts": {
+        "C_output_misses": 0,
+        "PC:24": 15276,
+        "PC:53": 15276,
+        "PC:64": 23576,
+        "RC:rd": 13532,
+        "RC:rn": 13532,
+        "RC:ru": 13532,
+        "RC:rz": 13532,
+        "reference_C1_misses": 0,
+        "reference_result_misses": 0,
+        "rows": 54128
+      },
+      "hardware_sha256": "ac1fb684725597138269bc85ba81c60c22277abe31b25c0bcb80706dca036eae",
+      "manifest_sha256": "4b53dd22e78fa193f7738ab9d826c20bc1456174110ee73c418358f574d453aa",
+      "microcode": "0xf0",
+      "signature": "000506e3"
+    }
+  },
+  "limits": "Finite raw80 challenge. Current C outputs and rational result/C1 are replayed; exception hypotheses are separate. Historical holds and arbitrary state are not passes.",
+  "original_C1_misses_per_processor": 3177,
+  "original_campaign_receipt_sha256": "b4582f51f6138a610dcf7d2968be88d25977562a1fb227fe46d7485e99d0d329",
+  "original_result_misses_per_processor": 8658,
+  "previous_c_sha256": "490039e787a89b4efa4df58f0804356cc47c9e882f0e6427b16923217e375e32",
+  "previous_reference_ast_sha256": "4b8812e0253bcdfee3b7c4b54be580c481f9e149923fc0c72a8834fe0346afda",
+  "previous_reference_sha256": "3d6a4bfef67fbd0bc31a3a0d02ef3d7ac4b31fb79ff0d967859d44a2f16d5217",
+  "processor_observations": 108256,
+  "regression_receipt_sha256": "d1cb5d3fbce789b4a0a274c49e90868ee13c7a6035bfe80b7c95c883061f381a",
+  "saved_result_regression_rows": 915162,
+  "status": "PASS_INTEGRATED_F2XM1_CORRECTION",
+  "verifier_sha256": "82af884d710d1aa343575e2d21d592752cff328b3e9228fc1d45cf4a47118dae"
+}

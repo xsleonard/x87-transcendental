@@ -1,0 +1,1233 @@
+{
+  "status": "PUBLIC_LOGARITHM_SOURCE_AUDIT_COMPLETE",
+  "sources": {
+    "listing": "https://github.com/chip-red-pill/uCodeDisasm/blob/ffc9070233a6e7a26dbabe723289259f087ee20b/ucode/ucode_glm.txt",
+    "rom": "https://github.com/pietroborrello/CustomProcessingUnit/blob/4237524fe7545c66e42dd986113f220662c06f6a/bios/dumps/rom.txt",
+    "p5": "https://www.righto.com/2025/01/pentium-floating-point-ROM.html"
+  },
+  "source_sha256": {
+    "listing": "46fb61bfaf174765c117de65b036b73ae4433b9c2b9871d5289fd02d4867067e",
+    "rom": "87b9ee93e0c7a1f988906d8fd79d886590aa41a7368d06ef1954be8d5aca14db"
+  },
+  "projection_matches": 77,
+  "matches": [
+    {
+      "p5_row": 193,
+      "goldmont_row": 48,
+      "projected_sig": "9000000000000000"
+    },
+    {
+      "p5_row": 194,
+      "goldmont_row": 49,
+      "projected_sig": "e000000000000000"
+    },
+    {
+      "p5_row": 195,
+      "goldmont_row": 62,
+      "projected_sig": "b8aa3b295c17f0bb"
+    },
+    {
+      "p5_row": 196,
+      "goldmont_row": 50,
+      "projected_sig": "b8aa3b295c17f0bb"
+    },
+    {
+      "p5_row": 197,
+      "goldmont_row": 51,
+      "projected_sig": "f6384ee1d0250f82"
+    },
+    {
+      "p5_row": 198,
+      "goldmont_row": 52,
+      "projected_sig": "93bb6280c94ba617"
+    },
+    {
+      "p5_row": 199,
+      "goldmont_row": 53,
+      "projected_sig": "d310f370f269e25c"
+    },
+    {
+      "p5_row": 200,
+      "goldmont_row": 54,
+      "projected_sig": "a3fe9ffd641da2e9"
+    },
+    {
+      "p5_row": 201,
+      "goldmont_row": 55,
+      "projected_sig": "bd19a0fd6304e869"
+    },
+    {
+      "p5_row": 202,
+      "goldmont_row": 56,
+      "projected_sig": "81ca80c364dbadb8"
+    },
+    {
+      "p5_row": 203,
+      "goldmont_row": 57,
+      "projected_sig": "c20114d2c4f925f7"
+    },
+    {
+      "p5_row": 204,
+      "goldmont_row": 58,
+      "projected_sig": "9883cd9da50f448d"
+    },
+    {
+      "p5_row": 205,
+      "goldmont_row": 59,
+      "projected_sig": "fb5ba9d4787fdcc4"
+    },
+    {
+      "p5_row": 206,
+      "goldmont_row": 181,
+      "projected_sig": "b73cb42e17000000"
+    },
+    {
+      "p5_row": 207,
+      "goldmont_row": 182,
+      "projected_sig": "8759c4fd15000000"
+    },
+    {
+      "p5_row": 208,
+      "goldmont_row": 183,
+      "projected_sig": "de4212056d000000"
+    },
+    {
+      "p5_row": 209,
+      "goldmont_row": 184,
+      "projected_sig": "99574f13c5000000"
+    },
+    {
+      "p5_row": 210,
+      "goldmont_row": 185,
+      "projected_sig": "c2615e8178000000"
+    },
+    {
+      "p5_row": 211,
+      "goldmont_row": 186,
+      "projected_sig": "ea4f726193000000"
+    },
+    {
+      "p5_row": 212,
+      "goldmont_row": 187,
+      "projected_sig": "88983ed698000000"
+    },
+    {
+      "p5_row": 213,
+      "goldmont_row": 188,
+      "projected_sig": "9b89267526000000"
+    },
+    {
+      "p5_row": 214,
+      "goldmont_row": 189,
+      "projected_sig": "ae00d1cfdf000000"
+    },
+    {
+      "p5_row": 215,
+      "goldmont_row": 190,
+      "projected_sig": "c0052b18b1000000"
+    },
+    {
+      "p5_row": 216,
+      "goldmont_row": 191,
+      "projected_sig": "d19bb053fb000000"
+    },
+    {
+      "p5_row": 217,
+      "goldmont_row": 192,
+      "projected_sig": "e2c97d694b000000"
+    },
+    {
+      "p5_row": 218,
+      "goldmont_row": 193,
+      "projected_sig": "f393550f3b000000"
+    },
+    {
+      "p5_row": 219,
+      "goldmont_row": 194,
+      "projected_sig": "81fed45cbd000000"
+    },
+    {
+      "p5_row": 220,
+      "goldmont_row": 195,
+      "projected_sig": "8a064fd50f000000"
+    },
+    {
+      "p5_row": 221,
+      "goldmont_row": 196,
+      "projected_sig": "91e20ea139000000"
+    },
+    {
+      "p5_row": 222,
+      "goldmont_row": 197,
+      "projected_sig": "9993e355a5000000"
+    },
+    {
+      "p5_row": 223,
+      "goldmont_row": 198,
+      "projected_sig": "a11d83f4c3000000"
+    },
+    {
+      "p5_row": 224,
+      "goldmont_row": 199,
+      "projected_sig": "a8808c3845000000"
+    },
+    {
+      "p5_row": 225,
+      "goldmont_row": 200,
+      "projected_sig": "afbe7fa0f0000000"
+    },
+    {
+      "p5_row": 226,
+      "goldmont_row": 201,
+      "projected_sig": "b6d8cb53b1000000"
+    },
+    {
+      "p5_row": 227,
+      "goldmont_row": 202,
+      "projected_sig": "bdd0c7c9a8000000"
+    },
+    {
+      "p5_row": 228,
+      "goldmont_row": 203,
+      "projected_sig": "c4a7ba5837000000"
+    },
+    {
+      "p5_row": 229,
+      "goldmont_row": 204,
+      "projected_sig": "cb5ed69566000000"
+    },
+    {
+      "p5_row": 230,
+      "goldmont_row": 205,
+      "projected_sig": "d1f73f9c71000000"
+    },
+    {
+      "p5_row": 231,
+      "goldmont_row": 206,
+      "projected_sig": "d8720935e6000000"
+    },
+    {
+      "p5_row": 232,
+      "goldmont_row": 207,
+      "projected_sig": "ded038e634000000"
+    },
+    {
+      "p5_row": 233,
+      "goldmont_row": 208,
+      "projected_sig": "e512c6e54a000000"
+    },
+    {
+      "p5_row": 234,
+      "goldmont_row": 209,
+      "projected_sig": "eb3a9f0197000000"
+    },
+    {
+      "p5_row": 235,
+      "goldmont_row": 210,
+      "projected_sig": "f148a17070000000"
+    },
+    {
+      "p5_row": 236,
+      "goldmont_row": 211,
+      "projected_sig": "f73da38d9d000000"
+    },
+    {
+      "p5_row": 237,
+      "goldmont_row": 212,
+      "projected_sig": "fd1a708bbe000000"
+    },
+    {
+      "p5_row": 238,
+      "goldmont_row": 213,
+      "projected_sig": "dd67591d81dee7ef"
+    },
+    {
+      "p5_row": 239,
+      "goldmont_row": 214,
+      "projected_sig": "ca9861168a8ccdbd"
+    },
+    {
+      "p5_row": 240,
+      "goldmont_row": 215,
+      "projected_sig": "bba63b2c5a6e5197"
+    },
+    {
+      "p5_row": 241,
+      "goldmont_row": 216,
+      "projected_sig": "e1a1f51f2c075a74"
+    },
+    {
+      "p5_row": 242,
+      "goldmont_row": 217,
+      "projected_sig": "ecbf748923b9d8ea"
+    },
+    {
+      "p5_row": 243,
+      "goldmont_row": 218,
+      "projected_sig": "d206e169535fb8bf"
+    },
+    {
+      "p5_row": 244,
+      "goldmont_row": 219,
+      "projected_sig": "b75cb09705a795a4"
+    },
+    {
+      "p5_row": 245,
+      "goldmont_row": 220,
+      "projected_sig": "decd991336c9607e"
+    },
+    {
+      "p5_row": 246,
+      "goldmont_row": 221,
+      "projected_sig": "978605ff4edf5f97"
+    },
+    {
+      "p5_row": 247,
+      "goldmont_row": 222,
+      "projected_sig": "eaf354527d82c821"
+    },
+    {
+      "p5_row": 248,
+      "goldmont_row": 223,
+      "projected_sig": "a13af881af2f3d8b"
+    },
+    {
+      "p5_row": 249,
+      "goldmont_row": 224,
+      "projected_sig": "9530302356a22199"
+    },
+    {
+      "p5_row": 250,
+      "goldmont_row": 225,
+      "projected_sig": "b2df3ae61ed0b8ee"
+    },
+    {
+      "p5_row": 251,
+      "goldmont_row": 226,
+      "projected_sig": "d0198d79737f530a"
+    },
+    {
+      "p5_row": 252,
+      "goldmont_row": 227,
+      "projected_sig": "a873c2b4a5462c09"
+    },
+    {
+      "p5_row": 253,
+      "goldmont_row": 228,
+      "projected_sig": "f90101d98c353102"
+    },
+    {
+      "p5_row": 254,
+      "goldmont_row": 229,
+      "projected_sig": "d64de51b7e816f78"
+    },
+    {
+      "p5_row": 255,
+      "goldmont_row": 230,
+      "projected_sig": "aa9670761d14aac4"
+    },
+    {
+      "p5_row": 256,
+      "goldmont_row": 231,
+      "projected_sig": "8f8dde949378b226"
+    },
+    {
+      "p5_row": 257,
+      "goldmont_row": 232,
+      "projected_sig": "9aeb8cb1ac05ccd6"
+    },
+    {
+      "p5_row": 258,
+      "goldmont_row": 233,
+      "projected_sig": "d6c4d041f03952bb"
+    },
+    {
+      "p5_row": 259,
+      "goldmont_row": 234,
+      "projected_sig": "b9027aaddfc8671f"
+    },
+    {
+      "p5_row": 260,
+      "goldmont_row": 235,
+      "projected_sig": "f8b406ea2c7d91aa"
+    },
+    {
+      "p5_row": 261,
+      "goldmont_row": 236,
+      "projected_sig": "a0a1013b6eaceb92"
+    },
+    {
+      "p5_row": 262,
+      "goldmont_row": 237,
+      "projected_sig": "fc25f0ce5cabbd2d"
+    },
+    {
+      "p5_row": 263,
+      "goldmont_row": 238,
+      "projected_sig": "86bd7a6ed4e1b093"
+    },
+    {
+      "p5_row": 264,
+      "goldmont_row": 239,
+      "projected_sig": "c9257490fbf64c96"
+    },
+    {
+      "p5_row": 265,
+      "goldmont_row": 240,
+      "projected_sig": "ce9ca011c6f3f54f"
+    },
+    {
+      "p5_row": 266,
+      "goldmont_row": 241,
+      "projected_sig": "a0efe3ebe1990555"
+    },
+    {
+      "p5_row": 267,
+      "goldmont_row": 242,
+      "projected_sig": "a00fdd5533f1de29"
+    },
+    {
+      "p5_row": 268,
+      "goldmont_row": 243,
+      "projected_sig": "9507d6dc1f27ef48"
+    },
+    {
+      "p5_row": 269,
+      "goldmont_row": 244,
+      "projected_sig": "8cd8a4a2e7b5d39e"
+    }
+  ],
+  "corrections": [
+    {
+      "p5_row": 207,
+      "original": "43ace37e8a8000000",
+      "derived": "43ace27e8a8000000"
+    },
+    {
+      "p5_row": 245,
+      "original": "6f66cc899b64303f7",
+      "derived": "6f66cc899b64b03f7"
+    },
+    {
+      "p5_row": 259,
+      "original": "5c833d56efe4338fe",
+      "derived": "5c813d56efe4338fe"
+    },
+    {
+      "p5_row": 268,
+      "original": "4a83eb6e0f93f7a64",
+      "derived": "4a83eb6e0f93f7a44"
+    }
+  ],
+  "slices": {
+    "direct": [
+      {
+        "address": "6cb5",
+        "word": "06a04603a000",
+        "opcode": "6a0",
+        "destination": 58,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 70
+      },
+      {
+        "address": "6cb6",
+        "word": "06490003aeb8",
+        "opcode": "649",
+        "destination": 58,
+        "source1": 58,
+        "source0": 56,
+        "immediate": 0
+      },
+      {
+        "address": "6cb8",
+        "word": "06a04003b000",
+        "opcode": "6a0",
+        "destination": 59,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 64
+      },
+      {
+        "address": "6cb9",
+        "word": "068a0003fef8",
+        "opcode": "68a",
+        "destination": 63,
+        "source1": 59,
+        "source0": 56,
+        "immediate": 0
+      },
+      {
+        "address": "6cba",
+        "word": "06c90003bef8",
+        "opcode": "6c9",
+        "destination": 59,
+        "source1": 59,
+        "source0": 56,
+        "immediate": 0
+      },
+      {
+        "address": "6cbc",
+        "word": "06a03203c000",
+        "opcode": "6a0",
+        "destination": 60,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 50
+      },
+      {
+        "address": "6cbd",
+        "word": "06e10003aebc",
+        "opcode": "6e1",
+        "destination": 58,
+        "source1": 58,
+        "source0": 60,
+        "immediate": 0
+      },
+      {
+        "address": "6cbe",
+        "word": "076a0003003f",
+        "opcode": "76a",
+        "destination": 48,
+        "source1": 0,
+        "source0": 63,
+        "immediate": 0
+      },
+      {
+        "address": "6cc0",
+        "word": "000408030c08",
+        "opcode": "004",
+        "destination": 48,
+        "source1": 48,
+        "source0": 8,
+        "immediate": 8
+      },
+      {
+        "address": "6cc1",
+        "word": "0151146c02b0",
+        "opcode": "151",
+        "destination": 0,
+        "source1": 10,
+        "source0": 48,
+        "immediate": 20
+      },
+      {
+        "address": "6cc2",
+        "word": "06e60003aebb",
+        "opcode": "6e6",
+        "destination": 58,
+        "source1": 58,
+        "source0": 59,
+        "immediate": 0
+      },
+      {
+        "address": "6cc4",
+        "word": "066100038eba",
+        "opcode": "661",
+        "destination": 56,
+        "source1": 58,
+        "source0": 58,
+        "immediate": 0
+      },
+      {
+        "address": "6cc5",
+        "word": "06e10003be38",
+        "opcode": "6e1",
+        "destination": 59,
+        "source1": 56,
+        "source0": 56,
+        "immediate": 0
+      },
+      {
+        "address": "6cc6",
+        "word": "06a03b03f000",
+        "opcode": "6a0",
+        "destination": 63,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 59
+      },
+      {
+        "address": "6cc8",
+        "word": "06a03a03d000",
+        "opcode": "6a0",
+        "destination": 61,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 58
+      },
+      {
+        "address": "6cc9",
+        "word": "06e10003effb",
+        "opcode": "6e1",
+        "destination": 62,
+        "source1": 63,
+        "source0": 59,
+        "immediate": 0
+      },
+      {
+        "address": "6cca",
+        "word": "06a03903f000",
+        "opcode": "6a0",
+        "destination": 63,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 57
+      },
+      {
+        "address": "6ccc",
+        "word": "06e10003cf7b",
+        "opcode": "6e1",
+        "destination": 60,
+        "source1": 61,
+        "source0": 59,
+        "immediate": 0
+      },
+      {
+        "address": "6ccd",
+        "word": "06a03803d000",
+        "opcode": "6a0",
+        "destination": 61,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 56
+      },
+      {
+        "address": "6cce",
+        "word": "06490003efbf",
+        "opcode": "649",
+        "destination": 62,
+        "source1": 62,
+        "source0": 63,
+        "immediate": 0
+      },
+      {
+        "address": "6cd0",
+        "word": "06490003cf3d",
+        "opcode": "649",
+        "destination": 60,
+        "source1": 60,
+        "source0": 61,
+        "immediate": 0
+      },
+      {
+        "address": "6cd1",
+        "word": "06e10003efbb",
+        "opcode": "6e1",
+        "destination": 62,
+        "source1": 62,
+        "source0": 59,
+        "immediate": 0
+      },
+      {
+        "address": "6cd2",
+        "word": "06a03703f000",
+        "opcode": "6a0",
+        "destination": 63,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 55
+      },
+      {
+        "address": "6cd4",
+        "word": "06e10003cf3b",
+        "opcode": "6e1",
+        "destination": 60,
+        "source1": 60,
+        "source0": 59,
+        "immediate": 0
+      },
+      {
+        "address": "6cd5",
+        "word": "06490003efbf",
+        "opcode": "649",
+        "destination": 62,
+        "source1": 62,
+        "source0": 63,
+        "immediate": 0
+      },
+      {
+        "address": "6cd6",
+        "word": "06a03603d000",
+        "opcode": "6a0",
+        "destination": 61,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 54
+      },
+      {
+        "address": "6cd8",
+        "word": "06490003cf3d",
+        "opcode": "649",
+        "destination": 60,
+        "source1": 60,
+        "source0": 61,
+        "immediate": 0
+      },
+      {
+        "address": "6cd9",
+        "word": "06e10003efbb",
+        "opcode": "6e1",
+        "destination": 62,
+        "source1": 62,
+        "source0": 59,
+        "immediate": 0
+      },
+      {
+        "address": "6cda",
+        "word": "06e10003cf38",
+        "opcode": "6e1",
+        "destination": 60,
+        "source1": 60,
+        "source0": 56,
+        "immediate": 0
+      },
+      {
+        "address": "6cdc",
+        "word": "000810033008",
+        "opcode": "008",
+        "destination": 51,
+        "source1": 0,
+        "source0": 8,
+        "immediate": 16
+      },
+      {
+        "address": "6cdd",
+        "word": "27000003b033",
+        "opcode": "700",
+        "destination": 59,
+        "source1": 0,
+        "source0": 51,
+        "immediate": 0
+      },
+      {
+        "address": "6cde",
+        "word": "06490003cfbc",
+        "opcode": "649",
+        "destination": 60,
+        "source1": 62,
+        "source0": 60,
+        "immediate": 0
+      },
+      {
+        "address": "6ce0",
+        "word": "06e10003cf3a",
+        "opcode": "6e1",
+        "destination": 60,
+        "source1": 60,
+        "source0": 58,
+        "immediate": 0
+      },
+      {
+        "address": "6ce1",
+        "word": "06c900038f3a",
+        "opcode": "6c9",
+        "destination": 56,
+        "source1": 60,
+        "source0": 58,
+        "immediate": 0
+      },
+      {
+        "address": "6ce2",
+        "word": "26a10003fe78",
+        "opcode": "6a1",
+        "destination": 63,
+        "source1": 57,
+        "source0": 56,
+        "immediate": 0
+      }
+    ],
+    "table": [
+      {
+        "address": "6e8c",
+        "word": "06a03003a000",
+        "opcode": "6a0",
+        "destination": 58,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 48
+      },
+      {
+        "address": "6e8d",
+        "word": "06a03103b000",
+        "opcode": "6a0",
+        "destination": 59,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 49
+      },
+      {
+        "address": "6e8e",
+        "word": "068a0003ceb8",
+        "opcode": "68a",
+        "destination": 60,
+        "source1": 58,
+        "source0": 56,
+        "immediate": 0
+      },
+      {
+        "address": "6e90",
+        "word": "068a0003de3b",
+        "opcode": "68a",
+        "destination": 61,
+        "source1": 56,
+        "source0": 59,
+        "immediate": 0
+      },
+      {
+        "address": "6e91",
+        "word": "076a0003003c",
+        "opcode": "76a",
+        "destination": 48,
+        "source1": 0,
+        "source0": 60,
+        "immediate": 0
+      },
+      {
+        "address": "6e92",
+        "word": "076a0003103d",
+        "opcode": "76a",
+        "destination": 49,
+        "source1": 0,
+        "source0": 61,
+        "immediate": 0
+      },
+      {
+        "address": "6e94",
+        "word": "000400030c31",
+        "opcode": "004",
+        "destination": 48,
+        "source1": 48,
+        "source0": 49,
+        "immediate": 0
+      },
+      {
+        "address": "6e95",
+        "word": "0151b53002f0",
+        "opcode": "151",
+        "destination": 0,
+        "source1": 11,
+        "source0": 48,
+        "immediate": 181
+      },
+      {
+        "address": "6e96",
+        "word": "05be0003ae00",
+        "opcode": "5be",
+        "destination": 58,
+        "source1": 56,
+        "source0": 0,
+        "immediate": 0
+      },
+      {
+        "address": "6e98",
+        "word": "07a800038038",
+        "opcode": "7a8",
+        "destination": 56,
+        "source1": 0,
+        "source0": 56,
+        "immediate": 0
+      },
+      {
+        "address": "6e99",
+        "word": "06490003beb8",
+        "opcode": "649",
+        "destination": 59,
+        "source1": 58,
+        "source0": 56,
+        "immediate": 0
+      },
+      {
+        "address": "6e9a",
+        "word": "04940003ce80",
+        "opcode": "494",
+        "destination": 60,
+        "source1": 58,
+        "source0": 0,
+        "immediate": 0
+      },
+      {
+        "address": "6e9c",
+        "word": "06490003ce3c",
+        "opcode": "649",
+        "destination": 60,
+        "source1": 56,
+        "source0": 60,
+        "immediate": 0
+      },
+      {
+        "address": "6e9d",
+        "word": "06490003befb",
+        "opcode": "649",
+        "destination": 59,
+        "source1": 59,
+        "source0": 59,
+        "immediate": 0
+      },
+      {
+        "address": "6e9e",
+        "word": "07ea0003003a",
+        "opcode": "7ea",
+        "destination": 48,
+        "source1": 0,
+        "source0": 58,
+        "immediate": 0
+      },
+      {
+        "address": "6ea0",
+        "word": "000546030c10",
+        "opcode": "005",
+        "destination": 48,
+        "source1": 48,
+        "source0": 16,
+        "immediate": 70
+      },
+      {
+        "address": "6ea1",
+        "word": "06a03e03a000",
+        "opcode": "6a0",
+        "destination": 58,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 62
+      },
+      {
+        "address": "6ea2",
+        "word": "06660003befc",
+        "opcode": "666",
+        "destination": 59,
+        "source1": 59,
+        "source0": 60,
+        "immediate": 0
+      },
+      {
+        "address": "6ea4",
+        "word": "06e10003aefa",
+        "opcode": "6e1",
+        "destination": 58,
+        "source1": 59,
+        "source0": 58,
+        "immediate": 0
+      },
+      {
+        "address": "6ea5",
+        "word": "06e10003cefb",
+        "opcode": "6e1",
+        "destination": 60,
+        "source1": 59,
+        "source0": 59,
+        "immediate": 0
+      },
+      {
+        "address": "6ea6",
+        "word": "06a03503d000",
+        "opcode": "6a0",
+        "destination": 61,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 53
+      },
+      {
+        "address": "6ea8",
+        "word": "06e100038f7c",
+        "opcode": "6e1",
+        "destination": 56,
+        "source1": 61,
+        "source0": 60,
+        "immediate": 0
+      },
+      {
+        "address": "6ea9",
+        "word": "06a03403d000",
+        "opcode": "6a0",
+        "destination": 61,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 52
+      },
+      {
+        "address": "6eaa",
+        "word": "064900038e3d",
+        "opcode": "649",
+        "destination": 56,
+        "source1": 56,
+        "source0": 61,
+        "immediate": 0
+      },
+      {
+        "address": "6eac",
+        "word": "06e100038e3c",
+        "opcode": "6e1",
+        "destination": 56,
+        "source1": 56,
+        "source0": 60,
+        "immediate": 0
+      },
+      {
+        "address": "6ead",
+        "word": "06a03303d000",
+        "opcode": "6a0",
+        "destination": 61,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 51
+      },
+      {
+        "address": "6eae",
+        "word": "064900038e3d",
+        "opcode": "649",
+        "destination": 56,
+        "source1": 56,
+        "source0": 61,
+        "immediate": 0
+      },
+      {
+        "address": "6eb0",
+        "word": "07040003d030",
+        "opcode": "704",
+        "destination": 61,
+        "source1": 0,
+        "source0": 48,
+        "immediate": 0
+      },
+      {
+        "address": "6eb1",
+        "word": "06440003d03d",
+        "opcode": "644",
+        "destination": 61,
+        "source1": 0,
+        "source0": 61,
+        "immediate": 0
+      },
+      {
+        "address": "6eb2",
+        "word": "06e100038e3c",
+        "opcode": "6e1",
+        "destination": 56,
+        "source1": 56,
+        "source0": 60,
+        "immediate": 0
+      },
+      {
+        "address": "6eb4",
+        "word": "0000b5030e08",
+        "opcode": "000",
+        "destination": 48,
+        "source1": 56,
+        "source0": 8,
+        "immediate": 181
+      },
+      {
+        "address": "6eb5",
+        "word": "07160003c030",
+        "opcode": "716",
+        "destination": 60,
+        "source1": 0,
+        "source0": 48,
+        "immediate": 0
+      },
+      {
+        "address": "6eb6",
+        "word": "06490003df3d",
+        "opcode": "649",
+        "destination": 61,
+        "source1": 60,
+        "source0": 61,
+        "immediate": 0
+      },
+      {
+        "address": "6eb8",
+        "word": "06e100038ef8",
+        "opcode": "6e1",
+        "destination": 56,
+        "source1": 59,
+        "source0": 56,
+        "immediate": 0
+      },
+      {
+        "address": "6eb9",
+        "word": "0000d5030e08",
+        "opcode": "000",
+        "destination": 48,
+        "source1": 56,
+        "source0": 8,
+        "immediate": 213
+      },
+      {
+        "address": "6eba",
+        "word": "07160003b030",
+        "opcode": "716",
+        "destination": 59,
+        "source1": 0,
+        "source0": 48,
+        "immediate": 0
+      },
+      {
+        "address": "6ebc",
+        "word": "064900038e3a",
+        "opcode": "649",
+        "destination": 56,
+        "source1": 56,
+        "source0": 58,
+        "immediate": 0
+      },
+      {
+        "address": "6ebd",
+        "word": "000810033008",
+        "opcode": "008",
+        "destination": 51,
+        "source1": 0,
+        "source0": 8,
+        "immediate": 16
+      },
+      {
+        "address": "6ebe",
+        "word": "27000003a033",
+        "opcode": "700",
+        "destination": 58,
+        "source1": 0,
+        "source0": 51,
+        "immediate": 0
+      },
+      {
+        "address": "6ec0",
+        "word": "06c900038e3b",
+        "opcode": "6c9",
+        "destination": 56,
+        "source1": 56,
+        "source0": 59,
+        "immediate": 0
+      },
+      {
+        "address": "6ec1",
+        "word": "06c900038e3d",
+        "opcode": "6c9",
+        "destination": 56,
+        "source1": 56,
+        "source0": 61,
+        "immediate": 0
+      },
+      {
+        "address": "6ec2",
+        "word": "26a10003fe78",
+        "opcode": "6a1",
+        "destination": 63,
+        "source1": 57,
+        "source0": 56,
+        "immediate": 0
+      }
+    ],
+    "p1_tiny": [
+      {
+        "address": "5b64",
+        "word": "0008d677e009",
+        "opcode": "008",
+        "destination": 62,
+        "source1": 0,
+        "source0": 9,
+        "immediate": 214
+      },
+      {
+        "address": "5b65",
+        "word": "06a03203a000",
+        "opcode": "6a0",
+        "destination": 58,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 50
+      },
+      {
+        "address": "5b66",
+        "word": "06e10003ae3a",
+        "opcode": "6e1",
+        "destination": 58,
+        "source1": 56,
+        "source0": 58,
+        "immediate": 0
+      },
+      {
+        "address": "5b68",
+        "word": "06a04703b000",
+        "opcode": "6a0",
+        "destination": 59,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 71
+      },
+      {
+        "address": "5b69",
+        "word": "06c90003bef8",
+        "opcode": "6c9",
+        "destination": 59,
+        "source1": 59,
+        "source0": 56,
+        "immediate": 0
+      },
+      {
+        "address": "5b6a",
+        "word": "00053c031c10",
+        "opcode": "005",
+        "destination": 49,
+        "source1": 48,
+        "source0": 16,
+        "immediate": 60
+      },
+      {
+        "address": "5b6c",
+        "word": "03506d6c02b1",
+        "opcode": "350",
+        "destination": 0,
+        "source1": 10,
+        "source0": 49,
+        "immediate": 109
+      },
+      {
+        "address": "5b6d",
+        "word": "000810033008",
+        "opcode": "008",
+        "destination": 51,
+        "source1": 0,
+        "source0": 8,
+        "immediate": 16
+      },
+      {
+        "address": "5b6e",
+        "word": "27000003d033",
+        "opcode": "700",
+        "destination": 61,
+        "source1": 0,
+        "source0": 51,
+        "immediate": 0
+      },
+      {
+        "address": "5b70",
+        "word": "06a03e03a000",
+        "opcode": "6a0",
+        "destination": 58,
+        "source1": 0,
+        "source0": 0,
+        "immediate": 62
+      },
+      {
+        "address": "5b71",
+        "word": "06e10003be3a",
+        "opcode": "6e1",
+        "destination": 59,
+        "source1": 56,
+        "source0": 58,
+        "immediate": 0
+      },
+      {
+        "address": "5b72",
+        "word": "26a10003fe7b",
+        "opcode": "6a1",
+        "destination": 63,
+        "source1": 57,
+        "source0": 59,
+        "immediate": 0
+      }
+    ]
+  },
+  "derivation": "RN40(log2(1+n/64)), followed by signed RN67 of the residual; independent Decimal precisions 128 and 192 agree.",
+  "limits": "Goldmont is not Skylake. Its ROM dump exposes only upper-64-bit significand projections, not signs, exponents or low bits. Operation semantics and dispatch remain hypotheses until independently tested on Skylake."
+}

@@ -1,0 +1,916 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,longtable,array}
+\usepackage{microtype,listings,xcolor}
+\setlength{\emergencystretch}{1em}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\definecolor{ink}{HTML}{24384B}
+\lstdefinestyle{reference}{language=Python,basicstyle=\ttfamily\footnotesize,
+ keywordstyle=\bfseries\color{ink},commentstyle=\itshape\color{ink},
+ columns=fullflexible,keepspaces=true,showstringspaces=false,
+ breaklines=true,breakatwhitespace=true,frame=lines,
+ aboveskip=0.7\baselineskip,belowskip=0.7\baselineskip}
+\newcommand{\ins}[1]{\texttt{#1}}
+\newcommand{\T}[1]{\operatorname{T}_{#1}}
+\newcommand{\N}[1]{\operatorname{RN}_{#1}}
+\newcommand{\R}{\operatorname{R}_{\mathrm{RC}}}
+\newcommand{\hex}[1]{\texttt{#1}}
+\newtheorem{proposition}{Proposition}
+\hypersetup{pdftitle={Reconstructing FSIN, FCOS and FSINCOS from Public Constants and Processor Tests},
+ pdfauthor={},pdfsubject={Executable behavioral reconstruction and validation}}
+\input{generated-suite/numbers.tex}
+\title{Reconstructing FSIN, FCOS and FSINCOS\\
+from Public Constants and Processor Tests}
+\author{}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+The constants used to approximate sine and cosine do not, by themselves,
+explain the results of x87 instructions. The order of operations and the
+rounding of intermediate values also matter. We reconstruct executable
+algorithms for \ins{FSIN}, \ins{FCOS} and \ins{FSINCOS} on the tested Intel
+Skylake Core i7 and Xeon processors, starting from Ken Shirriff's published
+Pentium ROM analysis. The main findings are distinct polynomial schedules
+for standalone and paired instructions, unequal operand widths in the
+standalone multiplication rule, and different rounding destinations within
+the shared table calculation. Exact arithmetic and measurements near rounding boundaries constrain these
+details through the final result and C1 bit. The resulting programs use fixed arithmetic rules and the published
+constants, and match the reported hardware tests and saved-data replays.
+Bounds on reduction and intermediate widths support their implementation;
+they do not establish a unique physical circuit or agreement for every input.
+The accompanying reference also covers \ins{FPTAN}, \ins{FPATAN},
+\ins{F2XM1}, \ins{FYL2X} and \ins{FYL2XP1}, with complete pseudocode,
+constants and programmer interfaces for all eight instructions.
+\end{abstract}
+
+\section{Introduction}
+
+An emulator that replaces \ins{FSIN} with a library sine function can return
+different bits from the processor. The library's answer may be closer to the
+mathematical sine, but it can still be wrong for a program that expects x87
+behavior. Intel describes this distinction and the limits of the instructions'
+range reduction~\cite{intelDifference}. Our aim is to reproduce the processor's
+calculation, including the rounding decisions that affect its last bits.
+
+The main contribution of this work is the reconstruction of \ins{FSIN},
+\ins{FCOS} and \ins{FSINCOS}. Published constants explain the approximation
+families. Reproducing the instruction results also requires the order of
+operations, the precision of each intermediate value, and the final rounding
+rule. Standalone sine and cosine and the paired instruction use different
+finite-precision evaluations of the same approximation data.
+
+We specify those calculations as explicit arithmetic programs. Standalone
+\ins{FSIN}/\ins{FCOS} split the polynomial into odd and even coefficient
+chains; \ins{FSINCOS} uses two Horner chains sharing a square. The standalone
+multiply retains different widths for its two operands. The shared table
+calculation also contains a product that rounds directly to 64 bits, while
+ordinary products truncate to 67. The final additions, sign restoration and
+C1 rule are specified as part of the algorithm. Together, these rules explain how the approximation data produce the
+observed result bits and C1.
+
+The evidence combines inputs selected to distinguish arithmetic rules,
+independent exact implementations, completed native runs and extensive replays
+of earlier hardware observations. We also establish properties of the
+reconstructed programs, including exact reduction with the finite divisor and
+bounds on intermediate values. These serve different purposes: hardware
+measurements select numerical behavior, while the bounds check that the code
+can carry out the specified calculation without losing additional bits.
+
+The paper is organized into three families. Section~\ref{family:trig}
+contains the main reconstruction: \ins{FSIN}, \ins{FCOS} and \ins{FSINCOS},
+from their mathematical basis through the reconstructed arithmetic and its
+validation. Section~\ref{family:tangent} covers \ins{FPTAN} and \ins{FPATAN},
+which followed comparatively directly from the published material.
+Section~\ref{family:explog} places the shorter exponential and logarithm
+implementations last. Each family has its own algorithm, constants and
+evidence discussion; the appendices follow the same order.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Instruction & Mathematical function & Family\\
+\midrule
+\ins{FSIN} & $\sin x$ & Sine and cosine\\
+\ins{FCOS} & $\cos x$ & Sine and cosine\\
+\ins{FSINCOS} & $(\sin x,\cos x)$ & Sine and cosine\\
+\midrule
+\ins{FPTAN} & $\tan x$, with a pushed result & Tangent and arctangent\\
+\ins{FPATAN} & $\operatorname{atan2}(y,x)$ & Tangent and arctangent\\
+\midrule
+\ins{F2XM1} & $2^x-1$ & Exponential and logarithms\\
+\ins{FYL2X} & $y\log_2x$ & Exponential and logarithms\\
+\ins{FYL2XP1} & $y\log_2(1+x)$ & Exponential and logarithms\\
+\bottomrule
+\end{tabular}
+\caption{The main reconstruction and the accompanying implementations.
+All eight instructions have complete specifications~\cite{intelSdm}.
+Their mathematical functions describe what they approximate; the models
+also preserve the processor's intermediate rounding.}
+\label{tab:scope}
+\end{table}
+
+\section{FSIN, FCOS and FSINCOS}
+\label{family:trig}
+
+The sine and cosine reconstruction starts with the published approximation
+methods and determines the finite-precision operations used to evaluate them.
+
+\subsection{Published constants and implementations}
+
+Shirriff decoded the Pentium floating-point ROM and explained how its
+constants are used~\cite{shirriff2025rom}. That work supplies the main constants
+and many of the algorithmic ideas used here. We build on it by working out the
+precision and rounding steps needed to reproduce the tested processors.
+Appendix~\ref{app:trig-constants} records the literal values, including two
+cosine-table words that differ from the saved published transcription.
+
+Harrison formally verified trigonometric algorithms used for IA-32
+compatibility on Itanium~\cite{harrison2000}. Intel's assembly implementation
+is preserved in glibc 2.38~\cite{glibc238}; our repository includes a separate
+translation that uses integer arithmetic. The IA-64 literature also explains
+the underlying reduction and approximation methods~\cite{harrison1999}.
+These sources help explain the algorithms, but we do not assume that their
+rounding steps match Skylake.
+
+\subsection{Measurements and exact arithmetic}
+
+Each hardware observation records the instruction, raw input bits, rounding
+control (RC), precision control (PC) when available, result bits and status
+word. Predictions for new hardware tests are fixed before capture. Replays
+compare the specified calculation with saved observations; their counts are
+reported separately from new instruction executions.
+
+The Xeon and Core i7-6700 test environments report CPU signatures \hex{00050654} and
+\hex{000506e3}, with microcode values \hex{0x1} and \hex{0xf0}, respectively.
+The Xeon runs under a hypervisor. These are the identifiers reported by the
+test environments; we have not independently verified their physical microcode
+images. Comparisons between the CPUs use only inputs tested on both.
+
+Separate integer and rational implementations evaluate the same operations
+with independent input decoders and quantizers. Exact intermediate values
+connect the measured last bits to rounding decisions inside the calculation.
+Bounds on reachable values then establish the widths needed by the integer
+implementation.
+
+\subsection{How the approximations work}
+\label{sec:language}
+
+\subsubsection{Why reduction, polynomials and tables work}
+
+The basic idea is to make the difficult part of the calculation small.
+An identity reduces the input to a short interval, where a short polynomial
+can approximate the function accurately. Table values, powers of two or
+quadrant identities then give the answer for the original input. Harrison,
+Kubaska, Story and Tang describe this method and its tradeoffs
+\cite[pp.~1--2]{harrison1999}: smaller intervals allow shorter polynomials,
+but require more table storage or more work to combine the pieces.
+
+Taylor series explain the powers and leading coefficients. However, matching
+a function's derivatives at one point need not give the smallest error over
+an interval. For a chosen set $\mathcal P$ of polynomials, one way to choose
+the coefficients is
+\begin{equation}
+ \min_{p\in\mathcal P}\ \max_{r\in I}|f(r)-p(r)|.
+\end{equation}
+This minimizes the worst error on the interval $I$, a criterion called minimax.
+The set $\mathcal P$ can fix the degree, symmetry or leading terms. Harrison
+et al. describe how the Remez algorithm finds such polynomials. Shirriff uses
+this idea to explain why the Pentium coefficients differ from the reciprocal
+factorials and odd reciprocals in Taylor series~\cite{harrison1999,shirriff2025rom}.
+The series below explain the form of each approximation. To reproduce the
+processor, the code uses the saved ROM coefficients. We have not proved that
+every rounded ROM coefficient belongs to an exact minimax solution.
+
+There are three sources of error to keep separate: reducing the input,
+approximating the function with a polynomial, and rounding the operations
+used to evaluate that polynomial. Harrison treats these separately in his
+trigonometric verification~\cite[Sections~4--5]{harrison2000}. Two ways of
+evaluating the same polynomial can give different last bits because they
+round at different points. The identities explain why each approximation
+works; the following rounding rules specify the calculation we reproduce.
+
+\subsubsection{Numbers and rounding}
+
+A normal raw80 value consists of a sign $s$, biased exponent $E$ and explicit
+64-bit integer significand $S$:
+\begin{equation}
+x=(-1)^s S\,2^{E-16383-63}.
+\end{equation}
+Exponent zero uses effective exponent one for decoding subnormal and
+pseudo-denormal values. Each implementation checks the special and unsupported encodings it handles
+before starting the ordinary calculation. Supported inputs and status flags
+are documented for each instruction.
+
+Let $T_p(v)$ truncate magnitude to $p$ significant bits, preserving sign,
+and let $\N{p}(v)$ round to nearest with ties to even. These internal
+operators have an unbounded exponent in the reference specification.
+Final architectural rounding is denoted $\R(v)$ and uses the requested RC.
+Unmarked operations are exact. In particular, a sequence containing
+$T_{67}$ followed by $\N{64}$ is not simplified into a single $\N{64}$.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.24\linewidth}>{\raggedright\arraybackslash}p{0.42\linewidth}>{\raggedright\arraybackslash}p{0.25\linewidth}@{}}
+\toprule
+Algorithm & Usual multiplication & Where the rules differ\\
+\midrule
+Standalone polynomial & $T_{67}(T_{67}(a)T_{64}(b))$ & Ordered input cuts\\
+Paired polynomial & $T_{67}(ab)$ & Cut every Horner product before adding\\
+Shared table & $T_{67}(T_{67}(a)T_{64}(b))$ & One product rounds directly to RN64\\
+\bottomrule
+\end{tabular}
+\caption{Multiplication rules in the sine and cosine algorithms. The full pseudocode
+identifies every operation that uses a different rounding rule.}
+\label{tab:operators}
+\end{table}
+
+For ordinary results, C1 records whether final rounding increases the magnitude:
+\begin{equation}
+ C1=\mathbf{1}\{|\R(v)|>|v|\}.
+\end{equation}
+Special cases and inputs returned without calculation use the rules in the
+pseudocode. This C1 rule does not cover every possible initial x87 state or
+undefined condition bit. The numerical interface does not predict every
+exception flag.
+
+\subsection{Reconstructed algorithms}
+\label{sec:trig}
+
+The reconstruction has to determine more than the polynomial coefficients.
+It must determine which values enter each operation, when their low bits are
+discarded, and how the final correction is combined with the leading term.
+We describe the mathematical approximation first, then the finite arithmetic
+that matches the tested processors. The complete program is in
+Appendix~\ref{app:trig}.
+
+
+\subsubsection{Using symmetry and nearby table values}
+
+In real arithmetic, writing $x=k\pi/2+r_*$ with $|r_*|\leq\pi/4$ reduces
+sine and cosine to a small interval. The quadrant $k\bmod4$ determines the
+signs and whether sine and cosine exchange roles. On that interval, sine is odd and cosine is even, giving the forms
+\begin{align}
+ \sin r&=r+r^3\left(-\frac1{3!}+\frac{r^2}{5!}
+                                  -\frac{r^4}{7!}+\cdots\right),\\
+ \cos r&=1+r^2\left(-\frac1{2!}+\frac{r^2}{4!}
+                                  -\frac{r^4}{6!}+\cdots\right).
+\end{align}
+Thus the corrections are polynomials in $r^2$, with leading sizes $r^3$
+and $r^2$ respectively~\cite[Section~4.19]{dlmfElementary}. Small residuals
+make higher powers small: for example, truncating the sine series after
+$r^{2n+1}$ gives, for real $|r|\leq1$,
+\begin{equation}
+ \left|\sin r-\sum_{j=0}^{n}\frac{(-1)^j r^{2j+1}}{(2j+1)!}\right|
+ \leq\frac{|r|^{2n+3}}{(2n+3)!}.
+\end{equation}
+This alternating-series bound illustrates the benefit of reduction; it is
+not an error bound for the different ROM coefficients. The same leading
+terms explain why sufficiently tiny inputs need only a leading value and
+a directed-rounding correction.
+
+For larger residuals, choose a nearby table center $\theta$ and put
+$a=r-\theta$. Let $s_\theta=\sin\theta$, $c_\theta=\cos\theta$,
+$\sigma=\sin a$ and $\kappa=\cos a-1$. The addition identities become
+\begin{align}
+ \sin(\theta+a)&=s_\theta+(s_\theta\kappa+c_\theta\sigma),\\
+ \cos(\theta+a)&=c_\theta+(c_\theta\kappa-s_\theta\sigma).
+\end{align}
+Only the small corrections $\sigma$ and $\kappa$ need polynomial evaluation
+\cite[Section~4.21]{dlmfElementary}. Harrison et al. use the same addition
+identities with different tables~\cite[p.~3]{harrison1999}; the dyadic centers
+used here come from the decoded Pentium table~\cite{shirriff2025rom}.
+The code uses stored ROM values for $s_\theta,c_\theta$ and rounds the
+correction steps as described below.
+
+\subsubsection{Reducing the input angle}
+
+For a finite supported argument, magnitudes at least $2^{63}$ set C2 and
+leave the operand unchanged. Below the direct boundary
+\hex{3ffe:c90fdaa22168c234}, reduction is bypassed. Otherwise write
+$|x|=S2^{e-63}$ and define
+\begin{equation}
+ D=\hex{3243f6a8885a308d3},\qquad A=S2^{e+2}.
+\end{equation}
+The integer $D$ represents the fixed divisor $D2^{-65}$. With
+$A=qD+t$, $0\leq t<D$, choose $n=q+\mathbf1\{2t>D\}$ and
+\begin{equation}
+ r=(A-nD)2^{-65}.
+\end{equation}
+Apply the input sign to both $r$ and $n$. Since $D$ is odd, there is no
+halfway integer remainder. Integer division keeps the low bits needed to reduce even a large input
+accurately with this divisor.
+
+Exactness here concerns the finite divisor $P=D2^{-65}$, which approximates
+$\pi/2$. For the same selected integer $n$, the computed residual $r=x-nP$
+and the mathematical residual $r_*=x-n\pi/2$ differ by
+\begin{equation}
+r-r_*=n(\pi/2-P).
+\end{equation}
+The phase error can therefore grow with argument magnitude even when the
+integer reduction has no arithmetic error. This is the range-reduction
+limitation discussed in Intel's comparison with mathematical trigonometric
+functions~\cite{intelDifference}; increasing polynomial accuracy cannot
+remove it.
+
+The finite reduction has an additional useful property. A reduced nonzero
+input cannot have an exactly zero residual: $A=nD$ would imply $D\mid S$, because $D$
+is odd and coprime to $2^{e+2}$. But $D$ is larger than a 64-bit significand.
+Every reduced residual therefore lies on the nonzero $2^{-65}$ lattice.
+This gives a concrete domain for the subsequent tiny and polynomial paths,
+and lets tests work backward from a desired residual to possible raw80 inputs.
+
+For sine and cosine, the residual's magnitude chooses the tiny-input method,
+polynomial or table, with boundaries at $2^{-32}$ and $1/4$. Table centers have numerators
+$18,22,26,30,36,44,52$ over 64. Selection and center subtraction remain
+exact at the cell boundaries. The quadrant determines which internal function supplies each external
+result. If the requested phase is $\phi=0$ for sine or $\phi=1$ for cosine,
+use $(n+\phi)\bmod4$ to choose the internal sine/cosine lane and its sign.
+Apply that sign before final rounding; rounding a positive magnitude and
+negating it afterwards gives the wrong directed result.
+
+\subsubsection{Standalone polynomial: operand widths and two coefficient chains}
+\label{sec:standalone}
+
+The standalone polynomial separates odd and even coefficient indices and
+uses the asymmetric ordinary product in Table~\ref{tab:operators}.
+Let $K_1,\ldots,K_6$ be the appropriate sine or cosine coefficients,
+$M(a,b)=T_{67}(T_{67}(a)T_{64}(b))$, and $A(a,b)=\N{64}(a+b)$.
+The program forms $u=M(r,r)$ and $v=M(u,u)$, then
+\begin{align}
+ o&=A(K_1,M(v,A(K_3,M(v,K_5)))),\\
+ e&=A(K_2,M(v,A(K_4,M(v,K_6)))),\\
+ \ell&=M(u,o),\qquad h=M(v,e).
+\end{align}
+Before final rounding, sine is $r+M(r,A(\ell,h))$ and cosine is
+$1+T_{67}(\ell+h)$. The different final operations affect the result bits.
+
+The asymmetric product is particularly informative at the fourth power.
+The first square can contain 67 significant bits. Forming $v=M(u,u)$ then
+uses the full retained square on one side and its 64-bit truncation on the
+other. Replacing that operation with a symmetric $T_{67}(u^2)$ can change
+the polynomial even though both descriptions appear to use ``67-bit
+multiplication.''
+
+The reachable widths explain where this distinction matters. A direct
+polynomial residual has at most 64 significant bits; a reduced polynomial
+residual has at most 63, because it is below $1/4$ on the $2^{-65}$ lattice.
+The coefficient widths and RN64 additions make the other input cuts
+identities under the displayed operand order. The fourth-power operation is
+the only nonidentity input cut in this polynomial graph. This is a statement
+about the numerical program; it does not establish physical multiplier ports.
+
+The two terminal expressions matter just as much. Sine rounds $\ell+h$ to
+RN64, multiplies by $r$, and adds that correction to $r$. Cosine truncates
+$\ell+h$ to 67 bits before adding it to one. Sharing the coefficient-chain
+code does not make those endings interchangeable. Internal rounding remains
+fixed when the caller changes RC; the requested mode acts on the signed final
+value.
+
+\subsubsection{FSINCOS: a different evaluation order}
+\label{sec:paired}
+
+Paired \ins{FSINCOS} instead shares $u=T_{67}(r^2)$ between two Horner
+chains. At every coefficient stage, each chain uses
+\begin{equation}
+ p_i=\N{64}\!\left(T_{67}(p_{i+1}u)+S_i\right),
+ \quad
+ q_i=\N{64}\!\left(T_{67}(q_{i+1}u)+C_i\right).
+\end{equation}
+Before final rounding, paired sine is $r+T_{67}(\N{64}(p_1u)r)$ and cosine
+is $1+T_{67}(q_1u)$. Calling FSIN and FCOS separately therefore does not
+reproduce FSINCOS. Its final C1 describes rounding of the returned cosine,
+even when the quadrant makes the internal sine calculation supply that result.
+
+The Horner stages operate on the small correction polynomials in $r^2$.
+Truncation to 67 bits retains three more significant bits than each RN64
+coefficient sum. Those bits participate in the next addition before its
+rounding. Measurements near final rounding midpoints constrain this order;
+exact arithmetic traces the low bits through each stage. The same product
+cut applies at all five coefficient additions on both arms.
+
+\subsubsection{Shared table reconstruction: where a product is rounded}
+\label{sec:trig-table}
+
+For $r\geq1/4$, select a center $b/64$ by
+\begin{equation}
+ b=\begin{cases}
+ 18+4\lfloor16(r-1/4)\rfloor,&r<1/2,\\
+ 36+8\min(2,\lfloor8(r-1/2)\rfloor),&r\geq1/2.
+ \end{cases}
+\end{equation}
+The reachable numerators are $18,22,26,30,36,44,52$. Set $a=r-b/64$
+and $u=M(a,a)$. With the standalone operators $M$ and $A$, define the
+four-coefficient chain
+\begin{equation}
+ H(K)=A(K_1,M(u,A(K_2,M(u,A(K_3,M(u,K_4)))))).
+\end{equation}
+Let $p=H(S_4)$ and $q=H(C_4)$. The highest-degree sine coefficient includes
+the established adjustment $-2^{-25}$ to the decoded constant. This adjustment
+is explicit in the specification; the other coefficients retain their ROM
+values.
+
+The small sine and cosine corrections are
+\begin{equation}
+ v=A(a,M(M(u,p),a)),\qquad
+ w=M_R(u,q),\qquad M_R(x,y)=\N{64}(T_{67}(x)T_{64}(y)).
+\end{equation}
+Using the stored center values $t_s,t_c$, form
+\begin{align}
+ z_s&=T_{67}\bigl(M(t_c,v)+M(t_s,w)\bigr),\\
+ z_c&=T_{67}\bigl(-M(t_s,v)+M(t_c,w)\bigr).
+\end{align}
+The positive-residual prevalues are $t_s+z_s$ and $t_c+z_c$. Quadrant sign
+restoration precedes the final RC rounding. These are the addition identities
+above with explicit rounding at each arithmetic step.
+
+The definition of $M_R$ rounds the exact product of its cut operands directly
+to RN64. Its rounding decision uses the product's low bits, including those
+below the 67-bit position. By contrast, ordinary $M$ products discard those
+bits. The destination of each product is therefore part of the algorithm.
+
+Exact cell selection matters independently of polynomial rounding. Converting
+the input to binary64 before classifying it merges raw80 values immediately
+below a boundary with the boundary itself. The classifier and subtraction
+therefore operate on the original dyadic value. Center subtraction leaves
+at most 61 significant offset bits for reduced inputs and 60 for direct
+inputs. All table input cuts are identities under the stated operand order;
+the table tests establish the rounding destinations, without separately
+establishing an asymmetric physical input port.
+
+At an exact center the correction vanishes, exposing the ROM entry and final
+rounding directly. Center measurements therefore constrain the stored table values
+independently of the correction polynomial. The center $52/64$ itself lies
+outside the reachable residual interval, although its cell is used. The ROM's $60/64$ row is never selected by this
+dispatcher.
+
+\subsubsection{Tiny results}
+
+The external-input bypass at $|x|<2^{-68}$ returns the input for sine
+and $+1$ for cosine, with its specified C1 convention. In the remaining
+tiny-residual region, the leading magnitude is $r$ or $1$. RN and rounding
+away from zero retain that leading magnitude; rounding toward zero selects
+its predecessor at 64 significant bits. When the leading value is a power of two, that predecessor has an exponent
+one less than the leading value. This path and
+the external-input bypass must remain distinct.
+
+For polynomial and table results, C1 reports a final magnitude increment.
+For tiny non-bypass results, it is one when the leading magnitude is retained
+and zero when the predecessor is selected. The external-input bypass returns
+C1=0 in every mode. These rules specify both the returned value and the status of its final
+rounding.
+
+\subsubsection{From exact arithmetic to the integer implementation}
+
+The executable specification uses signed dyadic values: an integer multiplied
+by a power of two. Multiplication and aligned addition are exact until an
+explicit quantizer discards bits. The C implementation uses bounded integer
+carriers whose widths follow from bounds on the reachable values.
+
+The reducer's integer division and nonzero-residual argument establish its
+input domain. Polynomial and table width bounds then cover their products,
+sums and final rounding. For the paired polynomial, exact interval enclosures
+cover all 30 polynomial binades. Its 840 operation-bound checks require at
+most 139 accumulator bits and alignment shifts at most 132, within the
+signed 256-bit carrier. Separate conversion and dispatch checks establish
+that supported external inputs reach the intended calculation.
+
+These arguments support the specified implementation under its entry and
+quantizer contracts. They complement the independently written rational
+program. Hardware measurements provide the separate evidence connecting
+that calculation to the processor.
+
+\subsection{Sine and cosine constants}
+\label{sec:trig-constants}
+
+The decoded ROM supplies the six- and four-coefficient polynomial families
+and the sine/cosine table. Appendix~\ref{app:trig-constants} lists their
+literal values and ROM row numbers, with the two differences from the saved
+cosine-table transcription. The fixed $-2^{-25}$ sine-coefficient adjustment
+appears explicitly in the algorithm.
+
+\subsection{Testing the sine and cosine reconstruction}
+\label{sec:validation}
+
+\subsubsection{How measurements constrain the calculation}
+
+The reconstruction separates the calculation into reduction, polynomial or
+table evaluation, and final rounding. Each offers a way to expose otherwise
+hidden arithmetic. Exact table centers isolate the stored values. Inputs on
+either side of an interval boundary identify dispatch rules. Values near
+output rounding boundaries constrain the low bits retained by intermediate
+operations. Raw80 inputs supply significand bits that a binary64 generator
+cannot exercise.
+
+For example, let $y$ be an ordinary observed result under RN, with adjacent
+representable values $y_-$ and $y_+$. The signed value $v$ just before final
+rounding must lie in its rounding interval:
+\begin{equation}
+ \frac{y_-+y}{2}\ \leq\ v\ \leq\ \frac{y+y_+}{2},
+\end{equation}
+with midpoint inclusion determined by ties to even. C1 adds a magnitude
+constraint: C1=1 requires $|v|<|y|$, while C1=0 requires $|v|\geq|y|$.
+The directed modes provide further interval bounds. Exact evaluation of the
+polynomial and table operations connects these observable constraints to
+intermediate widths, operation order and rounding destinations.
+
+The reducer also lets us choose an internal residual and find external
+inputs that reach it. For a desired residual integer $d$, solve
+$S2^{e+2}-nD=d$ subject to the significand and exponent bounds. An exact
+preimage repeats that residual at a different quadrant or magnitude; nearby
+external inputs bracket it. Sign counterparts and all four RC settings
+then check sign restoration and final rounding while preserving the kernel.
+
+The structural tests cover direct and reduced polynomial inputs, table cells
+and reachable centers, tiny-input boundaries and encoding classes. The
+exact-center set covers 672 specified combinations: 28 signed external
+operands, two instructions, four RC settings and three PC settings. Broad
+samples and archive replays provide complementary coverage beyond these
+selected boundaries.
+
+\subsubsection{Completed native runs and archive checks}
+
+Table~\ref{tab:trig-evidence} includes the large completed trig tests, later
+boundary tests and independent reference replays. Its counts need some care:
+an instruction execution, a saved row checked again in software and an
+output value are different things. FSINCOS produces two output values.
+Saved test sets overlap, and checking the same data on another host does not
+add new hardware observations.
+
+\input{generated-suite/trig-evidence-table.tex}
+
+The completed native runs execute FSIN \TrigNativeRows{} times on the
+Xeon. They test \TrigNativeInputs{} inputs drawn from binary64 encodings,
+using round-to-nearest, downward and upward rounding at PC64. All reported
+result, C1 and interval-check mismatch
+counters are zero. C1 is checked on non-C2 returns using the model's
+upward and downward rounded results. The sample includes special values
+and out-of-range returns. These are selected binary64 encodings, not an
+exhaustive input set. The retained evidence consists of completion logs
+and a build record. Individual outputs and a separate hash of the test
+executable are unavailable for these runs.
+
+The standalone and paired archive replays check \TrigIsevenRows{} saved
+rows on the i7 host and \TrigXeonRows{} on the Xeon host. They contain
+356,459,555 and 29,648,279 output-value comparisons, respectively, and
+193,825,064 and 17,600,228 applicable recorded C1 checks. All checked
+results and flags agree. Each host checks a common 15,655,784-row set
+plus its available archive files. The replay host does not necessarily
+identify the CPU that captured a row; unrecorded modes and flags are
+excluded. Overlapping test sets are not added to these counts.
+
+A separate hardware challenge tests 6,180 operands on each CPU with three
+instructions, four RC settings and three PC settings: \TrigChallengeRows{}
+executions and 296,640 output-value comparisons per CPU. The implementation
+and predictions were fixed before capture. The evidence register identifies
+the source versions, input sets, recorded fields and CPU contexts for the
+native runs, archive replays and this challenge.
+
+\subsubsection{What the checks leave open}
+
+Independent rational arithmetic checks the polynomial and table stages with
+separate decoders and quantizers; a separate integer formula checks the tiny
+path. These checks support the implementation of the specified operations.
+The hardware agreement covers the reported inputs and CPU contexts. It does
+not establish agreement for every raw80 input or uniquely identify the
+processor's physical implementation.
+
+The numerical entry points do not model every incoming FPU state or unmasked
+trap. Undefined status fields and unrecorded flags receive no pass credit.
+Testing a Core i7 and a Xeon establishes the reported agreement on those
+Skylake contexts; it does not establish identical behavior across all Intel
+generations. The separate Itanium implementation remains a historical
+comparison, not an interchangeable source of expected Skylake answers.
+
+\subsection{Result and implementation}
+
+The main result is a fixed arithmetic description of FSIN, FCOS and FSINCOS
+that explains their recorded last-bit behavior. Public ROM constants give
+the approximation data. The reconstruction supplies the standalone and
+paired evaluation orders, operand-width rules, table rounding destinations,
+and final sign/C1 behavior needed to turn that data into matching results.
+Algebraic equivalence is insufficient at each of those points.
+
+The integer implementation exposes separate raw80 entry points for standalone
+and paired instructions. The programmer guide describes the command-line
+interface, supported inputs and replay tools.
+
+\clearpage
+\section{FPTAN and FPATAN}
+\label{family:tangent}
+
+Tangent and arctangent form a separate, shorter part of the reconstruction.
+Their polynomial and table methods followed comparatively directly from
+Shirriff's published ROM account~\cite{shirriff2025rom}. This section gives
+their algorithms and evidence together; Appendix~\ref{app:tangent} contains
+the complete executable references.
+
+\subsection{FPTAN: retain the internal pair before division}
+
+The identity $\tan x=\sin x/\cos x$ explains the tangent method. FPTAN
+uses the finite angle divisor specified in Section~\ref{sec:trig}, selects a direct polynomial or table
+correction, and retains an internal sine/cosine pair. Ordinary products
+truncate to 67 bits and coefficient additions round to RN64; specified
+scaling products use RN64. The internal pair is cut to 67 bits, transformed
+by the quadrant, and divided before final RC rounding. Dividing architectural
+FSIN and FCOS results would introduce different rounding steps.
+
+Near a pole, a small denominator makes the quotient sensitive to errors in
+that pair. The same finite-divisor limitation as sine/cosine also applies.
+The direct tiny bypass returns the operand. Ordinary successful calls push
+$+1$; range returns leave the operand and stack depth unchanged. The reference
+specifies the special-result pushes and its result/C1/C2 contract.
+
+\subsection{FPATAN: reduce a ratio to a small angle}
+\label{sec:atan}
+
+After ordering the nonzero magnitudes as $a\leq b$, let $r=a/b$. The direct
+path uses a small-ratio polynomial. The table path uses
+\begin{equation}
+ \arctan r=\arctan c+\arctan t,\qquad
+ t=\frac{r-c}{1+rc}=\frac{a-cb}{b+ca}.
+\end{equation}
+Centers spaced by $1/32$ give $|t|\leq1/64$. The series
+$\arctan t=t-t^3/3+t^5/5-\cdots$ explains the correction polynomial
+\cite[Section~4.24]{dlmfElementary}. The code forms the residual from $a,b$
+with the specified 67-bit cuts, evaluates interleaved coefficient chains,
+and adds the stored angle. Magnitude ordering and operand signs determine
+the final $\pi/2$ or $\pi$ adjustment before architectural rounding.
+The wrapper also handles signed zeros, infinities, NaNs and masked exceptions.
+Its direct square uses $\N{64}(zT_{64}(z))$. The full reference specifies
+every product width and rounding destination.
+
+\subsection{Constants and published implementation evidence}
+
+FPTAN uses the sine/cosine coefficient and table values already listed in
+Appendix~\ref{app:trig-constants}, including the same two cosine-table transcription differences. FPATAN has its own ratio-polynomial coefficients, angle table and
+quadrant constants, listed in Appendix~\ref{app:atan-constants}.
+
+The arctangent audit also finds 42 matching constant bit patterns and the
+coefficient-read order in public Goldmont ROM material
+\cite{ucodeDisasm,customProcessingUnit}. Those comparisons cover the exposed
+bits; the remaining low bits, signs, exponents and operation meanings need
+separate analysis. They guide the tested algorithm without establishing a
+recovered Skylake microcode listing.
+
+\subsection{Validation and scope}
+\label{sec:tangent-validation}
+
+\input{generated-suite/tangent-evidence-table.tex}
+
+The FPTAN reference checks both complete T0002/T0003 captures, with
+\TanSuccess{} successful calls and \TanRange{} C2 returns per CPU. It checks
+the tangent, pushed value, C1/C2, controls and stack transitions. The final
+set contains 122,900 normal finite raw80 operands and \TanRows{} input/control
+tuples per CPU. It includes rounding-boundary, modular-residue, exponent and
+neighboring-input tests. Nine neighboring-input windows have complete coverage. Captured status words agree between CPUs, but the model
+does not predict every exception flag.
+
+The FPATAN reference matches \AtanRows{} saved tuples in \AtanPacks{} packs,
+checking results, C1, arithmetic exceptions and operand-preload flags.
+All catalog tuples have matching captured results and status on both CPUs. The catalog includes the 445,588-observation independent challenge per
+CPU, with mathematical-boundary and full-significand input selection.
+Exact table-index equivalence and tests of RN64 ties are documented in its
+separate algorithm and evidence records.
+
+The FPTAN CLI returns raw80 values and range results. The FPATAN CLI and
+GMP-based C API take ordered $y,x$ inputs with explicit RC/PC and return a
+raw80 angle, C1 and modeled masked exceptions. The wrapper assumes clear
+initial exception latches and a valid two-deep stack. The captured status
+agreement and the model's predicted fields remain separate claims.
+
+\clearpage
+\section{F2XM1, FYL2X and FYL2XP1}
+\label{family:explog}
+
+The exponential and logarithm implementations complete the reference.
+Their approximation families follow directly from the published ROM material
+\cite{shirriff2025rom}.
+The short descriptions below give the mathematical identities and the
+specified rounding. Appendix~\ref{app:explog} contains the full programs.
+
+\subsection{F2XM1: compute the small exponential difference directly}
+\label{sec:exp}
+
+For $t=x\ln2$, the series
+\begin{equation}
+ 2^x-1=t+t^2\left(\frac12+\frac{t}{6}+\frac{t^2}{24}+\cdots\right)
+\end{equation}
+explains the linear and polynomial paths~\cite[Section~4.2]{dlmfElementary}.
+Computing the difference directly preserves a small result that subtracting
+one from an already rounded exponential could erase. The tiny path applies
+below $2^{-68}$; an eleven-coefficient polynomial applies up to $|x|=1/4$.
+Above that boundary, a stored $2^b-1$ and a shorter correction use
+\begin{equation}
+ 2^x-1=(2^b-1)+2^b\bigl(\exp((x-b)\ln2)-1\bigr).
+\end{equation}
+The selected centers bound $|x-b|$ by $1/64$. The exact reference preserves
+the distinct RN64 and 67-bit versions of the scaling products. The endpoints
+$x=1,-1$ return $1,-1/2$. Final rounding, including a subnormal tiny result,
+uses raw80 spacing and the requested RC.
+
+\subsection{FYL2X and FYL2XP1: a logarithm followed by multiplication}
+\label{sec:log}
+
+Both instructions retain an internal logarithm $g$, then round $yg$ to
+raw80. Their direct and table paths follow
+\begin{equation}
+ \ln v=2\operatorname{atanh}t
+       =2\left(t+\frac{t^3}{3}+\frac{t^5}{5}+\cdots\right),
+ \qquad t=\frac{v-1}{v+1}.
+\end{equation}
+Reducing $v$ toward one makes the odd-power correction small
+\cite[Section~4.6]{dlmfElementary}. The direct intervals are
+$7/8\leq x\leq9/8$ for FYL2X and $|x|\leq1/8$ for FYL2XP1.
+For FYL2XP1 the transformed argument is $x/(2+x)$, so the calculation
+preserves the increment without first rounding $1+x$ to 64 bits.
+
+Otherwise, normalization $x=m2^e$ and a midpoint $a_i=(65+2i)/64$ give
+\begin{equation}
+ \log_2x=e+\log_2a_i+
+ 2\log_2(\mathrm e)\operatorname{atanh}\!\left(\frac{m-a_i}{m+a_i}\right).
+\end{equation}
+The 32 mantissa cells bound the exact transformed argument by $1/129$.
+Each table logarithm is split into a 40-bit high part and a 67-bit low
+correction. The direct and table polynomials, retained additions and final
+product use the instruction-specific rounding given in the reference.
+FYL2XP1 outside its direct interval enters the table program with $T_{67}(1+x)$.
+Its supported domain is Intel's guaranteed interval. The numerical wrappers
+include C1 and masked exceptions under their documented initial-state contract.
+
+\subsection{Constants and source checks}
+\label{sec:explog-constants}
+
+Appendix~\ref{app:explog-constants} lists the exponential and logarithm
+constants and the five literal differences from the saved published
+transcription. The logarithm high/low splits derived at decimal precisions
+128 and 192 agree on every word. The upper 64 bits of its 77 constants
+match the saved public Goldmont ROM, as do the two polynomial blocks and
+split-table read order~\cite{ucodeDisasm,customProcessingUnit}. These
+comparisons cover the data and operations exposed by those sources.
+
+\subsection{Validation and interfaces}
+\label{sec:explog-validation}
+
+\input{generated-suite/explog-evidence-table.tex}
+
+The F2XM1 reference matches \FtwoRows{} saved results and C1 values.
+The raw80 implementation also matches \FtwoRawRows{} cases on each
+processor, covering selected subnormal, pseudo-denormal and minimum-normal
+families across all RC settings and selected complete PC groups. These
+comparisons check numerical results and C1.
+
+The logarithm C and rational models match \LogRows{} saved observations,
+including \LogXRows{} FYL2X and \LogPoneRows{} FYL2XP1 cases. The
+\LogFreshRows{}-case hardware pack used the C source fixed before capture.
+A subsequent i7 confirmation matches 51,636 selected Xeon tuples; the other
+890,172 Xeon tuples are outside that confirmation. The checks distinguish
+instruction-specific PE/UE rules and operand-preload effects from final
+result rounding.
+
+F2XM1 uses the unary raw80 CLI. The logarithms also provide GMP-based C
+APIs taking ordered $y,x$ inputs and explicit RC/PC. Their result includes
+C1 and modeled masked exceptions under the documented initial-state contract.
+The offline package includes 216 F2XM1 boundary regressions and 854 logarithm
+C/API/reference examples. These checks preserve the implemented boundary
+rules without requiring native x87 execution.
+
+\paragraph{Availability and acknowledgments.}
+The accompanying package contains the paper source, programmer documentation,
+complete canonical references and verification records. Its build and small
+saved-result checks run without native x87; repeating the large archive
+replays requires the separately saved data. File hashes identify the exact
+source, constants, evidence and reviewed PDF. Public repository and
+archival identifiers have not been assigned in this version. Licensing of
+the author's original work remains undecided; third-party source notices
+are preserved and attributed separately. This work builds directly on Ken
+Shirriff's published ROM research and the cited public implementations and
+microcode tools. Substantial AI assistance, including Anthropic Claude and
+OpenAI Codex, was used in the investigation and drafting. The author is
+responsible for the measurements, code and claims.
+
+\bibliographystyle{plain}
+\begingroup\small\raggedright
+\bibliography{suite-references}
+\endgroup
+
+\clearpage
+\appendix
+\section{FSIN, FCOS and FSINCOS reference}
+\label{app:trig}
+
+\subsection{Complete pseudocode}
+The pseudocode below specifies the complete numerical calculation.
+Arithmetic is exact except at named rounding operations. The arrays use
+one-based coefficient indices; the literal inventory below retains its
+original zero-based labels. Complete arbitrary x87 state is outside this
+numerical walkthrough.
+\input{generated-suite/trig-listings.tex}
+
+\subsection{Sine and cosine constants}
+\label{app:trig-constants}
+Each row represents $(-1)^s S2^q$, with hexadecimal integer $S$ and its
+original ROM row number. The sine-coefficient adjustment is explicit in
+the algorithm. The two cosine-table differences from the saved published
+transcription are recorded below, followed by the complete literal inventory.
+
+\begin{table}[ht]
+\centering\footnotesize
+\begin{tabular}{@{}rlll@{}}
+\toprule
+ROM row & Role & Saved published significand & Used significand\\
+\midrule
+186 & $\cos(44/64)$ & \hex{62ec41e9772401864} & \hex{62ec4169772401864}\\
+189 & $\cos(18/64)$ & \hex{7af8853ddbbe9ffd0} & \hex{7af8853ddbbe9efd0}\\
+\bottomrule
+\end{tabular}
+\caption{The two corrected cosine-table words used by the sine/cosine reconstruction.}
+\end{table}
+
+\input{generated-suite/trig-literals.tex}
+
+\clearpage
+\section{FPTAN and FPATAN reference}
+\label{app:tangent}
+
+\subsection{FPTAN executable calculation}
+These functions from \path{docs/sibling_reference.py} use the arithmetic and
+dispatch helpers in Appendix~\ref{app:common}. Constant arrays are
+zero-based and use the sine/cosine inventory in
+Appendix~\ref{app:trig-constants}. The demonstrated domain and predicted
+fields are recorded in Section~\ref{sec:tangent-validation}.
+\input{generated-suite/tangent-listings.tex}
+
+\subsection{FPATAN executable reference}
+\label{app:atan}
+The following blocks specify the FPATAN numerical calculation and wrapper. \ins{ROM} maps the literal row numbers below to exact rational
+values. The wrapper assumes masked exceptions and clear initial latches
+with a valid two-deep stack.
+\input{generated-suite/atan-listings.tex}
+
+\subsection{Arctangent constants}
+\label{app:atan-constants}
+Rows retain their original ROM identities and represent $(-1)^s S2^q$.
+The tangent calculation uses the previously listed sine/cosine constants.
+\input{generated-suite/atan-literals.tex}
+
+\clearpage
+\section{F2XM1, FYL2X and FYL2XP1 reference}
+\label{app:explog}
+
+\subsection{F2XM1 executable kernels}
+These functions from \path{docs/sibling_reference.py} use the shared
+decoder, arithmetic, raw80 rounder and entry dispatch in
+Appendix~\ref{app:common}. The tiny path rounds directly to raw80.
+\input{generated-suite/exponential-listings.tex}
+
+\subsection{Logarithm executable reference}
+\label{app:log}
+The independent rational program below is copied from
+\path{fyl2x-re/model.py}. Its default \ins{Policy} specifies the numerical
+schedule implemented by the C CLI and API. The ROM is read with the four
+logarithm-table transcription differences listed below.
+\input{generated-suite/log-listings.tex}
+
+\subsection{Exponential and logarithm constants}
+\label{app:explog-constants}
+Each literal represents $(-1)^s S2^q$ and retains its original ROM row.
+The five differences from the saved published transcription are recorded
+below. The three family inventories contain 239 entries in total.
+
+\begin{table}[ht]
+\centering\footnotesize
+\begin{tabular}{@{}rlll@{}}
+\toprule
+ROM row & Role & Saved published significand & Used significand\\
+\midrule
+110 & $2^{-57/128}-1$ & \hex{43fcb5810d1604f37} & \hex{43fcb5810d1604f33}\\
+207 & log table high, $i=1$ & \hex{43ace37e8a8000000} & \hex{43ace27e8a8000000}\\
+245 & log table low, $i=7$ & \hex{6f66cc899b64303f7} & \hex{6f66cc899b64b03f7}\\
+259 & log table low, $i=21$ & \hex{5c833d56efe4338fe} & \hex{5c813d56efe4338fe}\\
+268 & log table low, $i=30$ & \hex{4a83eb6e0f93f7a64} & \hex{4a83eb6e0f93f7a44}\\
+\bottomrule
+\end{tabular}
+\caption{Corrected exponential and logarithm table words in the saved published transcription.}
+\end{table}
+
+{\renewcommand{\arraystretch}{0.94}
+\input{generated-suite/explog-literals.tex}
+}
+
+\clearpage
+\section{Shared executable-reference support}
+\label{app:common}
+
+The FPTAN and F2XM1 references share a Python source file. The functions
+below supply its exact arithmetic, decoding, storage and entry dispatch.
+The complete file is included in the programmer package.
+Unsupported raw encodings are outside this reference's contract.
+Constants are loaded as exact dyadics from
+\path{docs/sibling-constants.json}.
+\input{generated-suite/sibling-common-listings.tex}
+
+\end{document}

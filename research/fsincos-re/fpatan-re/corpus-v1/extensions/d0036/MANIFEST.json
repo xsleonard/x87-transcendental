@@ -1,0 +1,38 @@
+{
+  "captured_reference": "guest-reported Skylake CPUID 00050654 / microcode 0x1",
+  "format": "fpatan-corpus-v1-extension",
+  "hardware_labels_included": false,
+  "model_predictions_included": false,
+  "name": "d0036",
+  "new_hardware_executed": false,
+  "pack": {
+    "counts": {
+      "pc:24": 3236,
+      "pc:53": 3236,
+      "pc:64": 831128,
+      "rc:rd": 209400,
+      "rc:rn": 209400,
+      "rc:ru": 209400,
+      "rc:rz": 209400,
+      "rows": 837600
+    },
+    "path": "extensions/d0036/inputs.txt.gz",
+    "sha256": "869309bdc442fe11e58cba19a3a461a53c32f108cbf5b596e7beffc90503d270",
+    "source_manifest_sha256": "63905a89c4bc21448ae4d76358d6a9bce66e6e81351eac6db34d4d7a250072f0"
+  },
+  "pools": {
+    "nonzero-cut-history-input-pool.tsv.gz": {
+      "path": "extensions/d0036/nonzero-cut-history-input-pool.tsv.gz",
+      "sha256": "3a53629e4b9c36f3d476a6916760dadd6430ee757707c4ba5e59a1e6e0796908",
+      "status": "CONSTRUCTION_POOL_NOT_A_CAPTURE_PROTOCOL_PACK"
+    },
+    "quadrant-boundary-input-pool.tsv.gz": {
+      "path": "extensions/d0036/quadrant-boundary-input-pool.tsv.gz",
+      "sha256": "6b414f91d3e33dca31cdd2b8b2b55dd94694b87e6798ec211e0986d977a1b1ad",
+      "status": "CONSTRUCTION_POOL_NOT_A_CAPTURE_PROTOCOL_PACK"
+    }
+  },
+  "private_data_included": false,
+  "status": "APPEND_ONLY_CPU_INDEPENDENT_INPUT_EXTENSION",
+  "warning": "Reuse saved observations on that context. Check per-host history and reserve fresh tuples before any future CPU capture."
+}

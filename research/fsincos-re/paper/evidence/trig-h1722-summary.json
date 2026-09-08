@@ -1,0 +1,511 @@
+{
+  "status": "PASS_FROZEN_TWO_CPU_ADVERSARIAL",
+  "source_report_sha256": "c3f91349a89c11073c4439695854f82f0bf8c2ca6b50acd86760926e21c1c3bb",
+  "hardware_executed_by_this_publication_pass": false,
+  "observation_unit": "instruction executions per reported CPU context",
+  "miss_count": 0,
+  "cross_cpu_differences": 0,
+  "hosts": {
+    "i7": {
+      "counts": {
+        "C1_checks": 222480,
+        "C1_misses": 0,
+        "C2_checks": 222480,
+        "C2_misses": 0,
+        "cosine_checks": 148320,
+        "cosine_misses": 0,
+        "instruction_rows": 222480,
+        "sine_checks": 148320,
+        "sine_misses": 0
+      },
+      "matrix": [
+        {
+          "instruction": "fcos",
+          "mode": "rd",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rd",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rd",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rn",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rn",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rn",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "ru",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "ru",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "ru",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rz",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rz",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rz",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rd",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rd",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rd",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rn",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rn",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rn",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "ru",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "ru",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "ru",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rz",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rz",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rz",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rd",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rd",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rd",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rn",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rn",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rn",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "ru",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "ru",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "ru",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rz",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rz",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rz",
+          "pc": 64,
+          "rows": 6180
+        }
+      ],
+      "cpu_context": {
+        "core_type_leaf": null,
+        "family": 6,
+        "hypervisor_leaf": null,
+        "hypervisor_present": false,
+        "microcode": "0xf0",
+        "model": 94,
+        "signature": "000506e3",
+        "stepping": 3,
+        "vendor": "GenuineIntel"
+      },
+      "context_id": "ddd2d03e833f2e7f9a4da7a13c4cca36283523e3b2b5c353f91910859668e829",
+      "artifact_sha256": {
+        "complete": "627fa733b0a1443ffd2d8621abca95497a6ebbb7d055b1d6bfa2604506aff141",
+        "cpu": "aaa8ae41bf588edb405ec121e5ec8a2bb1da63acc1bbf7277f0bfaee80648eb8",
+        "raw": "0b32dbf4c603125b12896f9be65ed0e087110b09ce711180fe5f88c756850a05"
+      }
+    },
+    "skylake": {
+      "counts": {
+        "C1_checks": 222480,
+        "C1_misses": 0,
+        "C2_checks": 222480,
+        "C2_misses": 0,
+        "cosine_checks": 148320,
+        "cosine_misses": 0,
+        "instruction_rows": 222480,
+        "sine_checks": 148320,
+        "sine_misses": 0
+      },
+      "matrix": [
+        {
+          "instruction": "fcos",
+          "mode": "rd",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rd",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rd",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rn",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rn",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rn",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "ru",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "ru",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "ru",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rz",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rz",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fcos",
+          "mode": "rz",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rd",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rd",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rd",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rn",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rn",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rn",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "ru",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "ru",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "ru",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rz",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rz",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsin",
+          "mode": "rz",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rd",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rd",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rd",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rn",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rn",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rn",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "ru",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "ru",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "ru",
+          "pc": 64,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rz",
+          "pc": 24,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rz",
+          "pc": 53,
+          "rows": 6180
+        },
+        {
+          "instruction": "fsincos",
+          "mode": "rz",
+          "pc": 64,
+          "rows": 6180
+        }
+      ],
+      "cpu_context": {
+        "core_type_leaf": null,
+        "family": 6,
+        "hypervisor_leaf": [
+          "40000005",
+          "7263694d",
+          "666f736f",
+          "76482074"
+        ],
+        "hypervisor_present": true,
+        "microcode": "0x1",
+        "model": 85,
+        "signature": "00050654",
+        "stepping": 4,
+        "vendor": "GenuineIntel"
+      },
+      "context_id": "89f941c5697ee2da398533fafa8372e0d6ba481db280ae5e70cb2c40f458e66f",
+      "artifact_sha256": {
+        "complete": "aebe6ffae06d92cf24a40a64d5859129015a0ffce61d2f87e68cb162ea98d85f",
+        "cpu": "7de8e5064169510fa8767bb82df8ff5429599b147f0c6a2f69ba5342d00b598c",
+        "raw": "0b32dbf4c603125b12896f9be65ed0e087110b09ce711180fe5f88c756850a05"
+      }
+    }
+  }
+}

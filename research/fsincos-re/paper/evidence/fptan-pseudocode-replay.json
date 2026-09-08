@@ -1,0 +1,62 @@
+{
+  "constants_sha256": "f1c3d75154189ad6265e92c716a1985901bd0f5a5954285abd7a8584f98f5b43",
+  "elapsed_seconds": 19.825050115585327,
+  "hardware_executed": false,
+  "instruction": "FPTAN",
+  "result": {
+    "jobs": {
+      "t0002": {
+        "complete_sha256": "20e382eee2882e6ee784996337ddfd7d4905471fb764f009c649d9c4cf821f97",
+        "counts": {
+          "C1_misses": 0,
+          "C2_misses": 0,
+          "PC:24": 1916,
+          "PC:53": 1916,
+          "PC:64": 491600,
+          "RC:rd": 123858,
+          "RC:rn": 123858,
+          "RC:ru": 123858,
+          "RC:rz": 123858,
+          "output_misses": 0,
+          "pushed_misses": 0,
+          "range_returns": 139796,
+          "rows": 495432,
+          "successful": 355636
+        },
+        "hardware_sha256": "e2b1a48f26fe139352ea967937374e60a70135349579d350885109d91f28f1c9",
+        "input_sha256": "ae6058983e1e7d848a49a6ef858aa75f3f5339a52ca41445300a816de59ef89b",
+        "manifest_sha256": "f117068dbbb92bd6fa605fad97992d171e4fdb78ff95aea8f5ff73fc70ecb67d",
+        "microcode": "0x1",
+        "signature": "00050654"
+      },
+      "t0003": {
+        "complete_sha256": "d64a2afb49ce363e75a02b74382a17d60d87db5d3ab6f39a7afcee1541490cbb",
+        "counts": {
+          "C1_misses": 0,
+          "C2_misses": 0,
+          "PC:24": 1916,
+          "PC:53": 1916,
+          "PC:64": 491600,
+          "RC:rd": 123858,
+          "RC:rn": 123858,
+          "RC:ru": 123858,
+          "RC:rz": 123858,
+          "output_misses": 0,
+          "pushed_misses": 0,
+          "range_returns": 139796,
+          "rows": 495432,
+          "successful": 355636
+        },
+        "hardware_sha256": "e2b1a48f26fe139352ea967937374e60a70135349579d350885109d91f28f1c9",
+        "input_sha256": "ae6058983e1e7d848a49a6ef858aa75f3f5339a52ca41445300a816de59ef89b",
+        "manifest_sha256": "0ee5eda5760cec01e0702fb387ef2920417db6982bf2de6255e28e99d44c818a",
+        "microcode": "0xf0",
+        "signature": "000506e3"
+      }
+    },
+    "scope": "Normal-finite T0002/T0003; result, push, C1/C2; not exception-latch prediction"
+  },
+  "specification_sha256": "3d6a4bfef67fbd0bc31a3a0d02ef3d7ac4b31fb79ff0d967859d44a2f16d5217",
+  "status": "PASS",
+  "verifier_sha256": "5ad1e6bf6de2007e15602002ba7df5f53555109ffaadc85fe22464e94fb4aa5e"
+}

@@ -1,0 +1,134 @@
+{
+  "status": "AUTHENTICATED_LOGARITHM_REPLAY",
+  "source_sha256": "2c35028920bb3603cc157974b0be7f935329e0ff32ea61ecf18e7698074b6f7b",
+  "python_sha256": "6ea14e017ee11eb5a1c3e5d462ecf2fc2c4db43906e008935845a66a75782584",
+  "candidate_sha256": "549805d9bd785d251ef7d75f44d2ef943a7c547884126af00fa14e50e6baf2c8",
+  "jobs": [
+    {
+      "job": "l0001",
+      "counts": {
+        "rows": 8896,
+        "fyl2x": 6144,
+        "rc:rn": 2224,
+        "pc:64": 8896,
+        "independent_rows": 8896,
+        "rc:rd": 2224,
+        "rc:ru": 2224,
+        "rc:rz": 2224,
+        "fyl2xp1": 2752
+      },
+      "examples": [],
+      "current_c_identical_to_frozen": false,
+      "inputs_sha256": "bc2d8ab7896f858f66f1aebce344ebb96df887740a44dc32ce81ce944fbf82a8",
+      "hardware_sha256": "5c168b01f27d3cc735fadc578faa4db18018d20c60a206c65e6157fc48e67618",
+      "manifest_sha256": "f0ac90ea28aaea5552a05ba3218cb7726fe91233891fb6cba2ac26ea47e5f6f1",
+      "signature": "00050654",
+      "microcode": "0x1"
+    },
+    {
+      "job": "l0002",
+      "counts": {
+        "rows": 145116,
+        "fyl2xp1": 66736,
+        "rc:rn": 36279,
+        "pc:64": 88764,
+        "independent_rows": 145116,
+        "rc:rd": 36279,
+        "rc:ru": 36279,
+        "rc:rz": 36279,
+        "fyl2x": 78380,
+        "pc:24": 28176,
+        "pc:53": 28176
+      },
+      "examples": [],
+      "current_c_identical_to_frozen": false,
+      "inputs_sha256": "2dbe549498f750b7e5e811e8bff1b7543a1a7fdb585a91181db6550ce2907d90",
+      "hardware_sha256": "74ab9ed028d031cc7f3e3d5e9a7a3a08ea001c8f5aa29b3847441e65470e7441",
+      "manifest_sha256": "e239414ba2b32962ad78f71d03d7476d219d798d468bca4e22c46d7414b012f1",
+      "signature": "00050654",
+      "microcode": "0x1"
+    },
+    {
+      "job": "l0003",
+      "counts": {
+        "rows": 174480,
+        "fyl2xp1": 117632,
+        "rc:rn": 43620,
+        "pc:24": 30000,
+        "independent_rows": 174480,
+        "rc:rd": 43620,
+        "rc:ru": 43620,
+        "rc:rz": 43620,
+        "pc:53": 30000,
+        "pc:64": 114480,
+        "fyl2x": 56848
+      },
+      "examples": [],
+      "current_c_identical_to_frozen": false,
+      "inputs_sha256": "4912d2026d9707a5f35b717bc33af5305499d4ffa1c3defefed8f02bdc9020a9",
+      "hardware_sha256": "7d74e57a5506eef8551cf86640487cbf53f90c8d572e04a6543493d8e02af9c6",
+      "manifest_sha256": "0a9828d8e7c77fae4dfbaa3179a3dc3a905936c4a671a522ace20b1c86e18869",
+      "signature": "00050654",
+      "microcode": "0x1"
+    },
+    {
+      "job": "l0004",
+      "counts": {
+        "rows": 193104,
+        "fyl2xp1": 119136,
+        "rc:rn": 48276,
+        "pc:24": 36208,
+        "independent_rows": 193104,
+        "rc:rd": 48276,
+        "rc:ru": 48276,
+        "rc:rz": 48276,
+        "pc:53": 36208,
+        "pc:64": 120688,
+        "fyl2x": 73968
+      },
+      "examples": [],
+      "current_c_identical_to_frozen": false,
+      "inputs_sha256": "f7979858b70dd89db07b0de39ed7d6265792a50ee3b8a09045bd915bcda3fc4c",
+      "hardware_sha256": "1b695cf7ac37d6fd001cdeac742c0f6914f33f4a093b9234d3bad933e2c4d5b6",
+      "manifest_sha256": "5ebb67d742930f5b6097aa330e44cedfa31549b10c1dd974c25f7e4bf5a04142",
+      "signature": "00050654",
+      "microcode": "0x1"
+    },
+    {
+      "job": "l0005",
+      "counts": {
+        "rows": 420212,
+        "fyl2x": 185212,
+        "rc:rn": 105053,
+        "pc:64": 291396,
+        "independent_rows": 420212,
+        "rc:rd": 105053,
+        "rc:ru": 105053,
+        "rc:rz": 105053,
+        "fyl2xp1": 235000,
+        "pc:24": 64408,
+        "pc:53": 64408
+      },
+      "examples": [],
+      "current_c_identical_to_frozen": true,
+      "inputs_sha256": "1886ff76c607a0340ea9b9a79377ebbd138120660abda2b7c963d7fd18966abe",
+      "hardware_sha256": "58a19f91f5b6da8afa41024828aa27ee8d3e0a56ed52f84755afc0d3c1f36e16",
+      "manifest_sha256": "6ae4d689173b8895fa6064dd3f208f02fe22cecfd2cc45ee50dd2783488354a7",
+      "signature": "00050654",
+      "microcode": "0x1"
+    }
+  ],
+  "totals": {
+    "rows": 941808,
+    "fyl2x": 400552,
+    "rc:rn": 235452,
+    "pc:64": 624224,
+    "independent_rows": 941808,
+    "rc:rd": 235452,
+    "rc:ru": 235452,
+    "rc:rz": 235452,
+    "fyl2xp1": 541256,
+    "pc:24": 158792,
+    "pc:53": 158792
+  }
+}

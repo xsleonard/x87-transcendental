@@ -1,0 +1,39 @@
+{
+  "captured_reference": "guest-reported Skylake CPUID 00050654 / microcode 0x1",
+  "format": "fpatan-corpus-v1-extension",
+  "hardware_labels_included": false,
+  "model_predictions_included": false,
+  "name": "d0040",
+  "new_hardware_executed": false,
+  "pack": {
+    "counts": {
+      "pc:24": 3696,
+      "pc:53": 3696,
+      "pc:64": 949216,
+      "rc:rd": 239152,
+      "rc:rn": 239152,
+      "rc:ru": 239152,
+      "rc:rz": 239152,
+      "rows": 956608
+    },
+    "path": "extensions/d0040/inputs.txt.gz",
+    "sha256": "256d1d1c9c6ac261822b5f3697c5cc17d3ee7b43a14d87863c15a60807202d55",
+    "source_manifest_sha256": "0bef90f9b6969f3baa2a4e00e49904912cfe490927bdba37e1446fa2d3619912"
+  },
+  "pool": {
+    "columns": [
+      "search_id",
+      "y_se",
+      "y_sig",
+      "x_se",
+      "x_sig"
+    ],
+    "path": "extensions/d0040/correction-halfway-input-pool.tsv.gz",
+    "rows": 28799,
+    "sha256": "00ff45c5357fa42d2ecd8e98ea80731e14744ed1365f5e2e0b86a4b55a9369df",
+    "status": "CONSTRUCTION_INPUT_POOL_NOT_A_CAPTURE_PROTOCOL_PACK"
+  },
+  "private_data_included": false,
+  "status": "APPEND_ONLY_CPU_INDEPENDENT_INPUT_EXTENSION",
+  "warning": "Reuse saved observations on that context. Check per-host history and reserve fresh tuples before another CPU capture."
+}

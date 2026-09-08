@@ -1,0 +1,1106 @@
+{
+  "format": "f2xm1-saved-regressions-v1",
+  "description": "Selected verbatim rows from matching one-shot Xeon and Core i7-6700 captures. Line numbers are one-based. Replay performs no hardware instructions.",
+  "captures": [
+    {
+      "job": "f0001",
+      "signature": "00050654",
+      "microcode": "0x1",
+      "manifest_sha256": "257d76ace99710e97bfec513864548e6e10a7723631a276f0aec851a56453acb",
+      "hardware_gzip_sha256": "1365fd3b49e301338757f3d1fc3e607a75c1282f6692ee29f3f05b2d84df2f51",
+      "hardware_sha256": "ac1fb684725597138269bc85ba81c60c22277abe31b25c0bcb80706dca036eae",
+      "rows": 54128
+    },
+    {
+      "job": "f0002",
+      "signature": "000506e3",
+      "microcode": "0xf0",
+      "manifest_sha256": "4b53dd22e78fa193f7738ab9d826c20bc1456174110ee73c418358f574d453aa",
+      "hardware_gzip_sha256": "1365fd3b49e301338757f3d1fc3e607a75c1282f6692ee29f3f05b2d84df2f51",
+      "hardware_sha256": "ac1fb684725597138269bc85ba81c60c22277abe31b25c0bcb80706dca036eae",
+      "rows": 54128
+    }
+  ],
+  "cases": [
+    {
+      "archive_line": 1,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "eec0d56dccf4bba2835c3c12dd7f9105bd814943 rn 24 0000 000000000000010e 007f 3800 3832 0032 0000 00000000000000bb"
+    },
+    {
+      "archive_line": 2,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "346e9ff55dc90058bb0257ab0d8f6ccdcfc2beda rd 24 0000 000000000000010e 047f 3800 3832 0032 0000 00000000000000bb"
+    },
+    {
+      "archive_line": 3,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "41cccf924f62fe2c27d1070724b191ce02ed369e ru 24 0000 000000000000010e 087f 3800 3a32 0032 0000 00000000000000bc"
+    },
+    {
+      "archive_line": 4,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "792d69850e8fedd8ca688e1ed9dd7417e738cdfb rz 24 0000 000000000000010e 0c7f 3800 3832 0032 0000 00000000000000bb"
+    },
+    {
+      "archive_line": 5,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "20c758fc3bd9b9c82cba9de6f472fbe299799083 rn 53 0000 000000000000010e 027f 3800 3832 0032 0000 00000000000000bb"
+    },
+    {
+      "archive_line": 6,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "f4c95cdbe6b79c5fe44b51e2a11a8689b9c79272 rd 53 0000 000000000000010e 067f 3800 3832 0032 0000 00000000000000bb"
+    },
+    {
+      "archive_line": 7,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "a81f74f42b486260d534a25eb0367c9846090c7f ru 53 0000 000000000000010e 0a7f 3800 3a32 0032 0000 00000000000000bc"
+    },
+    {
+      "archive_line": 8,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "6ed0a232c6a2b1fc1c1caafc2cdfa2ad703b681d rz 53 0000 000000000000010e 0e7f 3800 3832 0032 0000 00000000000000bb"
+    },
+    {
+      "archive_line": 9,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "9bf38976fb7d5740d5f6f50c78bca4a3ced8494d rn 64 0000 000000000000010e 037f 3800 3832 0032 0000 00000000000000bb"
+    },
+    {
+      "archive_line": 10,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "5186ec5ad87ecca52ddd1102c309fe6fca3a83fb rd 64 0000 000000000000010e 077f 3800 3832 0032 0000 00000000000000bb"
+    },
+    {
+      "archive_line": 11,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "e0f24a7b37b90baa554d556a8420792bcb320249 ru 64 0000 000000000000010e 0b7f 3800 3a32 0032 0000 00000000000000bc"
+    },
+    {
+      "archive_line": 12,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "8eddb8faaa4599ceb736e9673ac97f7bd2335e01 rz 64 0000 000000000000010e 0f7f 3800 3832 0032 0000 00000000000000bb"
+    },
+    {
+      "archive_line": 10081,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "0d5f85fed09666cf09528280e25e7de4a3488c9a rn 24 0000 0875d5ef1390ce71 007f 3800 3832 0032 0000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 10082,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "606bc945c61b975da1f44bbc1bc9174bd008b97b rd 24 0000 0875d5ef1390ce71 047f 3800 3832 0032 0000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 10083,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "9abe66c5058e2b1ced63618167d1e04f87917d8d ru 24 0000 0875d5ef1390ce71 087f 3800 3a32 0032 0000 05dd3e2e57d6c89c"
+    },
+    {
+      "archive_line": 10084,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "bf45bfe37edb53934b08a5ac4c90a912d9efb830 rz 24 0000 0875d5ef1390ce71 0c7f 3800 3832 0032 0000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 10085,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "bd5c29d5c52271fc03474c30ba1928b790f177b1 rn 53 0000 0875d5ef1390ce71 027f 3800 3832 0032 0000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 10086,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "6a500d37de36043ea98a94ce5beae211ebd703d1 rd 53 0000 0875d5ef1390ce71 067f 3800 3832 0032 0000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 10087,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "305bd12cb122ee7498dd111283f8b61fc3ec0c98 ru 53 0000 0875d5ef1390ce71 0a7f 3800 3a32 0032 0000 05dd3e2e57d6c89c"
+    },
+    {
+      "archive_line": 10088,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "fbc8ae3ba6f849135a2dacafd83ac0399d67ffe0 rz 53 0000 0875d5ef1390ce71 0e7f 3800 3832 0032 0000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 10089,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "e604b58db59638f83e9b70dfa0264a247bc7708b rn 64 0000 0875d5ef1390ce71 037f 3800 3832 0032 0000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 10090,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "f33e5773a00508c5b0ecd615cf4209777edb754b rd 64 0000 0875d5ef1390ce71 077f 3800 3832 0032 0000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 10091,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "1c8d0cdd312f80b5ca8f1532ccc90e908c06f5a7 ru 64 0000 0875d5ef1390ce71 0b7f 3800 3a32 0032 0000 05dd3e2e57d6c89c"
+    },
+    {
+      "archive_line": 10092,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "5a7b0061a19905e775e4e130ece2bede101fb3a6 rz 64 0000 0875d5ef1390ce71 0f7f 3800 3832 0032 0000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 11665,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "bafb0067d25e8c8468bd552a578a302ac793bde7 rn 24 0000 7ffffffffffffffb 007f 3800 3832 0032 0000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 11666,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "0518c4a70852df976fb1682a310571b9dbd7c0c0 rd 24 0000 7ffffffffffffffb 047f 3800 3832 0032 0000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 11667,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "ba5cbc4d91bb3c793f79256445d4cdc87ff08f04 ru 24 0000 7ffffffffffffffb 087f 3800 3a32 0032 0000 58b90bfbe8e7bcd3"
+    },
+    {
+      "archive_line": 11668,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "37d0ce886f35f7b6277398389c8b27e36e75bee3 rz 24 0000 7ffffffffffffffb 0c7f 3800 3832 0032 0000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 11669,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "d3dbb585376b65464bae2641d332dc5a4befa2da rn 53 0000 7ffffffffffffffb 027f 3800 3832 0032 0000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 11670,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "8c53c203a9592557a73a02172382045c9639eda4 rd 53 0000 7ffffffffffffffb 067f 3800 3832 0032 0000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 11671,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "1900417d7710c0d60229a321735983b952a9cb41 ru 53 0000 7ffffffffffffffb 0a7f 3800 3a32 0032 0000 58b90bfbe8e7bcd3"
+    },
+    {
+      "archive_line": 11672,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "10f2103c9c284663445fc2c7920461ecb76ccf52 rz 53 0000 7ffffffffffffffb 0e7f 3800 3832 0032 0000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 11673,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "6daf8dc417b857e29a8bf3397de574cc7b4bf03a rn 64 0000 7ffffffffffffffb 037f 3800 3832 0032 0000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 11674,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "e39de3df3f5ec28c8e4744006234a2f063d4c6cc rd 64 0000 7ffffffffffffffb 077f 3800 3832 0032 0000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 11675,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "0abd659a05cf1cc8988ad51e21921489000e31a0 ru 64 0000 7ffffffffffffffb 0b7f 3800 3a32 0032 0000 58b90bfbe8e7bcd3"
+    },
+    {
+      "archive_line": 11676,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "0403dd9d8fbb78ab9898b60b959616b055f3d3d2 rz 64 0000 7ffffffffffffffb 0f7f 3800 3832 0032 0000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 11677,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "b0919e732fcfefb62303eacc71c297155b0c9179 rn 24 0000 8238dc1df3e7f336 007f 3800 3832 0032 0000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 11678,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "5b59188afedac34ea67b0099643abf752c7b6422 rd 24 0000 8238dc1df3e7f336 047f 3800 3832 0032 0000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 11679,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "67375fadee894391e9a658c3e6e6a6914da6354d ru 24 0000 8238dc1df3e7f336 087f 3800 3a32 0032 0000 5a4359b3e65703d6"
+    },
+    {
+      "archive_line": 11680,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "5049a5e640668012e8efa411ca4648f1d91f8a46 rz 24 0000 8238dc1df3e7f336 0c7f 3800 3832 0032 0000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 11681,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "7b120e2fb267b8d9cfd7b41a4469e180dd32a664 rn 53 0000 8238dc1df3e7f336 027f 3800 3832 0032 0000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 11682,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "d7d6a039d980f5d4d6a2a5207dc3fa8fdafc982d rd 53 0000 8238dc1df3e7f336 067f 3800 3832 0032 0000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 11683,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "c8e24c51128931a062c177c4f4fb77e235e31d04 ru 53 0000 8238dc1df3e7f336 0a7f 3800 3a32 0032 0000 5a4359b3e65703d6"
+    },
+    {
+      "archive_line": 11684,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "8af77b90f66fd98b3382857967bcd9b9168682a0 rz 53 0000 8238dc1df3e7f336 0e7f 3800 3832 0032 0000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 11685,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "66814025d5f3f79dedd15d24f6a4dd2f73e22a66 rn 64 0000 8238dc1df3e7f336 037f 3800 3832 0032 0000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 11686,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "0069745861178b40d555ea09b2bc928f62523a6f rd 64 0000 8238dc1df3e7f336 077f 3800 3832 0032 0000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 11687,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "8f6973e8a990c13c81864dd6160b1ead4c9cd955 ru 64 0000 8238dc1df3e7f336 0b7f 3800 3a32 0032 0000 5a4359b3e65703d6"
+    },
+    {
+      "archive_line": 11688,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "17203336ab95cf3198bfff7b57a44c677910a29b rz 64 0000 8238dc1df3e7f336 0f7f 3800 3832 0032 0000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 11965,
+      "purpose": "near_minimum_normal",
+      "hardware": "eddb151e5b444ad4e28d26f1993b6269fde8ccd0 rn 24 0001 8000000000000005 007f 3800 3830 0030 0000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 11966,
+      "purpose": "near_minimum_normal",
+      "hardware": "3bc54a7de73451909914854d18f68cb42e4234e0 rd 24 0001 8000000000000005 047f 3800 3830 0030 0000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 11967,
+      "purpose": "near_minimum_normal",
+      "hardware": "b1784ff8b89a2dd2cfaa1ebdcc225499c6a50200 ru 24 0001 8000000000000005 087f 3800 3a30 0030 0000 58b90bfbe8e7bcda"
+    },
+    {
+      "archive_line": 11968,
+      "purpose": "near_minimum_normal",
+      "hardware": "be855d8b9b2fecdc180f06b2e691c64fe6574efd rz 24 0001 8000000000000005 0c7f 3800 3830 0030 0000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 11969,
+      "purpose": "near_minimum_normal",
+      "hardware": "f741c6be5b8dfde828912f1406ac88fabfa9aaf7 rn 53 0001 8000000000000005 027f 3800 3830 0030 0000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 11970,
+      "purpose": "near_minimum_normal",
+      "hardware": "f8af12db09c82eb0966d1ca39786e254691e7800 rd 53 0001 8000000000000005 067f 3800 3830 0030 0000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 11971,
+      "purpose": "near_minimum_normal",
+      "hardware": "19f038d91df5f4baea7a0ba6ce587feb037ab885 ru 53 0001 8000000000000005 0a7f 3800 3a30 0030 0000 58b90bfbe8e7bcda"
+    },
+    {
+      "archive_line": 11972,
+      "purpose": "near_minimum_normal",
+      "hardware": "db1649b77fb732de059aa4bbcee3df7f5ffa0f48 rz 53 0001 8000000000000005 0e7f 3800 3830 0030 0000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 11973,
+      "purpose": "near_minimum_normal",
+      "hardware": "b410aaa0a367a9580c264e9cbb6f48fa4630b3b5 rn 64 0001 8000000000000005 037f 3800 3830 0030 0000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 11974,
+      "purpose": "near_minimum_normal",
+      "hardware": "9108280e3014928082494b7b72534322567a5757 rd 64 0001 8000000000000005 077f 3800 3830 0030 0000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 11975,
+      "purpose": "near_minimum_normal",
+      "hardware": "8d56bd3b0abd7aedbaafe2d0fb4d9846a0162d20 ru 64 0001 8000000000000005 0b7f 3800 3a30 0030 0000 58b90bfbe8e7bcda"
+    },
+    {
+      "archive_line": 11976,
+      "purpose": "near_minimum_normal",
+      "hardware": "ef17d7b628df387c5361bb38359342c8db8335ac rz 64 0001 8000000000000005 0f7f 3800 3830 0030 0000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 12889,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "d4a6259d06983a89419c78a530958052d615aff9 rn 24 0001 b8aa3b295c17f0bb 007f 3800 3830 0030 0000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 12890,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "712779929dbadf1761ef86a4bf8916698f094953 rd 24 0001 b8aa3b295c17f0bb 047f 3800 3830 0030 0000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 12891,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "9d967cf024fad7f83b6d4a4bcec196634c51f271 ru 24 0001 b8aa3b295c17f0bb 087f 3800 3a30 0030 0001 8000000000000000"
+    },
+    {
+      "archive_line": 12892,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "555ce3db613a33cc8baed7e07e847089c4773f43 rz 24 0001 b8aa3b295c17f0bb 0c7f 3800 3830 0030 0000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 12893,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "8b0e1542f664108e23e64900be333ae7d600e549 rn 53 0001 b8aa3b295c17f0bb 027f 3800 3830 0030 0000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 12894,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "0f32c31275736ade1f87bf31f1c8e7cb7de6bd73 rd 53 0001 b8aa3b295c17f0bb 067f 3800 3830 0030 0000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 12895,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "0ab377ac7d490e113e54d1a764dac47a68b5b1f8 ru 53 0001 b8aa3b295c17f0bb 0a7f 3800 3a30 0030 0001 8000000000000000"
+    },
+    {
+      "archive_line": 12896,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "aa3101c61bba407e0c897fc1d7b8b5b4f1804206 rz 53 0001 b8aa3b295c17f0bb 0e7f 3800 3830 0030 0000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 12897,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "eba9969a8efecfc1256b4a4c3116dc543c557fb1 rn 64 0001 b8aa3b295c17f0bb 037f 3800 3830 0030 0000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 12898,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "b48e7d5ded5702f2a6061dc5244e1cbd9452cf93 rd 64 0001 b8aa3b295c17f0bb 077f 3800 3830 0030 0000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 12899,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "eef187cc8f9af799a40e72927f6146ac9c255b77 ru 64 0001 b8aa3b295c17f0bb 0b7f 3800 3a30 0030 0001 8000000000000000"
+    },
+    {
+      "archive_line": 12900,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "9dbd335eefc40fc4ee95582a144fe2c7bea26cb3 rz 64 0001 b8aa3b295c17f0bb 0f7f 3800 3830 0030 0000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 12901,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "d8b942f60494eb1a3a3cd2b21f6eafc2c7fd1b55 rn 24 0001 b8aa3b295c17f0bc 007f 3800 3820 0020 0001 8000000000000000"
+    },
+    {
+      "archive_line": 12902,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "48984af3f460b5337b43386f79c3f16f7af5560c rd 24 0001 b8aa3b295c17f0bc 047f 3800 3820 0020 0001 8000000000000000"
+    },
+    {
+      "archive_line": 12903,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "1720fdcaa396956d96501f10454d6561b720890f ru 24 0001 b8aa3b295c17f0bc 087f 3800 3a20 0020 0001 8000000000000001"
+    },
+    {
+      "archive_line": 12904,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "7ce52a7ebd5bcea50274d40376c97b4d7052fdf2 rz 24 0001 b8aa3b295c17f0bc 0c7f 3800 3820 0020 0001 8000000000000000"
+    },
+    {
+      "archive_line": 12905,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "791a0c95a1e76b3d323b32b4759848ca3813668e rn 53 0001 b8aa3b295c17f0bc 027f 3800 3820 0020 0001 8000000000000000"
+    },
+    {
+      "archive_line": 12906,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "d8a114eeac062c7086a8f5f2f3fdaf08e38dfa3a rd 53 0001 b8aa3b295c17f0bc 067f 3800 3820 0020 0001 8000000000000000"
+    },
+    {
+      "archive_line": 12907,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "28c56f5cc0309f5625b65ce12b5e6fa459c729a5 ru 53 0001 b8aa3b295c17f0bc 0a7f 3800 3a20 0020 0001 8000000000000001"
+    },
+    {
+      "archive_line": 12908,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "261a8527372c6d106de0fa3a410aeeb3795d6519 rz 53 0001 b8aa3b295c17f0bc 0e7f 3800 3820 0020 0001 8000000000000000"
+    },
+    {
+      "archive_line": 12909,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "6d6bde7b5a2396fa8f8b467769b5fc74289209ae rn 64 0001 b8aa3b295c17f0bc 037f 3800 3820 0020 0001 8000000000000000"
+    },
+    {
+      "archive_line": 12910,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "c74a3946989129255da08792fd48b813a04dc8ec rd 64 0001 b8aa3b295c17f0bc 077f 3800 3820 0020 0001 8000000000000000"
+    },
+    {
+      "archive_line": 12911,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "1bda4ebbb06bfffc6fbdc64a84e5c1678e481697 ru 64 0001 b8aa3b295c17f0bc 0b7f 3800 3a20 0020 0001 8000000000000001"
+    },
+    {
+      "archive_line": 12912,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "6200aa30a9225bd03a4f8cfe4627c3c5b77712cf rz 64 0001 b8aa3b295c17f0bc 0f7f 3800 3820 0020 0001 8000000000000000"
+    },
+    {
+      "archive_line": 13285,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "f1d8cb88cb04cb503fb40e62769bc6a68856b857 rn 24 0001 ffcae857172b1fce 007f 3800 3820 0020 0001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 13286,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "449dc2259ac9f628da6f1374cba121cb04e3e074 rd 24 0001 ffcae857172b1fce 047f 3800 3820 0020 0001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 13287,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "346e9adbc43bdf0dbc7d4efae3982a3726cd2ce8 ru 24 0001 ffcae857172b1fce 087f 3800 3a20 0020 0001 b14d4af2871717a2"
+    },
+    {
+      "archive_line": 13288,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "7664b2c484f10119077d0f49f88174f36b9797e4 rz 24 0001 ffcae857172b1fce 0c7f 3800 3820 0020 0001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 13289,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "bc88171c86eccb8f5d473188093b66c1be830e07 rn 53 0001 ffcae857172b1fce 027f 3800 3820 0020 0001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 13290,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "d4dafeab10ec5c23e8bf45f8b6100d0030d54f0d rd 53 0001 ffcae857172b1fce 067f 3800 3820 0020 0001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 13291,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "fbdffbce6f9dd2bec610d6dbeffad5b638a0e196 ru 53 0001 ffcae857172b1fce 0a7f 3800 3a20 0020 0001 b14d4af2871717a2"
+    },
+    {
+      "archive_line": 13292,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "c419e0f4616597b5ee19df9d5c71be297f5a66fc rz 53 0001 ffcae857172b1fce 0e7f 3800 3820 0020 0001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 13293,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "0d5ec75d0e0af4b014647ad6377c1639f1fa0841 rn 64 0001 ffcae857172b1fce 037f 3800 3820 0020 0001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 13294,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "8e49bfcc0f278a57050f250892320f03e2fea994 rd 64 0001 ffcae857172b1fce 077f 3800 3820 0020 0001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 13295,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "4e2b4e34ff95fd452fb9bb703ecc76b308b69db0 ru 64 0001 ffcae857172b1fce 0b7f 3800 3a20 0020 0001 b14d4af2871717a2"
+    },
+    {
+      "archive_line": 13296,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "364fe342f46f6c42e9d437b2d419b97b81262b54 rz 64 0001 ffcae857172b1fce 0f7f 3800 3820 0020 0001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 13297,
+      "purpose": "next_normal_input_binade",
+      "hardware": "47f8ef9b79fd9365c601d5fe5d017590f3284a3b rn 24 0002 801b1cf5ded50886 007f 3800 3a20 0020 0001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 13298,
+      "purpose": "next_normal_input_binade",
+      "hardware": "4faba1bd7cfcb4a64547a0538a6a30ade030b3b0 rd 24 0002 801b1cf5ded50886 047f 3800 3820 0020 0001 b197ae2eae9f06ea"
+    },
+    {
+      "archive_line": 13299,
+      "purpose": "next_normal_input_binade",
+      "hardware": "d6003e4dae940a8baafc302d81642f9b54be15dd ru 24 0002 801b1cf5ded50886 087f 3800 3a20 0020 0001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 13300,
+      "purpose": "next_normal_input_binade",
+      "hardware": "94cba171c8eb0f5ca7ebfa6f12a2a157cc6af91c rz 24 0002 801b1cf5ded50886 0c7f 3800 3820 0020 0001 b197ae2eae9f06ea"
+    },
+    {
+      "archive_line": 13301,
+      "purpose": "next_normal_input_binade",
+      "hardware": "a1c51cdf7da1f17337bd975b81aaef85b166a5f8 rn 53 0002 801b1cf5ded50886 027f 3800 3a20 0020 0001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 13302,
+      "purpose": "next_normal_input_binade",
+      "hardware": "b62faff00d66d6818427e6895648c2430e1fb24e rd 53 0002 801b1cf5ded50886 067f 3800 3820 0020 0001 b197ae2eae9f06ea"
+    },
+    {
+      "archive_line": 13303,
+      "purpose": "next_normal_input_binade",
+      "hardware": "76071c8b3570d569af9f854173a7a35b323b75bf ru 53 0002 801b1cf5ded50886 0a7f 3800 3a20 0020 0001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 13304,
+      "purpose": "next_normal_input_binade",
+      "hardware": "1c38886d648dab00d4ff21935f74074d65d0ca70 rz 53 0002 801b1cf5ded50886 0e7f 3800 3820 0020 0001 b197ae2eae9f06ea"
+    },
+    {
+      "archive_line": 13305,
+      "purpose": "next_normal_input_binade",
+      "hardware": "b78da77dc2f75868983da2591e7fc3bbb31258f6 rn 64 0002 801b1cf5ded50886 037f 3800 3a20 0020 0001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 13306,
+      "purpose": "next_normal_input_binade",
+      "hardware": "363e3ebb7aa4490d79d2e7dd4cdf32fddbfda95f rd 64 0002 801b1cf5ded50886 077f 3800 3820 0020 0001 b197ae2eae9f06ea"
+    },
+    {
+      "archive_line": 13307,
+      "purpose": "next_normal_input_binade",
+      "hardware": "14859ac32a5f473057def3bb9d26af2181f52c17 ru 64 0002 801b1cf5ded50886 0b7f 3800 3a20 0020 0001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 13308,
+      "purpose": "next_normal_input_binade",
+      "hardware": "f40f298e1fdea6c78a0bdb2dafae3657e12234b6 rz 64 0002 801b1cf5ded50886 0f7f 3800 3820 0020 0001 b197ae2eae9f06ea"
+    },
+    {
+      "archive_line": 27069,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "b42fbf12929eee6c40a7e4681e62e407ff66f623 rn 24 8000 000000000000010e 007f 3800 3832 0032 8000 00000000000000bb"
+    },
+    {
+      "archive_line": 27070,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "649ee1278515a74d7e8628040c0bd4bbf6c0f739 rd 24 8000 000000000000010e 047f 3800 3a32 0032 8000 00000000000000bc"
+    },
+    {
+      "archive_line": 27071,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "3ae30a6d7674bf24055dac5c14cea75b0b6c70ba ru 24 8000 000000000000010e 087f 3800 3832 0032 8000 00000000000000bb"
+    },
+    {
+      "archive_line": 27072,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "822e1a563d56e780b0e233916285915d3f659a95 rz 24 8000 000000000000010e 0c7f 3800 3832 0032 8000 00000000000000bb"
+    },
+    {
+      "archive_line": 27073,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "09b31094041227ddbaeeca439fee1607ba8966e6 rn 53 8000 000000000000010e 027f 3800 3832 0032 8000 00000000000000bb"
+    },
+    {
+      "archive_line": 27074,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "d8677cd7381556be46109ade7d1d92da2de1b4df rd 53 8000 000000000000010e 067f 3800 3a32 0032 8000 00000000000000bc"
+    },
+    {
+      "archive_line": 27075,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "2b556a0ee66e909ab46d7873de70e826a69235d8 ru 53 8000 000000000000010e 0a7f 3800 3832 0032 8000 00000000000000bb"
+    },
+    {
+      "archive_line": 27076,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "2a653cd8b29cbf977b8f6d9ea419c62681b4c5b8 rz 53 8000 000000000000010e 0e7f 3800 3832 0032 8000 00000000000000bb"
+    },
+    {
+      "archive_line": 27077,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "021ed0e131019ecd50a3876b19ef028ebb4c5fcc rn 64 8000 000000000000010e 037f 3800 3832 0032 8000 00000000000000bb"
+    },
+    {
+      "archive_line": 27078,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "040822aa2b9a8d9353f3187efe6e5e3e8472f28e rd 64 8000 000000000000010e 077f 3800 3a32 0032 8000 00000000000000bc"
+    },
+    {
+      "archive_line": 27079,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "88f3c1acb17c2b67fb66a89fc7f661f7a83ef090 ru 64 8000 000000000000010e 0b7f 3800 3832 0032 8000 00000000000000bb"
+    },
+    {
+      "archive_line": 27080,
+      "purpose": "original_subnormal_storage_failure",
+      "hardware": "44b41847d7a79324d575f6262d3a29822f69a6ee rz 64 8000 000000000000010e 0f7f 3800 3832 0032 8000 00000000000000bb"
+    },
+    {
+      "archive_line": 37137,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "d21dc085031f1a8e4613d0006d5b8fd4ee49501d rn 24 8000 0875d5ef1390ce71 007f 3800 3832 0032 8000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 37138,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "4cd64c1c9b955cbe04e07a5a77d60b012a549705 rd 24 8000 0875d5ef1390ce71 047f 3800 3a32 0032 8000 05dd3e2e57d6c89c"
+    },
+    {
+      "archive_line": 37139,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "50dd0e9e776da6163aca376edc66ec20652e3d1d ru 24 8000 0875d5ef1390ce71 087f 3800 3832 0032 8000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 37140,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "c5a9c9214385ac9bb08e72a92bac7bfcaa10bc23 rz 24 8000 0875d5ef1390ce71 0c7f 3800 3832 0032 8000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 37141,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "5746f210b6d6f1eef621f094b59ea5a236da5a0c rn 53 8000 0875d5ef1390ce71 027f 3800 3832 0032 8000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 37142,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "be3364847342338a0ae5c40ead4d9706da964cbe rd 53 8000 0875d5ef1390ce71 067f 3800 3a32 0032 8000 05dd3e2e57d6c89c"
+    },
+    {
+      "archive_line": 37143,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "81fe3a3084cb8d0337c4fa4b1df25e841b223989 ru 53 8000 0875d5ef1390ce71 0a7f 3800 3832 0032 8000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 37144,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "46fd4bab7542f2fa769bc09117ace188b1af9694 rz 53 8000 0875d5ef1390ce71 0e7f 3800 3832 0032 8000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 37145,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "f0d08cac68edb782b61739e45b83629fa7fe9cbb rn 64 8000 0875d5ef1390ce71 037f 3800 3832 0032 8000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 37146,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "ef8c8655b2b117d326c07d4a7c644aa45613d68a rd 64 8000 0875d5ef1390ce71 077f 3800 3a32 0032 8000 05dd3e2e57d6c89c"
+    },
+    {
+      "archive_line": 37147,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "e54f43ad155d9394eac4df5a79cba9076fd5fb43 ru 64 8000 0875d5ef1390ce71 0b7f 3800 3832 0032 8000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 37148,
+      "purpose": "double_rounding_counterexample",
+      "hardware": "b6042eff15e334057658f5010ac205654275416e rz 64 8000 0875d5ef1390ce71 0f7f 3800 3832 0032 8000 05dd3e2e57d6c89b"
+    },
+    {
+      "archive_line": 38709,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "c60234f38da377d8e7065ab2d5c13f11d0fa3a01 rn 24 8000 7ffffffffffffffb 007f 3800 3832 0032 8000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 38710,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "2201ab6714edfd23c77b53ba8e08534880ee57bd rd 24 8000 7ffffffffffffffb 047f 3800 3a32 0032 8000 58b90bfbe8e7bcd3"
+    },
+    {
+      "archive_line": 38711,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "d6d9cd0046dfc0c7d137d0b0bd7e8b2e9ecf3404 ru 24 8000 7ffffffffffffffb 087f 3800 3832 0032 8000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 38712,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "49ce89f2ec2b3348bb36db5230102f3975e87f1c rz 24 8000 7ffffffffffffffb 0c7f 3800 3832 0032 8000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 38713,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "9d5408e137ec8b6d5f7dff4e608eb26644faad46 rn 53 8000 7ffffffffffffffb 027f 3800 3832 0032 8000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 38714,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "95e1f36dbb0dd10587634da2cee49f4178874e56 rd 53 8000 7ffffffffffffffb 067f 3800 3a32 0032 8000 58b90bfbe8e7bcd3"
+    },
+    {
+      "archive_line": 38715,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "bc4f7653b4b8dc10a1f74d65c600661ee21dcae6 ru 53 8000 7ffffffffffffffb 0a7f 3800 3832 0032 8000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 38716,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "df45d603cd5907e7502f45e471604c1c70e68138 rz 53 8000 7ffffffffffffffb 0e7f 3800 3832 0032 8000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 38717,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "dc706a4660a699f85c294ea4327e413cdf05269b rn 64 8000 7ffffffffffffffb 037f 3800 3832 0032 8000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 38718,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "7c814504569e25f5f2f4aedf1dd9f95e1119f4f2 rd 64 8000 7ffffffffffffffb 077f 3800 3a32 0032 8000 58b90bfbe8e7bcd3"
+    },
+    {
+      "archive_line": 38719,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "22a052e7cc36a4696b88dcaa796fb561a960009e ru 64 8000 7ffffffffffffffb 0b7f 3800 3832 0032 8000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 38720,
+      "purpose": "near_largest_native_subnormal",
+      "hardware": "f1accdffc3cafc1c87159ada5792d88dfacb6106 rz 64 8000 7ffffffffffffffb 0f7f 3800 3832 0032 8000 58b90bfbe8e7bcd2"
+    },
+    {
+      "archive_line": 38721,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "fb23a5ab33024ea4c4133578d6539e4fba88754d rn 24 8000 8238dc1df3e7f336 007f 3800 3832 0032 8000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 38722,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "59d88b3f75691f27967dfcf8c85d7e0bf359bd48 rd 24 8000 8238dc1df3e7f336 047f 3800 3a32 0032 8000 5a4359b3e65703d6"
+    },
+    {
+      "archive_line": 38723,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "570b1e1d548cdf35638db4d4c28f3c8e388fbd4f ru 24 8000 8238dc1df3e7f336 087f 3800 3832 0032 8000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 38724,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "cbe49b85ff212b647350e364b8e04a9e3c0fedda rz 24 8000 8238dc1df3e7f336 0c7f 3800 3832 0032 8000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 38725,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "55171fefb5c6b8f4d9e8265aaf4509f2438a02f5 rn 53 8000 8238dc1df3e7f336 027f 3800 3832 0032 8000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 38726,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "ae38032e4ad099ce3d3fa67d7bf85b787f7f96e7 rd 53 8000 8238dc1df3e7f336 067f 3800 3a32 0032 8000 5a4359b3e65703d6"
+    },
+    {
+      "archive_line": 38727,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "65f2961f9334be5b858f5fe830e00cb917db70e0 ru 53 8000 8238dc1df3e7f336 0a7f 3800 3832 0032 8000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 38728,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "61068b76f97e1852ec0d67ed7d9e3ce2a2282dab rz 53 8000 8238dc1df3e7f336 0e7f 3800 3832 0032 8000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 38729,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "dc2148a4fee5a445aa4a1a7728cc1e38b0353cc4 rn 64 8000 8238dc1df3e7f336 037f 3800 3832 0032 8000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 38730,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "cfe1baba37d62f2a6a8bef165c37c2b99cfc9bf0 rd 64 8000 8238dc1df3e7f336 077f 3800 3a32 0032 8000 5a4359b3e65703d6"
+    },
+    {
+      "archive_line": 38731,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "0b5d219ff7dec47820f01b4db04153476c377a72 ru 64 8000 8238dc1df3e7f336 0b7f 3800 3832 0032 8000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 38732,
+      "purpose": "near_minimum_pseudo_denormal",
+      "hardware": "163c0f3024434a94b3598315bc8fb4a243db0d7c rz 64 8000 8238dc1df3e7f336 0f7f 3800 3832 0032 8000 5a4359b3e65703d5"
+    },
+    {
+      "archive_line": 39009,
+      "purpose": "near_minimum_normal",
+      "hardware": "d175edbce9249fb5dbaeb10cbe930952af49cb0f rn 24 8001 8000000000000005 007f 3800 3830 0030 8000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 39010,
+      "purpose": "near_minimum_normal",
+      "hardware": "08559c0077d8a6f82890be1764c2ad313a27cbeb rd 24 8001 8000000000000005 047f 3800 3a30 0030 8000 58b90bfbe8e7bcda"
+    },
+    {
+      "archive_line": 39011,
+      "purpose": "near_minimum_normal",
+      "hardware": "31d8b4c040555c03220d2c4787242ae2c9a9412d ru 24 8001 8000000000000005 087f 3800 3830 0030 8000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 39012,
+      "purpose": "near_minimum_normal",
+      "hardware": "773d6670e8545598d1b3634061f270c2d6ea7bf2 rz 24 8001 8000000000000005 0c7f 3800 3830 0030 8000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 39013,
+      "purpose": "near_minimum_normal",
+      "hardware": "f49a7c5286dc29ee984a84aa530c92eaf7180f54 rn 53 8001 8000000000000005 027f 3800 3830 0030 8000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 39014,
+      "purpose": "near_minimum_normal",
+      "hardware": "d6718cb509c66f70f8c5e07a70d0aa9c5a798121 rd 53 8001 8000000000000005 067f 3800 3a30 0030 8000 58b90bfbe8e7bcda"
+    },
+    {
+      "archive_line": 39015,
+      "purpose": "near_minimum_normal",
+      "hardware": "4c9c0a570ebe1b1325acb2de99453621e3821c44 ru 53 8001 8000000000000005 0a7f 3800 3830 0030 8000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 39016,
+      "purpose": "near_minimum_normal",
+      "hardware": "b85aa990df2ff9f35ce688dbca5879591948a771 rz 53 8001 8000000000000005 0e7f 3800 3830 0030 8000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 39017,
+      "purpose": "near_minimum_normal",
+      "hardware": "e47099069b3d01c04695e74f17b490706b537bd3 rn 64 8001 8000000000000005 037f 3800 3830 0030 8000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 39018,
+      "purpose": "near_minimum_normal",
+      "hardware": "25bee70b201e097a001378c3112a5a73bc51e11d rd 64 8001 8000000000000005 077f 3800 3a30 0030 8000 58b90bfbe8e7bcda"
+    },
+    {
+      "archive_line": 39019,
+      "purpose": "near_minimum_normal",
+      "hardware": "720138ef69fcd979bed3a6ac8e1cf9fa49b1dd92 ru 64 8001 8000000000000005 0b7f 3800 3830 0030 8000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 39020,
+      "purpose": "near_minimum_normal",
+      "hardware": "85c38f73ecb984270c6c1d24eb289577e8968ba9 rz 64 8001 8000000000000005 0f7f 3800 3830 0030 8000 58b90bfbe8e7bcd9"
+    },
+    {
+      "archive_line": 39933,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "31703fea0760b5ff781c4e60d1065f74b150ea54 rn 24 8001 b8aa3b295c17f0bb 007f 3800 3830 0030 8000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 39934,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "6eb38025631341c5c0f95590ef8edd41024bd22a rd 24 8001 b8aa3b295c17f0bb 047f 3800 3a30 0030 8001 8000000000000000"
+    },
+    {
+      "archive_line": 39935,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "d273a372d8dcd05ec611ec52ea712597102742c4 ru 24 8001 b8aa3b295c17f0bb 087f 3800 3830 0030 8000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 39936,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "c701d521b7de1817f867903964eec08f0f597e50 rz 24 8001 b8aa3b295c17f0bb 0c7f 3800 3830 0030 8000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 39937,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "ff9d8b65b781d17cd2e5a8cd286e75ace0257633 rn 53 8001 b8aa3b295c17f0bb 027f 3800 3830 0030 8000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 39938,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "26319d9c22298dbc45cc2417ef994584288c40a2 rd 53 8001 b8aa3b295c17f0bb 067f 3800 3a30 0030 8001 8000000000000000"
+    },
+    {
+      "archive_line": 39939,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "e6e4007c11b372985232ec67d19faa0097f69cdb ru 53 8001 b8aa3b295c17f0bb 0a7f 3800 3830 0030 8000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 39940,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "87dc0f0655c7d54672c05573ef4340620a3f9887 rz 53 8001 b8aa3b295c17f0bb 0e7f 3800 3830 0030 8000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 39941,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "7cbecf24147b91d191a33ce34ad51032d0d9d64e rn 64 8001 b8aa3b295c17f0bb 037f 3800 3830 0030 8000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 39942,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "7a0a36b36c6cd5b340fb0da8e594983654357e8b rd 64 8001 b8aa3b295c17f0bb 077f 3800 3a30 0030 8001 8000000000000000"
+    },
+    {
+      "archive_line": 39943,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "6ef1e77dc2e4556916bbefc79b28f3c72a9d0743 ru 64 8001 b8aa3b295c17f0bb 0b7f 3800 3830 0030 8000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 39944,
+      "purpose": "rounds_to_minimum_normal_with_underflow",
+      "hardware": "fecbfdb1dd5413210bdec43e4b3dac177eb3b751 rz 64 8001 b8aa3b295c17f0bb 0f7f 3800 3830 0030 8000 7fffffffffffffff"
+    },
+    {
+      "archive_line": 39945,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "526b057176c3e3e234d8159ebd69cbefa4ca477e rn 24 8001 b8aa3b295c17f0bc 007f 3800 3820 0020 8001 8000000000000000"
+    },
+    {
+      "archive_line": 39946,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "09a8ca0a6389306e9750ed67adc8915914bf6d79 rd 24 8001 b8aa3b295c17f0bc 047f 3800 3a20 0020 8001 8000000000000001"
+    },
+    {
+      "archive_line": 39947,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "6bab54e3a1f29cc33f68dca676dc474fc25629fc ru 24 8001 b8aa3b295c17f0bc 087f 3800 3820 0020 8001 8000000000000000"
+    },
+    {
+      "archive_line": 39948,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "2ee8f5f24c75f57a7d7985df3f9d3c0aead43585 rz 24 8001 b8aa3b295c17f0bc 0c7f 3800 3820 0020 8001 8000000000000000"
+    },
+    {
+      "archive_line": 39949,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "eb7eb5ccf2d0a992cf32de1d5c4dddccbd421808 rn 53 8001 b8aa3b295c17f0bc 027f 3800 3820 0020 8001 8000000000000000"
+    },
+    {
+      "archive_line": 39950,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "0cf397f184174e6570ed9f9117cacd55757fbb45 rd 53 8001 b8aa3b295c17f0bc 067f 3800 3a20 0020 8001 8000000000000001"
+    },
+    {
+      "archive_line": 39951,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "1829e135db388adfe0ed4cfc64ab47f9e315627d ru 53 8001 b8aa3b295c17f0bc 0a7f 3800 3820 0020 8001 8000000000000000"
+    },
+    {
+      "archive_line": 39952,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "da02cf73ff4dde243d0e29622d79d6a12b3abd12 rz 53 8001 b8aa3b295c17f0bc 0e7f 3800 3820 0020 8001 8000000000000000"
+    },
+    {
+      "archive_line": 39953,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "5d7d1d9325d2f57b08ae4b88ae3e6d2ca1be9fbe rn 64 8001 b8aa3b295c17f0bc 037f 3800 3820 0020 8001 8000000000000000"
+    },
+    {
+      "archive_line": 39954,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "23e36e0d220721f8699e8d6d701e00d8337e0f06 rd 64 8001 b8aa3b295c17f0bc 077f 3800 3a20 0020 8001 8000000000000001"
+    },
+    {
+      "archive_line": 39955,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "e6212d46cff18a653ab86dbc6b41d0c38b105de6 ru 64 8001 b8aa3b295c17f0bc 0b7f 3800 3820 0020 8001 8000000000000000"
+    },
+    {
+      "archive_line": 39956,
+      "purpose": "product_above_minimum_normal",
+      "hardware": "0ab845893c80310c6f9ec8ab45b3e94e55d9d6d3 rz 64 8001 b8aa3b295c17f0bc 0f7f 3800 3820 0020 8001 8000000000000000"
+    },
+    {
+      "archive_line": 40329,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "c9ab873c009a9bdde439a020d873612a09e97e37 rn 24 8001 ffcae857172b1fce 007f 3800 3820 0020 8001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 40330,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "ca9afa9cba2b63fc1ff26840e43b324b911795e0 rd 24 8001 ffcae857172b1fce 047f 3800 3a20 0020 8001 b14d4af2871717a2"
+    },
+    {
+      "archive_line": 40331,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "a311113a7264f5d21d7e7477f6c61ffc572c86a6 ru 24 8001 ffcae857172b1fce 087f 3800 3820 0020 8001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 40332,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "d8a8a9879e5622ff63f41fc1ee3934eee299a775 rz 24 8001 ffcae857172b1fce 0c7f 3800 3820 0020 8001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 40333,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "068d01fd132112715852f78feec707a46c1e281f rn 53 8001 ffcae857172b1fce 027f 3800 3820 0020 8001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 40334,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "d5dd235854d766e88f246601de4bf97ff1b28520 rd 53 8001 ffcae857172b1fce 067f 3800 3a20 0020 8001 b14d4af2871717a2"
+    },
+    {
+      "archive_line": 40335,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "9e11c3da1f2636846da00a65bc0b3cce9fbdd5db ru 53 8001 ffcae857172b1fce 0a7f 3800 3820 0020 8001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 40336,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "72cf7e3491a9c42acd74684ba10337b84c04cab5 rz 53 8001 ffcae857172b1fce 0e7f 3800 3820 0020 8001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 40337,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "14a39c794131a8fe8414ad1725a26bfb4ea4be8b rn 64 8001 ffcae857172b1fce 037f 3800 3820 0020 8001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 40338,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "6ddf048f7b672e768e0c1b1a437f278de60a00c6 rd 64 8001 ffcae857172b1fce 077f 3800 3a20 0020 8001 b14d4af2871717a2"
+    },
+    {
+      "archive_line": 40339,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "c55c2b3e5164b347935df5978872e4209641fc23 ru 64 8001 ffcae857172b1fce 0b7f 3800 3820 0020 8001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 40340,
+      "purpose": "near_end_of_corrected_input_binade",
+      "hardware": "063c15e7cf97519b9f5515a3ec62e4a60c828be9 rz 64 8001 ffcae857172b1fce 0f7f 3800 3820 0020 8001 b14d4af2871717a1"
+    },
+    {
+      "archive_line": 40341,
+      "purpose": "next_normal_input_binade",
+      "hardware": "502fc1eb5afca9ce0ee1cca81657a86a336bfb08 rn 24 8002 801b1cf5ded50886 007f 3800 3a20 0020 8001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 40342,
+      "purpose": "next_normal_input_binade",
+      "hardware": "43f17550453286a726da01d83932257ae1eab007 rd 24 8002 801b1cf5ded50886 047f 3800 3a20 0020 8001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 40343,
+      "purpose": "next_normal_input_binade",
+      "hardware": "e559c07fd8785e3c180dc0fbee56dfe4e01d17bb ru 24 8002 801b1cf5ded50886 087f 3800 3820 0020 8001 b197ae2eae9f06ea"
+    },
+    {
+      "archive_line": 40344,
+      "purpose": "next_normal_input_binade",
+      "hardware": "44462f6cf0ce36ce490824732f7a989a585fc4a1 rz 24 8002 801b1cf5ded50886 0c7f 3800 3820 0020 8001 b197ae2eae9f06ea"
+    },
+    {
+      "archive_line": 40345,
+      "purpose": "next_normal_input_binade",
+      "hardware": "e1590bbe4df814e189c810e0a86edbb4e68ee3bd rn 53 8002 801b1cf5ded50886 027f 3800 3a20 0020 8001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 40346,
+      "purpose": "next_normal_input_binade",
+      "hardware": "46ce9646ed2ae24413158bdfb0b189520c4fe1d4 rd 53 8002 801b1cf5ded50886 067f 3800 3a20 0020 8001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 40347,
+      "purpose": "next_normal_input_binade",
+      "hardware": "d80d54f2ae48aebd27b4df0212c9dd5e666f049f ru 53 8002 801b1cf5ded50886 0a7f 3800 3820 0020 8001 b197ae2eae9f06ea"
+    },
+    {
+      "archive_line": 40348,
+      "purpose": "next_normal_input_binade",
+      "hardware": "85c8e9984ba9e8ab7b37a243e567327b47423e0f rz 53 8002 801b1cf5ded50886 0e7f 3800 3820 0020 8001 b197ae2eae9f06ea"
+    },
+    {
+      "archive_line": 40349,
+      "purpose": "next_normal_input_binade",
+      "hardware": "767ac8376dd0ad3b4bd524fdbd84c46597f771f9 rn 64 8002 801b1cf5ded50886 037f 3800 3a20 0020 8001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 40350,
+      "purpose": "next_normal_input_binade",
+      "hardware": "1eddb7db23f66dc1b865de2f0c846196502809b0 rd 64 8002 801b1cf5ded50886 077f 3800 3a20 0020 8001 b197ae2eae9f06eb"
+    },
+    {
+      "archive_line": 40351,
+      "purpose": "next_normal_input_binade",
+      "hardware": "2e739a6f39442a8cd7642cb22061fc22e210b35e ru 64 8002 801b1cf5ded50886 0b7f 3800 3820 0020 8001 b197ae2eae9f06ea"
+    },
+    {
+      "archive_line": 40352,
+      "purpose": "next_normal_input_binade",
+      "hardware": "b87a83502678c15bb7d0e5a65184daa112a766bc rz 64 8002 801b1cf5ded50886 0f7f 3800 3820 0020 8001 b197ae2eae9f06ea"
+    }
+  ]
+}

@@ -1,0 +1,522 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1.1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs,longtable,array}
+\usepackage{microtype}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\hypersetup{
+  pdftitle={Reconstructing x87 FPATAN on Intel Skylake},
+  pdfauthor={},
+  pdfsubject={Validated retained-width behavioral reconstruction},
+  pdfkeywords={x87, FPATAN, Skylake, floating-point, reverse engineering}
+}
+
+\lstdefinestyle{pseudocode}{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\bfseries,
+  commentstyle=\normalfont\itshape\footnotesize,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  breaklines=true,
+  frame=lines,
+  aboveskip=0.6\baselineskip,
+  belowskip=0.6\baselineskip
+}
+\newcommand{\T}[1]{\operatorname{T}_{#1}}
+\newcommand{\N}{\operatorname{RN}_{64}}
+\newcommand{\rc}{\mathrm{RC}}
+\newcommand{\insn}[1]{\texttt{#1}}
+\newcommand{\hex}[1]{\texttt{#1}}
+\newtheorem{proposition}{Proposition}
+\input{generated/evidence-numbers.tex}
+
+\title{Reconstructing x87 FPATAN on Intel Skylake:\\
+A Retained-Width, Bit-Exact Behavioral Program}
+\author{}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present a fixed numerical reconstruction of the x87 \insn{FPATAN}
+instruction on a Skylake Xeon reference environment. The program uses the
+physically decoded Pentium constant ROM, exact magnitude ordering and
+table-index selection, distinct direct and table-assisted kernels, and
+explicit 64- and 67-bit internal rounding operations. Both kernels contain
+two interleaved polynomial chains; their square uses a 67-bit operand and
+its 64-bit truncated counterpart. The architectural wrapper covers raw80
+operand classes, all four rounding modes, \insn{C1}, and masked arithmetic
+exception flags under a stated clear-state contract. No input-indexed
+correction, fitted exception selector, host arctangent, or algorithm flag
+is used. The final program matches all \CorpusRows{} retained observations
+from fourteen one-shot campaigns, including \ProspectiveRows{} prospective
+observations of the unchanged final graph. We also give a finite exact
+certificate proving that lower-tie and odd-tie table indexing are
+endpoint-equivalent within this graph. The result is an empirically
+validated behavioral reconstruction, not an exhaustive all-input hardware
+proof or a recovered physical microcode implementation. Complete programmer's
+pseudocode and the literal constants accompany the specification.
+\end{abstract}
+
+\section{Scope and contributions}
+
+The x87 \insn{FPATAN} instruction consumes $y$ in \insn{ST(1)} and $x$ in
+\insn{ST(0)}, computes a quadrant-sensitive arctangent, and pops the stack
+once. It therefore corresponds to the two-argument role of \texttt{atan2},
+not simply to a division followed by a one-argument library
+arctangent~\cite{intel2}. This paper concerns the function of the raw input
+bits evaluated by the reference processor. It does not replace that target
+with correctly rounded mathematical $\operatorname{atan2}(y,x)$.
+
+The reconstruction, designated V7 in the accompanying artifacts, consists
+of one numerical graph and one masked architectural wrapper. The
+contributions are (i) an explicit retained-width specification, (ii) literal
+constant provenance separated from behavioral inference, (iii) prospective
+and retained verification with output and flag accounting, (iv) an exact
+index-representation equivalence result, and (v) a runnable C implementation
+and shared, executable reference pseudocode.
+
+The API assumes a valid two-deep x87 stack, all exceptions masked, and clear
+initial exception latches. Its outputs are the raw80 numerical result,
+\insn{C1}, and the six arithmetic exception flags. It does not model arbitrary
+saved-state restoration, unmasked exception delivery, stack faults, FPU
+pointers, or undefined condition bits. Generality here means a single
+arithmetic program over operand classes, not a per-input correction table;
+the finite corpus is not an enumeration of the input space.
+
+\section{Provenance and experimental method}
+\label{sec:method}
+
+\subsection{The observed reference}
+
+Captures identify the reference as an Intel Xeon Processor (Skylake, IBRS),
+with CPUID leaf-1 signature \hex{00050654} and reported microcode \hex{0x1}.
+The Linux capture environment reports the hypervisor feature bit. These
+are recorded guest-visible identifiers, not independent attestation of
+the underlying host's physical microcode revision. Claims in this paper
+refer to this observed environment; transfer to other CPUIDs, microcode
+versions, or vendors has not been established for this FPATAN program.
+
+The harness executes \insn{FNINIT}, loads the requested control word, loads
+the two raw80 operands, records the pre-instruction status, executes one
+\insn{FPATAN}, and records the result and status. Control words and the
+stack-pop relation are checked by the capture protocol. There is no warmup
+instruction. A hardware observation is identified by the ordered raw
+operands, RC, PC, and capture/CPU context. Frozen inputs and predictions
+precede fresh observation; durable reservations prevent repetition.
+Existing captures are reused for software regression, not relabeled as new
+hardware evidence.
+
+\subsection{Literal ROM data}
+\label{sec:rom}
+
+Shirriff's physical P5 ROM decode supplies the constant bit patterns, not
+coefficients fitted to the observed misses~\cite{shirriff}. The implementation
+contains 44 entries: rows 19 and 20 for $\pi$ and $\pi/2$; rows 114--117 and
+118--123 for two polynomial coefficient sets; and rows 125--156 for the
+32 arctangent table anchors. The V7 table path uses anchors $n=2,\ldots,32$;
+the $n=1$ entry is retained as literal data.
+
+For published exponent $E_i$, sign $s_i$, and hexadecimal significand
+integer $S_i$, the value used is exactly
+\begin{equation}
+ C_i=(-1)^{s_i} S_i\,2^{E_i-65535-66}.
+ \label{eq:rom}
+\end{equation}
+All selected flag bits are zero. The significand has 67 value bits; its
+string representation avoids an accidental 64-bit conversion. All 44
+entries have been checked against both the archived published appendix and
+the local transcription. Appendix~\ref{app:constants} reproduces the exact
+values in this encoding. This establishes P5 provenance, not a physical
+dump of Skylake's ROM.
+
+\subsection{Independent structural context}
+
+A pinned public Goldmont listing and FP-ROM projection provide a separate
+structural clue~\cite{goldmont,fprom}. The ten coefficient payloads and 32
+table payloads agree after projection to 64 bits. An arctangent-shaped
+long-polynomial block at \hex{U70ca--U70e4} and a short block at
+\hex{U6d1e--U6d32} use two interleaved chains, distinct sum-operation classes,
+and a distinct square operation. The audit establishes 42 payload
+projections and operation incidence; it does not establish discarded low
+bits, exponent/sign metadata, dynamic architectural dispatch, or Skylake
+micro-operation semantics. The numerical widths below are part of the
+behavioral reconstruction and its separate validation.
+
+Story and Tang's IA-64 compatibility work documents magnitude ordering,
+direct and table-assisted arctangent paths, and a residual of the form
+$(v-Bu)/(u+Bv)$~\cite{story}. Its thresholds, formats and corrections are
+different. It is historical algorithmic context, not the source of a
+Skylake bit-exactness claim or an error bound for this program.
+
+\section{The fixed numerical graph}
+\label{sec:graph}
+
+\subsection{Exact values and explicit rounding}
+
+A finite raw80 encoding has sign $s$, exponent field $e_f$, and integer
+significand $m$. Its value is
+\begin{equation}
+ x=(-1)^s m\,2^{\max(e_f,1)-16383-63}.
+\end{equation}
+Classification precedes decoding: a nonzero exponent with a zero explicit
+integer bit is unsupported. Exponent-zero nonzero encodings include both
+subnormals and pseudo-denormals, whose values use effective exponent one.
+
+Let $\T{p}(v)$ truncate toward zero to $p$ significant bits, with unbounded
+internal exponent range, and let $\N(v)$ round to nearest/even at 64 bits.
+Define
+\begin{equation}
+ M(a,b)=\T{67}(ab),\qquad
+ A(a,b)=\N(a+b),\qquad
+ W(a,b)=\T{67}(a+b).
+ \label{eq:ops}
+\end{equation}
+Every arithmetic operation without an explicit rounding operator is exact.
+These internal operators are fixed: they do not inherit architectural RC
+or PC. Final architectural rounding is specified separately.
+
+\subsection{Magnitude ordering and reduction}
+
+For nonzero finite operands let $a=\min(|y|,|x|)$,
+$b=\max(|y|,|x|)$, and $r=a/b$. Retain whether $|y|>|x|$.
+The first-octant angle $t$ follows three paths:
+\begin{enumerate}
+\item If $r<2^{-40}$, set $t=\T{67}(r)$.
+\item If $2^{-40}\le r\le3/64$, set $z=\T{67}(r)$ and use the direct kernel.
+\item Otherwise select
+\begin{equation}
+ n=\left\lceil32r-\tfrac12\right\rceil,\qquad c=n/32,\qquad 2\le n\le32,
+ \label{eq:index}
+\end{equation}
+and set
+\begin{equation}
+ z=\T{67}\!\left(\frac{\T{67}(a-cb)}{\T{67}(b+ca)}\right).
+ \label{eq:reduce}
+\end{equation}
+Use the table kernel, then set $t=\T{67}(\mathrm{kernel})+C_{124+n}$.
+\end{enumerate}
+Equation~\eqref{eq:index} is nearest-cell selection with ties to the lower
+cell. Equation~\eqref{eq:reduce} completes the small-integer products before
+cutting either sum. Cutting $ca$ or $cb$ first, or replacing this operation
+with a separately rounded quotient-based identity, is a different program.
+
+\subsection{Interleaved polynomial evaluation}
+
+Both kernels first compute
+\begin{equation}
+ u=\N\bigl(z\,\T{64}(z)\bigr),\qquad v=M(u,u).
+ \label{eq:square}
+\end{equation}
+The square is not $\N(z^2)$ in general: one operand is truncated to 64 bits
+before the exact product is rounded. The direct kernel uses
+\begin{align}
+ o&=W\bigl(C_{119},M(v,A(C_{121},M(v,C_{123})))\bigr),\\
+ e&=W\bigl(C_{118},M(v,A(C_{120},M(v,C_{122})))\bigr),
+\end{align}
+while the table kernel uses
+\begin{equation}
+ e=W(C_{114},M(v,C_{116})),\qquad o=A(C_{115},M(v,C_{117})).
+\end{equation}
+Both finish with
+\begin{equation}
+ h=A(M(u,o),e),\qquad q=M(M(z,u),h),\qquad
+ \mathrm{kernel}=z+q.
+ \label{eq:terminal}
+\end{equation}
+In exact algebra these are odd polynomials with interleaved coefficient
+chains. With the stated cuts, algebraically equivalent schedules need not
+be numerically equivalent. In particular, the direct kernel's terminal
+$z+q$ remains exact until the next specified stage. The table kernel is
+instead cut to 67 bits before its ROM-anchor addition.
+
+\subsection{Quadrant restoration}
+
+If a magnitude swap occurred or $x$ is negative, first replace
+$t$ by $\bar t=\T{67}(t)$. Before applying the sign of $y$, use
+\begin{equation}
+ \theta_+=
+ \begin{cases}
+  t & |y|\le|x|,\ x>0,\\
+  C_{20}-\bar t & |y|>|x|,\ x>0,\\
+  C_{20}+\bar t & |y|>|x|,\ x<0,\\
+  C_{19}-\bar t & |y|\le|x|,\ x<0.
+ \end{cases}
+\end{equation}
+Set $\theta=\operatorname{sign}(y)\theta_+$. These additions use the literal
+ROM constants and exact arithmetic. They are not separate architectural
+floating-point instructions with RC-dependent intermediate rounding.
+
+\section{Architectural encoding, classes and flags}
+\label{sec:architecture}
+
+For a nonzero retained angle $\theta$, final spacing is
+\begin{equation}
+ \Delta=2^{\max(\lfloor\log_2|\theta|\rfloor,-16382)-63}.
+\end{equation}
+Round $\theta$ to a multiple of $\Delta$ using requested RC, then normalize
+and pack the raw80 result. RN breaks ties toward even retained significands;
+RD, RU and RZ round toward negative infinity, positive infinity and zero.
+Negative nonzero values retain their sign when rounded to zero. The
+reconstructed precision-control independence means PC24/53/64 are accepted
+architectural controls, not switches between numerical kernels.
+
+\insn{C1} is one exactly when final rounding increased the magnitude:
+\begin{equation}
+ \insn{C1}=[\,|\operatorname{round}_{\rc}(\theta)|>|\theta|\,].
+\end{equation}
+Every ordinary nonzero finite path sets PE. It also sets UE when the
+retained angle is tiny \emph{before} final rounding,
+$|\theta|<2^{-16382}$, including directed rounding up to minimum normal.
+This is a statement of the reconstructed instruction behavior, not a
+substitution of generic mathematical-library exception rules.
+
+The special-class handler implements the quadrant-sensitive zero and
+infinity responses and x87 NaN-priority rules~\cite{intel2,intel1}.
+Unsupported encodings return \hex{ffff:c000000000000000} and IE.
+Signaling NaNs raise IE and are quieted. With two NaNs, a quiet NaN takes
+priority over a signaling NaN; within the same class the larger significand
+wins, with positive sign breaking an equal-significand tie. Unsupported
+encoding handling precedes NaN propagation in this model.
+
+On non-NaN, supported paths, an exponent-zero nonzero operand, including a
+pseudo-denormal, sets DE. Exact zero results from zero/infinity paths do
+not set PE; nonzero quadrant constants do. ZE and OE remain clear under
+this contract. Pre-load exception flags are checked and are zero for the
+tested raw80 load sequence. Appendix~\ref{app:pseudocode} gives the complete
+ordered class dispatch, including signed-zero cases; it should be used
+instead of inferring a wrapper from the finite formulas alone.
+
+\paragraph{A visible RC example.}
+For $x=y=1$, RN and RU return \hex{3ffe:c90fdaa22168c235} with C1=1;
+RD and RZ return \hex{3ffe:c90fdaa22168c234} with C1=0. PE is set and
+the other arithmetic exception flags are clear. All three supported PC
+settings give the same corresponding results.
+
+\section{Validation and discriminating evidence}
+\label{sec:validation}
+
+Table~\ref{tab:campaigns} partitions all retained observations; its rows are
+not additional counts to sum with the total. Each observation includes an
+RC/PC setting, so it is not a count of distinct unconditioned operand pairs.
+Only D0023, D0024 and D0026 were prospective tests of the unchanged V7
+program. The earlier observations became discovery/regression evidence for
+that program, even where they had been prospective for a predecessor.
+The earlier eleven campaigns are D0001--D0009, D0013 and D0022.
+
+\begin{table}[htbp]
+\centering
+\input{generated/campaign-table.tex}
+\caption{Retained evidence, partitioned by campaign. Every row has zero
+final-V7 output, C1, exception and pre-load-flag misses.}
+\label{tab:campaigns}
+\end{table}
+
+The immutable corpus contains \CorpusRows{} observations. RC coverage is
+balanced at \RowsPerMode{} observations each for RN, RD, RU and RZ.
+PC coverage is \PCtwentyfour{} at PC24, \PCfiftythree{} at PC53 and
+\PCsixtyfour{} at PC64. These counts show the actual tested controls; they
+do not claim every possible class/RC/PC combination has been exhaustively
+enumerated. Some canonical both-special pairs were conservatively held by
+the history audit and have only documented/synthetic coverage, not invented
+native observations.
+
+The prospective challenges target exact midpoints with varied denominators,
+unmasked denominator low bits, signs and octants, and final-rounding
+transitions. D0026 contains 2,048 independently checked adjacent external
+RN/RD transition brackets, five nearby significands per bracket, sign/swap
+expansions and common exponent transports, plus independent full-exponent
+controls. Its \FinalChallengeRows{} observations have zero misses, 1,984
+underflow observations and 1,404 complete three-PC comparison groups without
+value/status differences. Those groups overlap the observation count.
+
+\subsection{A selector control, not an input exception}
+
+A preceding upper-tie program failed at the exact ratio $19/64$. The final
+program uses one global lower-tie rule rather than a special case for that
+ratio. The later low-bit campaign independently distinguishes several
+frozen alternative index constructions. In D0024, upper and even tie rules
+each disagree on 1,007 observations in output or C1; the tested CHOP67
+reciprocal/CHOP67 multiply/upper-tie construction disagrees on 935. Lower
+and odd tie rules have no disagreement. These are exclusions of the tested
+constructions, not of every conceivable reciprocal or index implementation.
+The remaining lower/odd equivalence has an exact explanation in
+Section~\ref{sec:alias}.
+
+\subsection{Implementation and pseudocode checks}
+
+The main C source, GCC 15 build and independent library client replay all
+fourteen jobs with no output or flag differences. Later readability changes
+preserve the full preprocessed compiler-token stream and all existing code
+comments. An optimized Clang executable and a library build with address
+and undefined-behavior sanitizers again reproduce the per-job output hashes over
+all \CorpusRows{} observations. Build variants and replays are software
+checks of the same observations, not new hardware experiments.
+
+The programmer's pseudocode is shared literally between the standalone
+reference and Appendix~\ref{app:pseudocode}. Its exact-rational blocks are
+executed by a separate documentation verifier without calling the production
+numerical functions. That verifier checks all \CorpusRows{} retained
+observations and reproduces the delivered C output-stream hashes. Source
+and evidence hashes are preserved in the accompanying artifact manifests.
+
+\section{An exact index-representation equivalence}
+\label{sec:alias}
+
+\begin{proposition}
+Within the fixed graph in Section~\ref{sec:graph} and its architectural
+wrapper, nearest table indexing with ties to the lower integer and nearest
+indexing with ties to the odd integer produce identical modeled endpoints
+and applicable flags for all valid raw80 operand pairs.
+\end{proposition}
+
+\begin{proof}
+The selectors are identical away from exact midpoints. At an odd lower
+index they also agree. At $1/64$ both possible indices dispatch to the same
+direct kernel. Thus only even lower indices $n=2,4,\ldots,30$ can matter,
+with exact ratio $r=m/64$, $m=2n+1$.
+
+Normalize the larger magnitude as $b=S2^e$, where
+$2^{63}\le S<2^{64}$; this includes exact normalization of subnormals.
+For either neighboring cell $j\in\{n,n+1\}$, the numerator in
+Equation~\eqref{eq:reduce} is exactly $\pm b/64$, hence unaffected by its
+67-bit cut. Put $K=2048+jm$. The denominator can be written
+\begin{equation}
+ d=(KS-\delta)2^{e-11},\qquad 0\le\delta\le511,
+\end{equation}
+because $K<4096$, $KS<2^{76}$, and retaining 67 bits discards at most nine
+integer bits. Therefore its pre-division-cut reduced magnitude satisfies
+\begin{equation}
+ \frac{32}{K}\ \le\ \frac{32S}{KS-\delta}\ \le\
+ \frac{32\,2^{63}}{K\,2^{63}-511}.
+ \label{eq:enclosure}
+\end{equation}
+The upper bound uses the smallest allowed $S$ and largest allowed
+$\delta$. The enclosures deliberately include states that need not have
+representable external preimages.
+
+Enumerating every C67 result in these thirty signed neighbor enclosures
+gives 106 retained reduced states. The accompanying exact-integer/rational
+certificate evaluates their short kernels, table additions, all four
+magnitude restorations, both signs and all four rounding modes: 3,392
+endpoint checks. Within each midpoint group, every state in both neighbor
+enclosures has the same output/C1 vector. All such angles are normal and
+nonzero, so modeled PE and UE agree; DE depends on the unchanged input
+classes. Other operand classes share the same wrapper. This completes the
+finite certificate for the stated graph.
+\end{proof}
+
+This proposition does not identify a physical selector in the processor.
+Nor does it prove that the graph agrees with silicon outside the observed
+corpus. It does show why seeking an output separator between these two
+representations under the same graph cannot succeed.
+
+\section{Implementation, reproducibility and limits}
+
+The C11 implementation uses GMP for exact integer/rational arithmetic, not
+for an arctangent function. The historical filename
+\path{fpatan_candidate.c} now contains the fixed program; its executable
+has no algorithm-selection flags or environment-controlled corrections.
+The optional library wraps the same implementation. It runs on non-x86
+hosts without native FPATAN. Architectural RC/PC inputs are part of the
+public contract, not configuration patches.
+
+The accompanying directory contains the source, standalone/library build,
+\path{PSEUDOCODE.md}, this manuscript, a complete literal-constant table,
+and the evidence/build instructions. The corpus records retain input,
+prediction, hardware, identity and reservation hashes. The exact index
+certificate is reproducible without a solver or new hardware. No private
+supplemental ledger, captured-operand correction table or undisclosed
+coefficient fitting is needed to execute the numerical program.
+
+The limits are substantive: corpus agreement is not a proof over all raw80
+pairs; one observed reference is not cross-generation validation; static
+Goldmont structure is not a Skylake decode; the finite index certificate
+proves an identity of two model representations, not hardware equivalence;
+and the numerical API is not a complete x87 machine-state emulator. No
+bound on error relative to mathematical arctangent is claimed here. The
+ongoing adversarial design and unexecuted large campaigns are deliberately
+not presented as results.
+
+\section{Conclusion}
+
+The verified program provides an explicit, reusable description of observed
+FPATAN behavior: ROM-based reduction, two interleaved retained-width
+kernels, ordered quadrant restoration and architectural rounding/flags.
+Its \CorpusRows{} matching observations include \ProspectiveRows{}
+prospective tests of the unchanged final graph. The specification and
+shared pseudocode make the rounding decisions auditable without reading a
+research chronology. The numerical reconstruction is validated within its
+stated scope; physical uniqueness and universal hardware equivalence remain
+distinct, unclaimed results.
+
+\begin{thebibliography}{9}
+\bibitem{intel2} Intel Corporation.
+\emph{Intel 64 and IA-32 Architectures Software Developer's Manual},
+Volume 2A, \insn{FPATAN} and Table 3-30.
+\href{https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-2a-manual.pdf}{Official instruction-set reference}.
+
+\bibitem{intel1} Intel Corporation.
+\emph{Intel 64 and IA-32 Architectures Software Developer's Manual},
+Volume 1, revision 090, February 2026, Table 4-8 and rounding control.
+\href{https://cdrdv2-public.intel.com/874241/253665-090-sdm-vol-1.pdf}{Official architecture manual}.
+
+\bibitem{shirriff} K. Shirriff.
+\emph{Pi in the Pentium: reverse-engineering the constants in its
+floating-point unit}, January 2025, ROM appendix.
+\href{https://www.righto.com/2025/01/pentium-floating-point-ROM.html}{Original physical reverse-engineering report}.
+
+\bibitem{goldmont} chip-red-pill.
+\emph{uCodeDisasm: Goldmont operation listing},
+\path{ucode/ucode_glm.txt}, commit \hex{ffc9070}.
+\href{https://github.com/chip-red-pill/uCodeDisasm/blob/ffc9070233a6e7a26dbabe723289259f087ee20b/ucode/ucode_glm.txt}{Pinned primary source}.
+
+\bibitem{fprom} P. Borrello and contributors.
+\emph{CustomProcessingUnit}, \path{bios/dumps/rom.txt},
+commit \hex{4237524}.
+\href{https://github.com/pietroborrello/CustomProcessingUnit/blob/4237524fe7545c66e42dd986113f220662c06f6a/bios/dumps/rom.txt}{Pinned FP-ROM projection}.
+
+\bibitem{story} S. Story and P. T. P. Tang.
+``New Algorithms for Improved Transcendental Functions on IA-64.''
+\emph{14th IEEE Symposium on Computer Arithmetic}, pp.~4--11, 1999.
+\href{https://doi.org/10.1109/ARITH.1999.762822}{Publisher record}.
+\end{thebibliography}
+
+\clearpage
+\appendix
+\section{Literal constant specification}
+\label{app:constants}
+
+Each row below defines $C_i=(-1)^s S2^q$, where $S$ is the listed
+hexadecimal integer and $q$ is the binary scale. Rows 114--117 form the
+short polynomial; rows 118--123 form the long polynomial. Rows 125--156
+are the anchors $\operatorname{atan}(n/32)$ at $i=124+n$ as represented in
+the P5 ROM, not values recomputed with a host math library. The table is
+generated from the checked C literals and cross-checked against the public
+transcription; Section~\ref{sec:rom} gives the exponent conversion.
+
+\input{generated/rom-table.tex}
+
+\clearpage
+\section{Programmer's pseudocode}
+\label{app:pseudocode}
+
+The following blocks are copied mechanically from the standalone
+\path{PSEUDOCODE.md}. They are executable reference pseudocode with exact
+\texttt{Fraction} arithmetic; the documentation verifier binds
+\texttt{ROM} to Appendix~\ref{app:constants}. No production numerical
+function is called by this reference. Internal rounding has an unbounded
+exponent range; only \texttt{pack\_angle} applies raw80 output spacing.
+The returned tuple is (raw result, C1, exception flags, pre-load flags).
+IE=1, DE=2, ZE=4, OE=8, UE=16 and PE=32. The numerical wrapper assumes the
+clear, masked, valid-stack capture contract, not arbitrary prior FPU state.
+
+\input{generated/pseudocode.tex}
+
+\end{document}

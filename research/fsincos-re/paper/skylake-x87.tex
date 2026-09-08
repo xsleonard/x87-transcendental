@@ -1,0 +1,1008 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1.1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{microtype}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+\lstdefinestyle{pseudocode}{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\bfseries,
+  commentstyle=\normalfont\itshape\footnotesize,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  frame=lines,
+  aboveskip=0.7\baselineskip,
+  belowskip=0.7\baselineskip
+}
+
+% --- notation -------------------------------------------------------
+\newcommand{\chop}[1]{\mathrm{chop}_{#1}}   % truncate to #1 significant bits
+\newcommand{\rn}[1]{\mathrm{RN}_{#1}}       % round-to-nearest-even at #1 bits
+\newcommand{\ulp}{\mathrm{ulp}}
+\newcommand{\instr}[1]{\texttt{#1}}
+\newcommand{\hex}[1]{\texttt{#1}}
+
+\title{Thirty Years of the Pentium Kernel:\\
+A Bit-Exact Behavioral Reconstruction of the x87\\
+Transcendental Instructions in Intel Skylake}
+
+\author{}
+
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We reconstruct general, bit-exact numerical programs for standalone x87
+\instr{FSIN}/\instr{FCOS} and paired \instr{FSINCOS} on an Intel Skylake Xeon.
+The programs combine
+exact integer reduction using the architectural 66-bit approximation to
+$\pi$, the Pentium coefficient ROM and table cells, fixed internal rounding
+operations, and an explicit tiny-result predecessor rule. If $T_p$ truncates
+to $p$ significant bits, the ordinary multiply is
+$M(x,y)=T_{67}(T_{67}(x)T_{64}(y))$; coefficient additions round to nearest-even
+at 64 bits. Sine and cosine have distinct terminal schedules, and one table
+multiply rounds its exact port product directly to 64 bits.
+Paired \instr{FSINCOS} instead uses a Horner polynomial, truncating every
+coefficient-stage product to 67 bits before its RN64 addition.
+No captured-operand ledger, fitted exception selector, or rounding-history
+correction participates in the promoted programs.
+Standalone results match all 81 previously failing external frontier rows and all
+3{,}379{,}017 retained output appearances in the promotion regression, including
+3{,}378{,}987 applicable \texttt{C1} checks. Independent rational/integer
+implementations, domain bounds, compiler-variant checks and previously frozen
+one-shot hardware challenges support the reconstruction.
+The paired program matches 23{,}838{,}534 retained lane results and all
+13{,}800 fresh adversarial RC/PC tuples; its predecessor fails 750 of those
+tuples. The default C implementation includes all three instructions.
+These results establish validated behavioral algorithms, not a recovered
+physical netlist or an exhaustive enumeration of x87 inputs.
+\end{abstract}
+
+\section{Introduction}
+
+Every Intel processor since the 8087 has offered hardware
+transcendental instructions.  Their architectural documentation is
+thin: the Software Developer's Manual specifies operand ranges, flag
+behavior, and---since a 2014 controversy over \instr{FSIN} accuracy
+claims~\cite{dawson2014,intel-sdm}---the fact that range reduction
+uses a 66-bit approximation to $\pi$.  The architectural description
+does not specify the kernels, tables, working precisions, rounding of
+each internal operation, or exact behavior at every boundary.
+This gap has practical consequences.  Emulators and binary-translation
+systems (QEMU, Bochs, Valgrind, hypervisor instruction decoders)
+approximate these instructions with host arithmetic or software
+libraries, so guest-visible results differ from silicon; record-replay
+debugging, live-migration between vendors, deterministic sandboxing,
+and archival execution of legacy x87 code all inherit the discrepancy.
+The algorithms in shipping silicon can be studied through public
+implementation material and measured processor behavior.
+
+This paper presents the validated standalone and paired numerical programs and their
+implementation, retaining the shared-kernel and ROM-lineage results as
+context. The target is one Skylake Xeon reference, not universal parity across
+Intel and AMD processors. Earlier R96-stage models used an incomplete support
+selector and, in some comparisons, a captured-output overlay. They are not
+the algorithm now promoted.
+
+\subsection*{Contributions}
+
+\begin{enumerate}
+\item A complete numerical specification of the standalone polynomial,
+table, reduction and tiny paths, with explicit working precisions and
+rounding points (Section~\ref{sec:algorithm}).
+\item A default C implementation of that fixed program, resolving all
+81 recorded incumbent-frontier rows without an operand ledger, and a
+retained regression separating output, \texttt{C1}, prospective hardware
+evidence and software equivalence (Section~\ref{sec:validation}).
+\item Domain arguments explaining the asymmetric multiply representation
+and exact table-cell selection, plus negative controls distinguishing
+numerically different evaluation schedules.
+\item An independently reconstructed paired direct-polynomial Horner program, validated by
+retained regression and a frozen all-RC, PC24/53/64 adversarial challenge
+(Sections~\ref{sec:paired} and~\ref{sec:paired-validation}).
+\item Behavioral evidence for Pentium ROM lineage and corrections to the
+published ROM decode (Section~\ref{sec:lineage}), with physical-routing
+inferences kept separate from numerical results.
+\end{enumerate}
+
+\section{Background and related work}
+\label{sec:background}
+
+\paragraph{The x87 model.}  The x87 unit computes in 80-bit double
+extended precision: a 64-bit explicit-integer-bit significand, 15-bit
+exponent, sign.  The transcendental instructions consume the top of
+the register stack and are sensitive to the rounding-control (RC)
+field of the control word; \instr{FSIN}/\instr{FCOS}/\instr{FSINCOS}
+accept $|x| < 2^{63}$ and otherwise set the \texttt{C2} flag leaving
+the operand unchanged; \instr{FPTAN} additionally pushes a constant
+$1.0$; \instr{F2XM1} computes $2^x-1$ on $|x| \le 1$.
+
+\paragraph{History.}  The 8087/80287 used CORDIC-style iteration; the
+80387 added \instr{FSINCOS}.  The Pentium (1993) moved to a
+table-assisted polynomial design whose 304-entry constant ROM was
+physically decoded from die photographs by Shirriff in
+2025~\cite{shirriff2025}.  For Itanium, Intel published and formally
+verified a table-free double-extended algorithm intended also to serve
+IA-32 compatibility~\cite{harrison2000,harrison1999}; its assembly
+source survives in the glibc ia64 port (removed upstream in
+glibc~2.39), from which we transcribed a frozen bit-exact reference
+model.  We compare these published lineages with the numerical behavior
+of the selected Skylake reference.  AMD's K5
+implementation was described by its designers~\cite{lynch1995}, and
+folklore has long held that AMD's argument reduction is more accurate
+than Intel's.  The 2014 accuracy controversy~\cite{dawson2014} led
+Intel to document the 66-bit-$\pi$ reduction property, but not the
+algorithm.
+
+\paragraph{Related reverse engineering.}  The Pentium \instr{FDIV}
+defect of 1994~\cite{nicely1994,coe1995} established that arithmetic
+microstructure (there, an SRT quotient-digit table) can be recovered
+from behavior; Shirriff's die-level work recovered the Pentium FPU's
+constants and layout~\cite{shirriff2025}.  This work specifies and tests
+the standalone and paired numerical paths on the selected Skylake reference.
+It makes no claim to be the first implementation or study of these instructions.
+
+\section{Methodology}
+\label{sec:method}
+
+The numerical target is the Skylake Xeon reference used for the frozen
+standalone and paired campaigns. Ground truth consists of raw instruction outputs and
+status words captured on real x86 hardware, not host-library trigonometric
+values. The four rounding modes are RN, RD, RU and RZ. Where precision-control
+independence is tested, PC24, PC53 and PC64 are separate recorded tuples.
+
+A hypothesis is specified before fresh hardware observation. Proposed inputs
+are checked against retained capture history, predictions and manifests are
+frozen, and each eligible tuple is executed once. Existing observations are
+reused for regression; they are never called fresh merely because a new
+implementation scores them. Tests include model-disagreement operands and
+common-prediction controls near rounding and dispatch boundaries.
+
+Independent verification uses separately implemented rational or integer
+arithmetic, reduction, quantization and raw-output parsing. Compiler comparisons
+check faithful realization of the same specification; they are not additional
+hardware observations. Counts of retained bank appearances can overlap and
+are not summed into a unique-input or fresh-capture claim.
+
+Here \emph{bit-exact} describes agreement of the behavioral program with the
+specified reference observations. Generality is supported by fixed operators,
+domain reasoning, adversarial transfer and implementation checks, not by an
+input-indexed exception table. Numerical equivalence does not identify hidden
+physical operand-port routing. Neither exhaustive enumeration nor netlist
+recovery is required to state a validated behavioral algorithm.
+
+\section{The algorithm}
+\label{sec:algorithm}
+
+For a code-first walkthrough, Appendix~\ref{app:pseudocode} gives
+programmer's pseudocode for reduction, dispatch, both polynomial schedules,
+the shared table kernel and final rounding. Its helper functions correspond
+directly to the equations in this section.
+
+Throughout, $\chop{k}(\cdot)$ truncates a product to $k$ significant
+bits (magnitude chop); $\rn{k}(\cdot)$ rounds to nearest-even at $k$
+bits.  The datapath evaluates significands as integers; all laws below
+are integer/bit-level statements about those significands.
+
+\subsection{Encoding classes and specials \textnormal{[EXACT]}}
+\label{sec:specials}
+
+Unnormals (nonzero exponent, explicit integer bit 0), pseudo-NaNs and
+pseudo-infinities take the masked invalid-operation response: both
+results are the real indefinite \hex{ffff:c000000000000000}, in every
+rounding mode.  Pseudo-denormals (exponent 0, integer bit 1) are valid
+and compute normally.  NaNs are quieted and passed through;
+infinities produce the indefinite; zeros are exact ($\sin\pm0 =
+\pm0$, $\cos\to 1$).  $|x| \ge 2^{63}$ sets \texttt{C2} with the
+operand unchanged, exactly at the encoding boundary. (Historical i7
+invalid-encoding validation: 1{,}408/1{,}408.)
+
+\subsection{Exact integer range reduction}
+\label{sec:reduction}
+
+Write a finite normalized magnitude as $|x|=s\,2^{e-63}$, where
+$2^{63}\le s<2^{64}$. Inputs below the direct-path threshold
+\hex{3ffe:c90fdaa22168c234} use the unreduced argument.
+For the reduction domain $-1\le e\le62$, define
+\[
+ M_{66}=\hex{3243f6a8885a308d3}_{16},\qquad
+ A=s\,2^{e+2},\qquad
+ q=\left\lfloor\frac{A}{M_{66}}+\frac12\right\rfloor,\qquad
+ D=A-qM_{66}.
+\]
+The signed residual is $(-1)^{\sigma_x}D\,2^{-65}$.
+Thus the reduction constant is $(\pi/2)_{66}=M_{66}2^{-65}$.
+Since $M_{66}$ is odd, the quotient has no half-integer tie.
+The implementation's two-part residual reconstructs this exact dyadic
+difference before kernel dispatch; no quotient or carry history is appended
+to the numerical value.
+
+For external phase $\phi=0$ (\instr{FSIN}) or $\phi=1$ (\instr{FCOS}), let
+$n=(-1)^{\sigma_x}q+\phi$; on the direct path, use $q=0$.
+Let $r$ be the residual magnitude and $\sigma_r$ its sign.
+The selected internal function is cosine if $n\bmod2=1$ and sine otherwise.
+The result sign is bit 1 of $n$, XOR $\sigma_r$ only on the sine branch.
+
+Integer interval and modular arguments cover the full normalized reduction
+domain. In particular $D\ne0$: coprimality would otherwise require
+$M_{66}\mid s$, impossible for a nonzero 64-bit $s$. The small nonzero
+residuals near multiples of the reduction constant therefore have an explicit
+tiny rule rather than a guessed zero-residual case.
+
+\subsection{Path selection and arithmetic operators}
+
+For $r>0$, let $E=\lfloor\log_2 r\rfloor$.
+The tiny path has $E<-32$, the polynomial path $-32\le E\le-3$,
+and the table path $E\ge-2$. All comparisons are exact binary comparisons.
+Write $T_p=\chop{p}$ for signed magnitude truncation. For the standalone
+polynomial and shared table programs, define
+\[
+ \begin{aligned}
+ M(x,y)&=T_{67}\bigl(T_{67}(x)\,T_{64}(y)\bigr),\\
+ A_{64}(x,y)&=\rn{64}(x+y),\\
+ M_R(x,y)&=\rn{64}\bigl(T_{67}(x)\,T_{64}(y)\bigr).
+ \end{aligned}
+\]
+The product inside $M_R$ is exact before its one RN64 rounding:
+$M_R(x,y)$ is \emph{not} $\rn{64}(M(x,y))$.
+Final $\mathrm{RC}_{64}$ applies the requested architectural rounding mode
+to the signed prevalue.
+
+\subsection{The fixed standalone polynomial program}
+\label{sec:polynomial}
+
+Let $K_1,\ldots,K_6$ be the selected native sine or cosine coefficients.
+Both families use the same graph:
+\[
+ \begin{aligned}
+ S&=M(r,r),& F&=M(S,S),\\
+ N&=A_{64}\bigl(K_1,M(F,A_{64}(K_3,M(F,K_5)))\bigr),\\
+ P&=A_{64}\bigl(K_2,M(F,A_{64}(K_4,M(F,K_6)))\bigr),\\
+ L&=M(S,N),& R&=M(F,P).
+ \end{aligned}
+\]
+With result sign $\sigma$ determined above, the terminals are
+\[
+ \begin{aligned}
+ y_{\sin}&=\mathrm{RC}_{64}\left((-1)^\sigma
+       \left[r+M(r,A_{64}(L,R))\right]\right),\\
+ y_{\cos}&=\mathrm{RC}_{64}\left((-1)^\sigma
+       \left[1+T_{67}(L+R)\right]\right).
+ \end{aligned}
+\]
+The terminals are deliberately different; there is no learned condition
+choosing which schedule applies to a known error operand.
+
+Every direct polynomial residual has at most 64 significant bits and every
+reduced polynomial residual at most 63. Multiplications produce at most 67
+bits and Horner additions at most 64. With the native coefficient widths,
+the only nonidentity input-port truncation in this graph is the fourth-power
+producer's $T_{64}(S)$. This explains the numerical X67/Y64 representation
+without claiming that a physical port has been observed.
+The shared polynomial program replaces the old terminal-selector composition
+in the promoted standalone route; it is not a new correction layered onto it.
+
+\subsection{The fixed table program}
+\label{sec:table}
+
+For $r\ge1/4$, select the native center $b/64$ using
+\[
+ b=\begin{cases}
+ 18+4\lfloor16(r-1/4)\rfloor,&r<1/2,\\
+ 36+8\min(2,\lfloor8(r-1/2)\rfloor),&r\ge1/2.
+ \end{cases}
+\]
+Only $b\in\{18,22,26,30,36,44,52\}$ is reachable.
+Put $a=r-b/64$ and $S=M(a,a)$.
+For each native four-coefficient family define
+\[
+ H(K)=A_{64}\bigl(K_1,M(S,A_{64}(K_2,
+             M(S,A_{64}(K_3,M(S,K_4)))))\bigr).
+\]
+Let $p=H(K^{\sin})$, $q=H(K^{\cos})$, and let $t_s,t_c$ be the
+native sine/cosine ROM entries at the selected center. Then
+\[
+ \begin{aligned}
+ v&=A_{64}(a,M(M(S,p),a)),& w&=M_R(S,q),\\
+ z_s&=T_{67}\bigl(M(t_c,v)+M(t_s,w)\bigr),\\
+ z_c&=T_{67}\bigl(-M(t_s,v)+M(t_c,w)\bigr),\\
+ y_{\sin}&=\mathrm{RC}_{64}\bigl((-1)^\sigma(t_s+z_s)\bigr),\\
+ y_{\cos}&=\mathrm{RC}_{64}\bigl((-1)^\sigma(t_c+z_c)\bigr).
+ \end{aligned}
+\]
+The validated sine $K_4$ adjustment, subtracting $2^{-25}$ from
+the decoded coefficient, is retained unchanged; no coefficient was fitted
+to the newly resolved frontier.
+
+Center subtraction gives at most 61 significant offset bits for reduced
+inputs and at most 60 for direct inputs. All table input-port cuts are
+identities under the displayed operand ordering. Thus this is a numerical
+representation of the table program, not separate evidence for physical
+table-port asymmetry. Exact center offsets annihilate the correction
+products and expose the ROM word and final rounding directly. The $b=52$
+center itself is outside the reachable residual domain; row $b=60$ is
+unreachable.
+
+The bit-slice classifier must not pass through a binary64 intermediate.
+Such a model misclassifies a narrow sliver below interior boundaries;
+retained blind boundary tests selected exact classification on all
+7{,}936 operands, against 1{,}954 errors in that predecessor.
+
+\subsection{Tiny values, final rounding and \texttt{C1}}
+\label{sec:tiny}
+
+For a non-bypass tiny residual, the leading magnitude is $r$ on the sine
+branch and 1 on the cosine branch. RN and directed rounding away from zero
+return that leading magnitude, with \texttt{C1}=1. Directed rounding toward
+zero returns its 64-bit predecessor, with \texttt{C1}=0. The predecessor of
+an exact power of two lies in the preceding binade and is handled explicitly.
+
+The external-input bypass is distinct: a direct input with exponent below
+$-68$ returns the input value for sine and $+1$ for cosine, with
+\texttt{C1}=0, in all four modes. True denormals and pseudo-denormals take
+this bypass; encoding-class information is kept separate from numerical
+normalization.
+
+For polynomial and table paths, \texttt{C1} records whether the final rounded
+\emph{magnitude} exceeds the exact magnitude of the displayed terminal
+prevalue. This is not a test for the entire instruction's precision exception.
+In particular, exact final rounding does not imply that all earlier internal
+operations were exact.
+
+\subsection{Promoted entry points}
+\label{sec:terminal}
+
+The default standalone entry points invoke the fixed program above; the
+paired entry invokes the distinct program below.
+The historical R84 captured-operand overlay is disabled and unreachable
+from these entry points. R96's empirical support selector and the later
+experimental carry/history corrections are bypassed, not reinterpreted as
+confirmed circuitry. Only the native ROM/coefficient tables and structural
+encoding, reduction, quadrant, cell and tiny-path branches remain.
+
+Paired \instr{FSINCOS} is not two independently validated standalone calls.
+Retained Skylake data show standalone/paired disagreement on 987 of
+240{,}000 dense-set operands. This establishes different numerical behavior,
+not randomness or impossibility of an operand-dependent implementation.
+The paired direct-polynomial program is independently reconstructed and
+validated. Its difference from standalone does not require a statistical
+approximation.
+
+\subsection{The fixed paired polynomial program}
+\label{sec:paired}
+
+For $2^{-32}\le r<1/4$, let $K_i^s,K_i^c$ denote the same native
+six-coefficient sine and cosine families. Compute the square once:
+\[
+ S=T_{67}(r^2),\qquad p_6=K_6^s,\qquad q_6=K_6^c.
+\]
+For $i=5,4,3,2,1$, evaluate
+\[
+ p_i=\rn{64}\bigl(T_{67}(p_{i+1}S)+K_i^s\bigr),\qquad
+ q_i=\rn{64}\bigl(T_{67}(q_{i+1}S)+K_i^c\bigr).
+\]
+Every displayed product is materialized at 67 bits; its sum with the native
+coefficient is exact before RN64 rounding. The schedule is uniform across
+both arms and all five coefficient additions.
+The two positive-residual prevalues are
+\[
+ u_s=r+T_{67}\bigl(\rn{64}(p_1S)\,r\bigr),\qquad
+ u_c=1+T_{67}(q_1S).
+\]
+Apply the exact quadrant/residual-sign mapping separately to the two lanes,
+then architectural $\mathrm{RC}_{64}$. The final external cosine lane supplies
+\texttt{C1}, even when quadrant mapping selects internal $u_s$ for that lane.
+The paired path shares the exact reduction, table, tiny and encoding rules;
+it does not evaluate the standalone polynomial twice.
+
+The cuts are observable arithmetic, not alternative notation for fused
+multiply-adds. For RN input \texttt{3ffc:e79000000c3e46e7}, the last-product-only
+schedule gives a sine ending in \texttt{d857}; hardware and the all-product
+schedule give \texttt{d858}. Both share the prefix \texttt{3ffc:e5980e1fae54}.
+The first stored
+sine difference occurs at the $K_2^s$ addition. Exact replay places the two
+prevalues respectively $5/1024$ ulp below and $5/512$ ulp above the final RN
+midpoint. The cosine lane and directed-rounding outputs agree. Thus this
+operand rejects the last-product-only schedule without an operand selector.
+
+Exact rational interval enclosures cover all 30 polynomial binades. Across
+840 operation-bound checks, both signed addends, products and final C1
+re-encodings need at most 139 accumulator bits and alignment shifts at most
+132, within the signed 256-bit implementation. These are source-backed
+transcription bounds under the established reducer and quantizer contracts,
+not an automatically verified C translation or a silicon theorem.
+
+The promoted all-product representation specifies validated numerical
+behavior, not uniquely recovered physical multiplier ports or a netlist.
+
+\subsection{\instr{FPTAN} \textnormal{[EXACT]}}
+
+\instr{FPTAN} computes a sine/cosine pair with its own terminal profile and
+one final divide, then pushes $1.0$. Recovered operation profile: lookup
+constants are 67-bit; the cosine tail is read at $\rn{64}$; the sine
+analysis carrier is 69-bit, read through $\rn{64}$ before the
+multiplier; ordinary state-producer multiplies are $\chop{67}$.
+NaN and infinity operands push a \emph{second copy of the special
+result} rather than $1.0$.  The table-lane classifier carries exactly
+the Section~\ref{sec:table} structure.  Validation: zero mismatches
+on a $2^{30}$-input exhaustive traversal of the binary64-embedded
+space ($3.2\times10^{9}$ results, both \texttt{C1} flag states) plus
+the structured probe sets.
+
+\subsection{\instr{F2XM1} \textnormal{[EXACT]}}
+
+$2^x - 1$ on $|x| \le 1$ is a separate polynomial engine with the
+same datapath dialect: input exponent below $-68$ takes a final
+$\ln 2 \cdot x$ multiply; exponents $-68$ up to $1/4$ take an
+eleven-coefficient polynomial in $z = \ln 2 \cdot x$; $1/4 \le |x| <
+1$ reduces around a midpoint $b$ and evaluates a six-coefficient
+polynomial in $z = \ln 2\,(x - b)$, forming $(2^b - 1) + 2^b\,
+\mathrm{expm1}(z)$.  The midpoint numerators over 128 are the odd
+values $33..63$ for $|x| \in [1/4, 1/2)$ and $66, 70, \ldots, 126$
+for $|x| \in [1/2, 1)$; the lookup payloads are $\rn{67}$ values of
+$2^b - 1$.  Ordinary multiplies are $\chop{67}$; ordinary adds
+$\rn{64}$; the $\ln 2$ scaling and two long-path products are
+$\rn{64}$; the terminal operation performs architectural RN/RD/RU
+rounding.  $x = \pm 1$ and the documented out-of-range behavior are
+exact.  Exhaustive traversals of the binary64-embedded space at
+$2^{24}$ through $2^{32}$ scale (up to $6.44\times10^{9}$ results)
+show zero finite-value discrepancies; NaN-quieting semantics are
+modeled and clean on the standing regressions.
+
+\section{Lineage: the Pentium ROM, its errata, and Zen 3}
+\label{sec:lineage}
+
+\paragraph{The constants are the 1993 constants.}  The polynomial
+coefficients and table entries that reproduce Skylake bit-for-bit are
+the physically decoded Pentium constant ROM entries~\cite{shirriff2025},
+evaluated through the $\chop{67}$ multiply datapath.  Intel's
+formally verified Itanium-era replacement~\cite{harrison2000} never
+displaced this kernel in x86 silicon: on random small inputs the two
+algorithms usually coincide, but targeted boundary discriminators
+select the Pentium path uniquely.
+
+\paragraph{Two single-bit errata in the published decode.}  With the
+ROM appendix's printed values, the reconstruction fails grossly in
+exactly two table cells; with single-bit corrections it is exact
+there like everywhere else.  Both corrections are recoverable from
+Skylake behavior alone, and both are confirmed by direct calculation:
+
+\begin{center}
+\small
+\begin{tabular}{llllr}
+\toprule
+row & entry & printed significand & corrected & deviation\\
+\midrule
+186 & $\cos(44/64)$ & \hex{62ec41e9772401864} & \hex{62ec4169772401864} & $+2^{43}$ sig-units ($+2^{-24}$)\\
+189 & $\cos(18/64)$ & \hex{7af8853ddbbe9ffd0} & \hex{7af8853ddbbe9efd0} & $+2^{12}$ sig-units ($+2^{-55}$)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Row 186 is checkable on a calculator: the printed decimal
+column reads $0.7728350058$, but $\cos(0.6875) = 0.7728349461\ldots$
+---wrong from the seventh decimal place, while all fourteen other
+trig entries sit within $\pm0.95$ units of the 68th significand bit.
+Since the article's decimal column is derived from the hex, a
+single-bit slip in the read-out pipeline explains each; the
+alternative---that the die truly holds these bits---would have made
+the original Pentium's \instr{FCOS} visibly inaccurate
+(${\sim}6\times10^{-8}$) on $[0.625, 0.75)$, contradicting
+contemporary accuracy studies.  Modern silicon is thus also a
+\emph{witness} for the intended master constants.  The same method
+independently corrects one published \instr{F2XM1} table payload (the
+$b = -57/128$ entry: \hex{43fcb5810d1604f33}; the published
+\hex{{\ldots}4f37} variant produces 3{,}869 mode misses on 2{,}563
+cell inputs, the corrected value zero).
+
+\paragraph{AMD Zen 3 runs the same family.}  A volunteer-run capture
+kit executed the identical input corpora on a Zen~3 core (Ryzen~5
+5600H).  Findings: (i) the Skylake behavioral model matches Zen~3
+bit-for-bit on 94.3\% of the 240k dense set and 96.2\% of the
+structured sweep, with \emph{every} disagreement exactly 1~$\ulp$ on
+one output---same algorithm family, slightly different terminal
+resolution; (ii) on 8{,}000 operands within a few $\ulp$ of
+$k\pi/2$---where a single differing $\pi$ bit would diverge by many
+$\ulp$s---Zen~3 is \emph{8{,}000/8{,}000 bit-identical} to Skylake:
+the 66-bit-$\pi$ reduction is shared exactly, falsifying (for Zen~3)
+the folklore that AMD's x87 trigonometry is more accurate than
+Intel's; (iii) on AMD, \instr{FSIN}/\instr{FCOS} and \instr{FSINCOS}
+agree on 240{,}000/240{,}000 operands (a single internal path),
+whereas Skylake's standalone and paired paths diverge on 987 of
+them---a clean microarchitectural fingerprint distinguishing the
+vendors.
+
+\section{Validation}
+\label{sec:validation}
+
+\subsection{Standalone promotion regression}
+
+H1707 checks the packaged fixed program and H1708 checks its promotion into
+the default source. The latter scores 72 authenticated retained bank/mode
+inventories against raw hardware outputs and applicable \texttt{C1}:
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+Path & Output appearances & \texttt{C1} checks & Misses\\
+\midrule
+Polynomial & 723{,}546 & 723{,}546 & 0\\
+Table & 2{,}472{,}906 & 2{,}472{,}906 & 0\\
+Tiny & 182{,}535 & 182{,}535 & 0\\
+Special/range & 30 & 0 & 0\\
+\midrule
+Total & 3{,}379{,}017 & 3{,}378{,}987 & 0\\
+\bottomrule
+\end{tabular}
+\end{center}
+The 81 external frontier rows over 79 operands all match, as do 53 retained
+legacy tuples. These are failures of the preceding model, not 81 remaining
+failures of the promoted algorithm. Some legacy/frontier tuples overlap.
+Bank appearances also overlap earlier audits and are not unique-observation
+counts. The original raw-stream and positional-provenance limitations are
+retained in the audit records; historical tuple excerpts do not acquire
+full-stream provenance merely by being rechecked.
+
+The polynomial, table and tiny headers are byte-identical in arithmetic to
+the validated experimental versions after removing only the added C1 export,
+opt-in trace guard and promotion comment. O0, O2, O3 and UBSan builds agree
+with the archived candidate on a mixed encoding/domain software bank.
+Default diagnostic output is quiet. H1708 preserved the then-current paired
+path; the later paired promotions change only that path. Their regressions
+rechecks all displayed standalone outputs and applicable C1 indicators,
+including all 81 frontier rows, with zero misses.
+
+\subsection{Paired promotion and fresh validation}
+\label{sec:paired-validation}
+
+The all-product program repairs three sine-lane misses over two operands in
+the archived paired program, with no
+regressions across 15 retained banks: 11{,}919{,}273 instruction/RC appearances,
+23{,}838{,}534 lane results, six C2 responses and 11{,}919{,}267 applicable
+cosine-bound C1 checks. The retained modes are RN/RD/RU. StageA streams have
+snapshot/positional provenance rather than original checksum manifests; this
+limitation is preserved. These overlapping appearances are not unique tuples.
+
+A 20-million-input software search found 38 materialization discriminators.
+Signed counterparts, neighbors, exact reduced preimages and domain/boundary
+controls formed 1{,}182 proposed operands. Local history checks excluded 32
+operands before freezing the remaining 1{,}150, including 138 discriminators.
+The independent integer/rational implementation agreed with every prediction.
+No hardware label was used to adjust the candidate after the freeze.
+
+H1712 executed each of the resulting 13{,}800 tuples once on the reference
+Xeon: \instr{FSINCOS} at all four RC modes and PC24/53/64. The numerical and
+status results are:
+\begin{center}
+\small
+\begin{tabular}{lrrr}
+\toprule
+Check & Cases & Predecessor misses & Promoted misses\\
+\midrule
+Sine output & 13{,}728 & 558 & 0\\
+Cosine output & 13{,}728 & 150 & 0\\
+External cosine C1 & 13{,}728 & 66 & 0\\
+C2 response & 13{,}800 & 0 & 0\\
+C2 operand preservation & 72 & 0 & 0\\
+\bottomrule
+\end{tabular}
+\end{center}
+The predecessor fails 750 distinct tuples; the columns overlap. Every
+predeclared discriminating tuple selects the new prediction. The 150 cosine
+failures arise when quadrant mapping exposes the changed internal sine arm.
+Route counts are 11{,}400 polynomial, 1{,}584 table, 744 tiny and 72 C2 tuples.
+Initial operand/control, final control word and expected stack mapping also
+pass. Undefined condition bits and unused register payloads are not scored.
+
+The campaign includes 33 exact positive reduced preimages and their signed
+counterparts. Its 240 nearby reduction-boundary controls are brackets, not
+exact isomorphs. Both the last-product and all-product schedules passed this
+challenge; it did not distinguish their earlier Horner edges.
+
+This separator distinguishes the tested schedules and selects all-product
+materialization. H1717
+promotes that fixed schedule into the default executable. Replaying the
+15 retained banks and immutable H1712 outputs gives zero numerical or
+applicable C1 misses. Independent rational/integer and O0/O2/O3/UBSan checks
+verify the promoted implementation and preservation of standalone behavior.
+Fresh evidence belongs to the original observations, not later compiler
+builds or replays; finite agreement does not establish all-input equivalence
+to silicon.
+
+The promoted executable also matches the i7 review census of
+45{,}517{,}233 paired instruction/RC rows (91{,}034{,}466 lanes and
+45{,}517{,}233 C1 checks), including the separating operand. This three-bank
+census overlaps the retained banks and is not added to them as a unique-input
+count. Replays of the saved H1712/H1714/H1715 and independent-review captures
+match all 357{,}360 instruction tuples across the three instructions:
+482{,}304 output lanes and 353{,}520 applicable C1 checks. No captures are
+repeated for promotion. These are regressions on the recorded CPU contexts,
+not evidence of parity across every Intel generation.
+
+\subsection{Independent and prospective evidence}
+
+Independent rational implementations recomputed all 578{,}292 polynomial
+and 2{,}276{,}661 table output/C1 appearances in the original component
+audits. A separate integer tiny formula checked 109{,}905 tiny appearances.
+These component counts overlap the promotion regression.
+
+Three previously frozen, one-shot challenges provide prospective evidence:
+\begin{center}
+\small
+\begin{tabular}{p{0.49\linewidth}rr}
+\toprule
+Challenge & Outputs & Predicted \texttt{C1}\\
+\midrule
+H1624: direct cosine, four RC modes & 1{,}668 & 1{,}668\\
+H1641: boundaries, reductions, encodings, RC/PC & 6{,}432 & 4{,}512\\
+H1694: remaining signed exact centers, RC/PC & 624 & 624\\
+\bottomrule
+\end{tabular}
+\end{center}
+Every listed frozen prediction passed, without changing the numerical
+candidate after observation. H1624 selected 417 eligible operands from a
+label-free adversarial search, including model separators and rounding-boundary
+controls; it is confined to direct positive cosine in $[1/8,1/4)$.
+H1641 covered both instructions and PC24/PC53/PC64 and also passed 3{,}744
+predicted exception masks. H1694 combined with 48 already-observed H1641
+center tuples covers all 672 keys in the specified finite exact-center
+universe: 28 signed external operands, two instructions, four RC modes and
+three PC settings. Unknown status fields were not counted as predicted passes.
+These banks were not re-executed for promotion.
+
+The table negative control $M_R\mapsto\rn{64}\circ M$ fails 102 retained
+outputs and 139 C1 appearances. Hence the destination-rounding distinction
+is observable, not algebraic notation chosen after the fact.
+
+Domain and implementation checks supplement these measurements: exact
+reduction bounds and modular certificates, conversion/bypass grid arguments,
+integer helper checks, accumulator-width bounds and configured-route audits.
+They justify the specified C computation under its entry contracts, without
+turning a software equivalence theorem into a claim about hidden silicon.
+
+\subsection{Historical evidence is not current validation credit}
+\label{sec:residual}
+
+The older R96-stage suite and its captured overlays
+remain historical records. That entire suite is \emph{not} claimed here
+as a new regression of the promoted source. Likewise, generated-but-uncaptured
+software candidates do not count as hardware tests.
+R96 remains an incomplete empirical predecessor; a high cache success rate
+never made it a general solution.
+
+The rejected-selector record includes QX falsifications on 31/31 challenge
+pairs and Q falsifications on 75/75. A 255-representation audit found no
+candidate surviving the control and adversarial walls. Complete coarse
+12-phase carry histories contain positive/negative collisions, ruling out
+deterministic selectors driven solely by those histories. These are bounded
+negative results about specified model classes, not proof that the instruction
+is non-deterministic or lacks a general arithmetic representation.
+The successful standalone and paired programs change the arithmetic graph instead of
+adding a selector to those failed models. Detailed exploration and abandoned
+fits belong to the research handoff, not the current algorithm.
+
+\section{Discussion}
+\label{sec:discussion}
+
+The result is a validated, general numerical reconstruction of standalone
+\instr{FSIN}/\instr{FCOS} and paired \instr{FSINCOS} for the selected Skylake
+reference, with no known
+mismatch in the stated evidence. Its piecewise structure comes from encoding
+classes, exact range reduction, native table cells and magnitude thresholds.
+The small coefficient ROM is algorithm data, not a lookup of known failures.
+
+The evidence does not establish a unique physical datapath: mathematically
+equivalent operand orderings and implementations can yield the same outputs.
+It also does not warrant cross-generation parity. Earlier Zen~3 comparisons
+show shared algorithmic lineage but last-bit differences.
+
+Complete pointer-register emulation, undefined condition bits and obscure
+restore-history behavior are outside the numerical claim; supported numerical
+rounding/control behavior is not replaced by a claim of complete x87 state
+emulation. Future counterexamples must be retained and used to revise the
+general arithmetic, not hidden with an operand-specific patch.
+
+\section{Availability}
+
+The main C implementation is \path{src/fsincos_skylake.c}.
+The fixed kernels reside in \path{src/general/}: the three
+\texttt{standalone\_*} headers and \texttt{paired.h}.
+The standard build enables the validated paths for all three instructions.
+A restricted standalone CLI is available through the
+\path{general-candidate} build target. The historical translation unit still
+contains inactive experimental bodies; they are not part of the promoted
+standalone or paired numerical routes. Further source isolation and embedding
+API design are optional packaging work, not evidence for a new arithmetic rule.
+
+The H1707/H1708 and H1710--H1718 manifests and reports preserve source, binary, input and
+capture hashes and all regression results. The component specifications,
+independent verifiers and immutable H1624/H1641/H1694/H1712 campaign records are
+retained with them. The pre-promotion manuscript and source are archived;
+earlier research notes remain historical and are not silently rewritten
+as prospective successes.
+
+\subsection*{Acknowledgments}
+
+This work builds directly on Ken Shirriff's physical decode of the
+Pentium FPU constant ROM.  The experimental campaign, analysis, and
+drafting were conducted with substantial AI assistance (Anthropic's
+Claude and OpenAI Codex); all hardware measurements are from the
+author's capture infrastructure and volunteer-contributed
+cross-vendor captures.
+
+\clearpage
+\appendix
+\section{Programmer's pseudocode}
+\label{app:pseudocode}
+
+\subsection{Entry, reduction and dispatch}
+
+The following Python-like code describes the numerical values of
+\instr{FSIN}, \instr{FCOS} and \instr{FSINCOS}. All ordinary arithmetic is
+\emph{exact} signed integer/dyadic arithmetic; only named rounding operations
+discard bits. In particular, \texttt{**} means exponentiation and
+\texttt{divmod} gives integer quotient and remainder. Host \texttt{double}
+arithmetic would change the program. \texttt{x80} denotes an exact x87 value;
+\texttt{signbit} returns 0 or 1; \texttt{mod 4} below is
+nonnegative even for negative quadrants.
+
+\begin{lstlisting}[style=pseudocode]
+def reduce(x):
+    # Direct-path boundary as an exact x87 magnitude.
+    if abs(x) < x80(0x3ffe, 0xc90fdaa22168c234):
+        return x, 0
+    s, e = normalized_parts(abs(x))       # abs(x) = s * 2**(e-63)
+    M66 = 0x3243f6a8885a308d3
+    dividend = s << (e + 2)
+    q, remainder = divmod(dividend, M66)
+    if 2 * remainder > M66: q += 1        # No halfway tie: M66 is odd.
+    residual = (dividend - q * M66) * 2**(-65)
+    if signbit(x): return -residual, -q
+    return residual, q
+
+def trig(op, x, rc):
+    if special_encoding_or_zero(x):
+        return special_values(op, x)     # Section 4.1; before reduction.
+    if abs(x) >= 2**63: return C2_operand_unchanged(x)
+    phases = [0, 1] if op == FSINCOS else [0 if op == FSIN else 1]
+    y, c1 = {}, {}
+    if abs(x) < 2**(-68):                 # External-input bypass.
+        return select_lanes(phases, [x, 1]), 0
+    residual, quadrant = reduce(x)
+    r = abs(residual)
+    if 2**(-32) <= r < 1/4 and op == FSINCOS:
+        pair = paired_poly(r)            # Compute once, not two FSIN/FCOS calls.
+    for phase in phases:                 # 0: external sine; 1: external cosine.
+        n = (quadrant + phase) % 4
+        cosine = (n & 1) != 0
+        negative = (n >> 1) ^ (0 if cosine else signbit(residual))
+        if r < 2**(-32):
+            y[phase], c1[phase] = tiny(r, cosine, negative, rc)
+        else:
+            if r >= 1/4: u = table(r, cosine)
+            elif op == FSINCOS: u = pair[int(cosine)]
+            else: u = standalone_poly(r, cosine)
+            y[phase], c1[phase] = finish(u, negative, rc)
+    return y, c1[phases[-1]]              # FSINCOS C1 comes from external cosine.
+\end{lstlisting}
+
+\noindent Here \texttt{y} and \texttt{c1} are maps keyed by the requested
+phase. The returned lanes are mathematical sine/cosine values, not an x87
+stack or exception-state API. Special-value handling follows
+Section~\ref{sec:specials}; its undefined condition bits are not specified
+by this pseudocode.
+
+\clearpage
+\subsection{Standalone and paired polynomial kernels}
+
+\texttt{T67} and \texttt{T64} truncate the magnitude to 67 and 64 significant
+bits, preserving sign. \texttt{RN64} rounds once to nearest-even at 64 bits.
+\texttt{RC64} uses the requested architectural rounding mode, also at 64 bits:
+nearest-even (RN), down (RD), up (RU), or toward zero (RZ).
+The following operators retain their operand order:
+
+\begin{lstlisting}[style=pseudocode]
+def M(x, y):  return T67(T67(x) * T64(y))
+def A(x, y):  return RN64(x + y)
+def MR(x, y): return RN64(T67(x) * T64(y))  # One rounding of exact port product.
+\end{lstlisting}
+
+\noindent \texttt{MR(x,y)} cannot be replaced by \texttt{RN64(M(x,y))}.
+Coefficients use one-based indices: \texttt{S6}, \texttt{C6}, \texttt{S4}
+and \texttt{C4} are the signed native ROM families in
+\path{src/p5_rom_constants.h}, not Taylor-series approximations.
+
+\begin{lstlisting}[style=pseudocode]
+def standalone_poly(r, cosine):
+    K = C6 if cosine else S6
+    square = M(r, r)
+    fourth = M(square, square)            # Includes T64 on the second port.
+    odd = M(fourth, K[5])
+    odd = A(K[3], odd)
+    odd = A(K[1], M(fourth, odd))
+    even = M(fourth, K[6])
+    even = A(K[4], even)
+    even = A(K[2], M(fourth, even))
+    left = M(square, odd)
+    right = M(fourth, even)
+    if cosine: return 1 + T67(left + right)
+    return r + M(r, A(left, right))
+
+def paired_poly(r):
+    square = T67(r * r)
+    p, q = S6[6], C6[6]
+    for i in [5, 4, 3, 2, 1]:
+        p = RN64(T67(p * square) + S6[i]) # Every product is cut before RN64.
+        q = RN64(T67(q * square) + C6[i]) # Including the last on BOTH arms.
+    sine = r + T67(RN64(p * square) * r)
+    cosine = 1 + T67(q * square)
+    return [sine, cosine]
+\end{lstlisting}
+
+\noindent Each kernel returns an unrounded positive-residual prevalue.
+The caller selects the internal sine or cosine branch and applies its
+quadrant sign \emph{before} final architectural rounding. Earlier internal
+rounding stays fixed regardless of RC. The standalone split into odd and
+even coefficient indices and the paired Horner loop are different numerical
+schedules; substituting one for the other changes observable outputs.
+
+\clearpage
+\subsection{Shared table kernel, tiny results and final rounding}
+
+The table is indexed by center numerator \texttt{b}. \texttt{ROM[b]} contains
+the corrected native sine/cosine words, not fresh host-library evaluations.
+Cell selection and center subtraction remain exact at binary boundaries.
+
+\begin{lstlisting}[style=pseudocode]
+def horner4(square, K):
+    v = K[4]
+    for i in [3, 2, 1]: v = A(K[i], M(square, v))
+    return v
+
+def table(r, cosine):
+    if r < 1/2: b = 18 + 4 * floor(16 * (r - 1/4))
+    else: b = 36 + 8 * min(2, floor(8 * (r - 1/2)))
+    a = r - b/64
+    square = M(a, a)
+    K = copy(S4)
+    K[4] -= 2**(-25)                      # Validated coefficient adjustment.
+    p = horner4(square, K)
+    q = horner4(square, C4)
+    v = A(a, M(M(square, p), a))
+    w = MR(square, q)
+    ts, tc = ROM[b]
+    if cosine: return tc + T67(-M(ts, v) + M(tc, w))
+    return ts + T67(M(tc, v) + M(ts, w))
+
+def tiny(r, cosine, negative, rc):
+    lead = 1 if cosine else r
+    toward_zero = (rc == RZ or (rc == RD and not negative)
+                   or (rc == RU and negative))
+    if toward_zero: lead = pred64(lead)
+    return (-lead if negative else lead), int(not toward_zero)
+
+def finish(u, negative, rc):
+    signed = -u if negative else u
+    y = RC64(signed, rc)
+    return y, int(abs(y) > abs(signed))   # C1 is a magnitude increment.
+\end{lstlisting}
+
+\noindent \texttt{pred64(v)} is the greatest nonnegative 64-significand-bit
+value strictly less than positive \texttt{v}; at a power of two it crosses
+into the preceding binade. It is used only for non-bypass tiny values.
+RN and directed rounding away from zero keep the leading magnitude and set
+\texttt{C1}; the earlier external-input bypass instead returns \texttt{C1=0}
+in every mode. \texttt{finish} measures only final rounding, not whether any
+earlier operation was inexact.
+
+The kernel headers reside in \path{src/general/}.
+\texttt{standalone\_polynomial.h} and \texttt{paired.h} supply the polynomial
+paths; \texttt{standalone\_table.h} and \texttt{standalone\_tiny.h} supply
+the shared paths. The exact reducer and encoding helpers are in
+\path{src/fsincos_skylake.c}.
+This walkthrough restates the validated numerical program and its evidence
+limits; it does not extend the claim to full x87 state emulation.
+
+\clearpage
+\begin{thebibliography}{9}
+\scriptsize
+\raggedright
+\itemsep0pt
+
+\bibitem{shirriff2025}
+K.~Shirriff.
+\newblock Pi in the Pentium: reverse-engineering the constants in its
+  floating-point unit.
+\newblock \url{https://www.righto.com/2025/01/pentium-floating-point-ROM.html},
+  January 2025.
+
+\bibitem{shirriff-microcode2025}
+K.~Shirriff.
+\newblock Notes on the Pentium's microcode circuitry.
+\newblock \url{https://www.righto.com/2025/03/pentium-microcde-rom-circuitry.html},
+  March 2025.
+
+\bibitem{bosch-p6-1}
+P.~Bosch.
+\newblock Pentium II microcode: collected tweets, part 1.
+\newblock \url{https://pbx.sh/pentiumii-part1/}, November 2022.
+
+\bibitem{bosch-p6-2}
+P.~Bosch.
+\newblock Pentium II microcode: collected tweets, part 2.
+\newblock \url{https://pbx.sh/pentiumii-part2/}, November 2022.
+
+\bibitem{bosch-p6tools}
+P.~Bosch.
+\newblock \texttt{p6tools}: Pentium II microcode (dis)assembler and
+  (de)scrambler.
+\newblock \url{https://github.com/peterbjornx/p6tools}.
+
+\bibitem{dawson2014}
+B.~Dawson.
+\newblock Intel underestimates error bounds by 1.3 quintillion.
+\newblock \url{https://randomascii.wordpress.com/2014/10/09/intel-underestimates-error-bounds-by-1-3-quintillion/},
+  October 2014.
+
+\bibitem{intel-sdm}
+Intel Corporation.
+\newblock \emph{Intel 64 and IA-32 Architectures Software Developer's
+  Manual}, Vol.~1, \S8.3.8 (transcendental instruction accuracy).
+
+\bibitem{morrow1997}
+W.~R. Morrow.
+\newblock Method and apparatus for rounding operands using previous
+  rounding history.
+\newblock U.S. Patent 5,612,909, assigned to Intel Corporation, March 1997.
+
+\bibitem{palaniswami1993}
+K.~J. Palaniswami.
+\newblock Computation of sticky-bit in parallel with partial products in a
+  floating point multiplier unit.
+\newblock U.S. Patent 5,260,889, assigned to Intel Corporation, November 1993.
+
+\bibitem{harrison2000}
+J.~Harrison.
+\newblock Formal verification of floating point trigonometric functions.
+\newblock In \emph{Formal Methods in Computer-Aided Design (FMCAD)},
+  LNCS 1954, pp. 217--233, 2000.
+
+\bibitem{harrison1999}
+J.~Harrison, T.~Kubaska, S.~Story, and P.~T.~P. Tang.
+\newblock The computation of transcendental functions on the IA-64
+  architecture.
+\newblock \emph{Intel Technology Journal}, Q4 1999.
+
+\bibitem{lynch1995}
+T.~Lynch, A.~Ahmed, M.~Schulte, T.~Callaway, and R.~Tisdale.
+\newblock The K5 transcendental functions.
+\newblock In \emph{Proc. 12th IEEE Symposium on Computer Arithmetic
+  (ARITH-12)}, pp. 163--170, 1995.
+
+\bibitem{nicely1994}
+T.~R. Nicely.
+\newblock Pentium FDIV flaw, 1994.
+\newblock Public disclosure e-mail and subsequent analyses.
+
+\bibitem{coe1995}
+T.~Coe and P.~T.~P. Tang.
+\newblock It takes six ones to reach a flaw.
+\newblock In \emph{Proc. 12th IEEE Symposium on Computer Arithmetic
+  (ARITH-12)}, pp. 140--146, 1995.
+
+\bibitem{muller2016}
+J.-M. Muller.
+\newblock \emph{Elementary Functions: Algorithms and Implementation}.
+\newblock Birkh\"auser, 3rd edition, 2016.
+
+\end{thebibliography}
+
+\end{document}
