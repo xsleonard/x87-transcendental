@@ -26,15 +26,15 @@ fsincos_itanium: fsincos_itanium.c ia64_sf.h ../data/frcpa-recip-table.h
 	$(CC) $(CFLAGS) -o $@ fsincos_itanium.c $(LDLIBS)
 
 fsincos_skylake: fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h \
-		general/standalone_polynomial.h general/standalone_table.h general/standalone_tiny.h
+		general/standalone_polynomial.h general/standalone_table.h general/standalone_tiny.h general/paired.h
 	$(CC) $(CFLAGS) -Wno-unused-const-variable -o $@ fsincos_skylake.c $(LDLIBS)
 
 fsin_exhaustive: fsin_exhaustive.c fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h \
-		general/standalone_polynomial.h general/standalone_table.h general/standalone_tiny.h
+		general/standalone_polynomial.h general/standalone_table.h general/standalone_tiny.h general/paired.h
 	$(CC) $(CFLAGS) -O3 -Wno-unused-function -Wno-unused-const-variable -o $@ fsin_exhaustive.c $(LDLIBS) -pthread
 
 sibling_exhaustive: sibling_exhaustive.c fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h \
-		general/standalone_polynomial.h general/standalone_table.h general/standalone_tiny.h
+		general/standalone_polynomial.h general/standalone_table.h general/standalone_tiny.h general/paired.h
 	$(CC) $(CFLAGS) -O3 -Wno-unused-function -Wno-unused-const-variable -o $@ sibling_exhaustive.c $(LDLIBS) -pthread
 
 check-fsin-h377: fsincos_skylake

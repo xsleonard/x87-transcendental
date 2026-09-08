@@ -7,8 +7,11 @@
 
 int main(int argc, char **argv)
 {
-    if (argc == 2 && !strcmp(argv[1], "--selftest"))
+    if (argc == 2 && !strcmp(argv[1], "--selftest")) {
+        /* H1713 keeps the restricted selftest quiet after paired promotion. */
+        g_general_trace = 0;
         return x87_candidate_laboratory_main(argc, argv);
+    }
     if (argc == 2 && !strcmp(argv[1], "--help")) {
         puts("Usage: fsin_fcos_candidate --batch --fsin-standalone|--fcos-standalone [--rc=rn|rd|ru|rz]");
         puts("Input: hexadecimal sign/exponent and 64-bit significand, one pair per line.");
