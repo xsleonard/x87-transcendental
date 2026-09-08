@@ -22,7 +22,7 @@ check:
 	$(CMAKE) -E env CTEST_OUTPUT_ON_FAILURE=1 $(CMAKE) --build "$(BUILD_DIR)" --target test
 tools:
 	$(CMAKE) -S . -B "$(BUILD_DIR)" -DX87TRANS_BUILD_TOOLS=ON $(CMAKE_ARGS)
-	$(CMAKE) --build "$(BUILD_DIR)" --target x87trans-cli fsincos_skylake fpatan x87-log
+	$(CMAKE) --build "$(BUILD_DIR)" --target x87trans-cli x87trans-outcomes fsincos_skylake fpatan x87-log
 examples:
 	$(CMAKE) -S . -B "$(BUILD_DIR)" -DX87TRANS_BUILD_EXAMPLES=ON $(CMAKE_ARGS)
 	$(CMAKE) --build "$(BUILD_DIR)" --target x87trans-example

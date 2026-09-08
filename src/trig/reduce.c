@@ -11,7 +11,7 @@ typedef struct {
  * division by the 66-bit reduction constant.  The complete operation replay
  * selects this over the older reciprocal seed at rare large arguments.
  */
-uint64_t reduce_quotient(uint64_t sig, int32_t e)
+uint64_t x87t_internal_reduce_quotient(uint64_t sig, int32_t e)
 {
     u128 dividend = (u128)sig << (e + 2);
     u128 divisor = ((u128)3 << 64) | SKY_M66_LO;
@@ -23,7 +23,7 @@ uint64_t reduce_quotient(uint64_t sig, int32_t e)
 }
 
 /* r + c = x - N*M66 exactly; returns via out params */
-void reduce_remainder(const sf_t *x, uint64_t N, sf_t *r, sf_t *c)
+void x87t_internal_reduce_remainder(const sf_t *x, uint64_t N, sf_t *r, sf_t *c)
 {
     /* A = |x| * 2^65 = sig << (e+2)   (exact; e >= -1 here) */
     int k = (int)x->exp + 2; /* 1..64 */
@@ -59,13 +59,13 @@ void reduce_remainder(const sf_t *x, uint64_t N, sf_t *r, sf_t *c)
     dneg ^= x->sign; /* apply x's sign */
     /* |d| < 2^65 (r <= ~pi/4 * 2^65): l2 must be 0, l1 in {0,1} */
     if (D.l2 != 0 || D.l1 > 1) {
-        *r = sf_qnan();
-        *c = sf_qnan();
+        *r = x87t_internal_sf_qnan();
+        *c = x87t_internal_sf_qnan();
         return;
     }
     if (D.l1 == 0 && D.l0 == 0) {
-        *r = sf_zero(dneg);
-        *c = sf_zero(dneg);
+        *r = x87t_internal_sf_zero(dneg);
+        *c = x87t_internal_sf_zero(dneg);
         return;
     }
     if (D.l1) { /* 65 significant bits: round */
@@ -86,7 +86,7 @@ void reduce_remainder(const sf_t *x, uint64_t N, sf_t *r, sf_t *c)
         r->exp = rexp;
         r->sig = kept;
         if (resid == 0)
-            *c = sf_zero(dneg);
+            *c = x87t_internal_sf_zero(dneg);
         else {
             /* residual: d - r = resid * 2^-65 in the magnitude frame */
             c->cls = SF_FIN;
@@ -103,6 +103,6 @@ void reduce_remainder(const sf_t *x, uint64_t N, sf_t *r, sf_t *c)
         r->sign = (uint8_t)dneg;
         r->exp = b - 65;
         r->sig = v << (63 - b);
-        *c = sf_zero(dneg);
+        *c = x87t_internal_sf_zero(dneg);
     }
 }

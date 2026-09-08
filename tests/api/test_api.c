@@ -76,6 +76,7 @@ static int same(const x87t_result *a, const x87t_result *b)
            a->pushed.se == b->pushed.se && a->pushed.sig == b->pushed.sig &&
            a->values == b->values && a->cc == b->cc && a->cc_known == b->cc_known &&
            a->exceptions == b->exceptions && a->exceptions_known == b->exceptions_known &&
+           a->first_unmasked == b->first_unmasked &&
            a->completion == b->completion && a->destination == b->destination;
 }
 static void *worker(void *pointer)
@@ -110,17 +111,22 @@ int main(void)
     control.precision_bits = 17;
     CHECK(x87t_fsin(ctx, inputs[0], &control, &result) == X87T_UNSUPPORTED_CONTROL);
     control.precision_bits = 64;
-    control.exception_masks = 0;
+    control.exception_masks = 64;
     CHECK(x87t_fsin(ctx, inputs[0], &control, &result) == X87T_UNSUPPORTED_CONTROL);
     CHECK(!memcmp(&result, &before, sizeof(result)));
     control.exception_masks = 63;
-    CHECK(x87t_fptan(ctx, inputs[14], &control, &result) == X87T_OUTSIDE_SCOPE);
+    CHECK(x87t_f2xm1(ctx, inputs[11], &control, &result) == X87T_OUTSIDE_SCOPE);
     CHECK(!memcmp(&result, &before, sizeof(result)));
+    CHECK(x87t_fptan(ctx, inputs[14], &control, &result) == X87T_OK);
+    CHECK(result.exceptions == X87T_IE && result.exceptions_known == 63 &&
+          result.primary.se == 0xffff && result.primary.sig == UINT64_C(0xc000000000000000));
     CHECK(x87t_fsin(ctx, inputs[6], &control, &result) == X87T_OK);
     CHECK(result.completion == X87T_RANGE_RETURN && result.values == 0 &&
           result.destination == X87T_NO_WRITE && result.cc == X87T_C2);
     CHECK(x87t_fsin(ctx, inputs[2], &control, &result) == X87T_OK);
-    CHECK(result.exceptions_known == 0); /* Unknown status is explicitly marked. */
+    CHECK(result.exceptions_known == 63 && result.exceptions == X87T_PE);
+    /* Unknown status is explicitly marked. */
+    CHECK(result.cc_known == (X87T_C1 | X87T_C2));
     for (unsigned i = 0; i < INPUTS; ++i) {
         uint8_t memory[10];
         x87t_store_le(memory, inputs[i]);

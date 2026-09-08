@@ -5,10 +5,10 @@ FPTAN, F2XM1, FPATAN, FYL2X and FYL2XP1** numerical programs for emulation.
 Each instruction has a named function and a source file under [src/](src/).
 
 The library takes raw 80-bit operands and explicit guest controls, and returns
-numerical values, available status metadata and writeback information. The
+numerical values, arithmetic flags, C1/C2 and writeback information. The
 emulator owns its registers, stack, tags and exception delivery. This is a
-**numerical integration preview**: unary arithmetic exception flags and general
-unmasked completion are still incomplete. Unknown metadata is marked explicitly.
+**Skylake emulation preview**: masked special values and unmasked arithmetic
+outcomes share one explicit result contract. The ABI remains provisional.
 See the [API contract](docs/api.md) before applying results to guest state.
 
 Build with CMake 3.20+, a C11 compiler supporting `unsigned __int128`, and GMP:
@@ -43,7 +43,7 @@ if (context) {
 For CMake consumers, link `x87trans::x87trans` through `add_subdirectory` or an
 installed package. Static consumers also link GMP; the exported target carries
 that dependency. [Integration instructions](docs/integration.md) cover C/C++,
-installation, pkg-config and the [example adapter](examples/emulator_adapter.c).
+installation, pkg-config and the [Bochs adapter](docs/bochs.md).
 
 | Location | Contents |
 | --- | --- |
@@ -55,8 +55,9 @@ installation, pkg-config and the [example adapter](examples/emulator_adapter.c).
 | [docs/](docs/) | Contract, integration, algorithms, provenance and migration |
 | [research/](research/) | Preserved research sources, manuscripts and evidence |
 
-Tests include 1,800 saved hardware rows, independent rational-reference replay,
-concurrent calls, compatibility APIs and caller-side writeback. See
+Tests include 1,800 numerical witnesses, 22,528 new hardware outcome witnesses,
+independent rational references, concurrency and integration contracts. The Bochs
+adapter passed 60,514 guest instruction/state checks. See
 [validation and limits](docs/validation.md). No hardware capture is part of a
 normal build or check. Agreement is scoped to the retained evidence and selected
 profile, without a universal claim across CPU generations.
@@ -64,4 +65,4 @@ profile, without a universal claim across CPU generations.
 Original-work licensing remains undecided; no distribution license is assigned
 by this reorganization. [Provenance](docs/provenance.md) records the source and
 constant origins. The [migration guide](docs/migration.md) explains the old
-paths and the live campaign directory retained for compatibility.
+paths and the completed relocation of campaign data into `research/`.

@@ -1,5 +1,5 @@
 /* Reconstructed Skylake x87 transcendental functions.
- * See docs/api.md for the numerical preview's supported status fields.
+ * See docs/api.md for the emulation preview's scope and outcome contract.
  */
 #ifndef X87TRANS_H
 #define X87TRANS_H
@@ -40,7 +40,12 @@ typedef struct {
 enum { X87T_IE = 1, X87T_DE = 2, X87T_ZE = 4, X87T_OE = 8, X87T_UE = 16, X87T_PE = 32 };
 enum { X87T_C1 = 0x0200, X87T_C2 = 0x0400 };
 enum { X87T_PRIMARY = 1, X87T_PUSHED = 2 };
-typedef enum { X87T_COMPLETE, X87T_RANGE_RETURN } x87t_completion;
+typedef enum {
+    X87T_COMPLETE,
+    X87T_RANGE_RETURN,
+    X87T_UNMASKED_NO_WRITE,
+    X87T_UNMASKED_WRITE
+} x87t_completion;
 typedef enum {
     X87T_NO_WRITE,
     X87T_REPLACE_ST0,
@@ -53,9 +58,10 @@ typedef struct {
     x87t_raw80 pushed;  /* Cosine or the modeled FPTAN push */
     uint8_t values;     /* Valid numerical fields */
     uint8_t exceptions;
-    uint8_t exceptions_known; /* Implemented flags; unknown is not zero */
+    uint8_t exceptions_known; /* 0x3f on success; unknown must never mean zero */
+    uint8_t first_unmasked; /* Selected newly raised exception, or zero */
     uint16_t cc;
-    uint16_t cc_known; /* Implemented bits, not an ISA defined mask */
+    uint16_t cc_known; /* C1, plus trig C2; range return supplies only C2 */
     x87t_completion completion;
     x87t_destination destination;
 } x87t_result;
@@ -79,9 +85,10 @@ X87T_API x87t_raw80 x87t_load_le(const uint8_t bytes[10]);
 X87T_API void x87t_store_le(uint8_t bytes[10], x87t_raw80 value);
 
 /* All calls require a context, controls and output. Errors leave output
- * unchanged. Only all-masked execution is supported in this preview.
+ * unchanged. Arithmetic exceptions are returned as data; the emulator owns
+ * pending exception delivery. Check completion before applying destinations.
  * The caller checks stack and pending exceptions before calling, and applies
- * results only after handling any metadata the library does not yet provide.
+ * results according to completion and destination, merging only known bits.
  */
 X87T_API x87t_error x87t_fsin(const x87t_context *,
                               x87t_raw80 x,

@@ -51,6 +51,11 @@ error because their general hardware behavior has not been established for
 these sibling wrappers. No full x87 stack, trap or exception-latch emulator
 is supplied by this reference.
 
+The production library adds the operand policy and arithmetic outcomes described
+in [the API contract](../api.md), including masked unsupported encodings and
+unmasked completion. F2XM1 infinities are outside its accepted numerical scope.
+The reference above remains a numerical oracle for its stated domain.
+
 `store` encodes a supplied value and can truncate during subnormal storage;
 it is not a general rounding operation. F2XM1 now calls `finish_raw80`
 before it, so the value is already an exact multiple of the destination

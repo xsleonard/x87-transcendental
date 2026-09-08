@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(x87trans VERSION 0.1.0 LANGUAGES C)
+project(x87trans VERSION 0.2.0 LANGUAGES C)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -42,6 +42,8 @@ endif()
 if(X87TRANS_BUILD_TOOLS OR X87TRANS_BUILD_TESTS)
   add_executable(x87trans-cli tools/cli/main.c)
   target_link_libraries(x87trans-cli PRIVATE x87trans::x87trans)
+  add_executable(x87trans-outcomes tools/cli/outcomes.c)
+  target_link_libraries(x87trans-outcomes PRIVATE x87trans::x87trans)
 endif()
 if(X87TRANS_BUILD_TOOLS)
   add_executable(fsincos_skylake tools/cli/legacy_unary.c)
@@ -83,6 +85,21 @@ if(X87TRANS_BUILD_TESTS)
   add_test(NAME emulator-adapter COMMAND x87trans-adapter-test)
   add_test(NAME saved-witnesses COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/tests/regression/replay.py $<TARGET_FILE:x87trans-cli>)
+  add_test(NAME witness-scorer-contract COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/regression/test_replay.py)
+  add_test(NAME saved-outcomes COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/regression/outcomes.py $<TARGET_FILE:x87trans-outcomes>)
+  add_test(NAME special-outcomes COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/api/special_outcomes.py $<TARGET_FILE:x87trans-outcomes>)
+  add_test(NAME captured-outcomes COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/regression/outcomes.py $<TARGET_FILE:x87trans-outcomes>
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/data/outcome-witnesses.json.gz)
+  add_executable(x87trans-namespace-test tests/integration/test_namespace.c)
+  target_link_libraries(x87trans-namespace-test PRIVATE x87trans::x87trans)
+  add_test(NAME consumer-namespace COMMAND x87trans-namespace-test)
+  add_test(NAME library-symbols COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/check_symbols.py
+    ${CMAKE_NM} $<TARGET_FILE:x87trans>)
 endif()
 
 install(TARGETS x87trans EXPORT x87transTargets
@@ -97,6 +114,17 @@ configure_package_config_file(cmake/x87transConfig.cmake.in
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/x87trans)
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/x87transConfigVersion.cmake
   VERSION ${PROJECT_VERSION} COMPATIBILITY SameMinorVersion)
+# Derive relocation paths from the complete install layout, including multiarch
+# lib directories. Explicit absolute install directories retain their meaning.
+file(RELATIVE_PATH X87TRANS_PC_PREFIX_RELATIVE
+  "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig" "${CMAKE_INSTALL_PREFIX}")
+foreach(directory LIBDIR INCLUDEDIR)
+  if(IS_ABSOLUTE "${CMAKE_INSTALL_${directory}}")
+    set(X87TRANS_PC_${directory} "${CMAKE_INSTALL_${directory}}")
+  else()
+    set(X87TRANS_PC_${directory} "\${prefix}/${CMAKE_INSTALL_${directory}}")
+  endif()
+endforeach()
 configure_file(cmake/x87trans.pc.in ${CMAKE_CURRENT_BINARY_DIR}/x87trans.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/x87transConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/x87transConfigVersion.cmake cmake/FindGMP.cmake

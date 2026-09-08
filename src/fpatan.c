@@ -27,18 +27,18 @@ static raw80 encode(const mpq_t in, enum mode mode, int *c1)
     int sign = mpq_sgn(in) < 0;
     mpq_t q, a, b;
     mpq_inits(q, a, b, NULL);
-    int e = mpq_sgn(in) ? qexp(in) : -16382;
+    int e = mpq_sgn(in) ? x87t_internal_qexp(in) : -16382;
     if (e < -16382)
         e = -16382;
-    at_step(q, in, e - 63, mode);
+    x87t_internal_at_step(q, in, e - 63, mode);
     mpq_abs(a, q);
     mpq_abs(b, in);
     *c1 = mpq_cmp(a, b) > 0;
     if (mpq_sgn(q)) {
-        e = qexp(q);
+        e = x87t_internal_qexp(q);
         if (e < -16382)
             e = -16382;
-        scale2(a, a, 63 - e);
+        x87t_internal_scale2(a, a, 63 - e);
         if (mpz_cmp_ui(mpq_denref(a), 1))
             abort();
         if (mpz_sizeinbase(mpq_numref(a), 2) > 64)
@@ -53,7 +53,7 @@ static raw80 encode(const mpq_t in, enum mode mode, int *c1)
     return out;
 }
 
-void atan_constants_init(atan_constants *ctx)
+void x87t_internal_atan_constants_init(atan_constants *ctx)
 {
     for (int i = 0; i < 157; i++)
         mpq_init(ctx->rom[i]);
@@ -63,11 +63,11 @@ void atan_constants_init(atan_constants *ctx)
             abort();
         if (constants[i].sign)
             mpq_neg(ctx->rom[k], ctx->rom[k]);
-        scale2(ctx->rom[k], ctx->rom[k], constants[i].scale);
+        x87t_internal_scale2(ctx->rom[k], ctx->rom[k], constants[i].scale);
     }
 }
 
-void atan_constants_clear(atan_constants *ctx)
+void x87t_internal_atan_constants_clear(atan_constants *ctx)
 {
     for (int i = 0; i < 157; i++)
         mpq_clear(ctx->rom[i]);
@@ -77,7 +77,8 @@ void atan_constants_clear(atan_constants *ctx)
  * Nonzero finite normal/subnormal values only until the specials campaign.
  */
 static int fpatan_candidate(
-    const atan_constants *ctx, raw80 iy, raw80 ix, enum mode rc, raw80 *out, int *c1, int *tiny)
+    const atan_constants *ctx, raw80 iy, raw80 ix, enum mode rc, raw80 *out, int *c1, int *tiny,
+    unsigned masks)
 {
     if (!iy.sig || !ix.sig || (iy.se & 0x7fff) == 0x7fff || (ix.se & 0x7fff) == 0x7fff ||
         ((iy.se & 0x7fff) && !(iy.sig >> 63)) || ((ix.se & 0x7fff) && !(ix.sig >> 63)))
@@ -89,8 +90,8 @@ static int fpatan_candidate(
      * r is the exact ratio, z the reduced argument, and square/v are z^2/z^4
      * after their specified cuts. t and u are reusable arithmetic temporaries.
      */
-    decode(y, iy);
-    decode(x, ix);
+    x87t_internal_decode(y, iy);
+    x87t_internal_decode(x, ix);
     mpq_abs(y, y);
     mpq_abs(x, x);
     int swap = mpq_cmp(y, x) > 0;
@@ -99,11 +100,11 @@ static int fpatan_candidate(
     mpq_div(r, y, x);
     int n = 0;
     /* Tiny-ratio bypass, direct polynomial, or table-assisted reduction. */
-    if (qexp(r) < -40) {
-        rounded(angle, r, 67, CHOP);
+    if (x87t_internal_qexp(r) < -40) {
+        x87t_internal_rounded(angle, r, 67, CHOP);
     } else {
         if (mpq_cmp_ui(r, 3, 64) <= 0) {
-            rounded(z, r, 67, CHOP);
+            x87t_internal_rounded(z, r, 67, CHOP);
         } else {
             /* Historical V4: nearest table index; ties upwards, using the exact ratio.
              * V7 replaces it with nearest/lower ties: ceil(32*r - 1/2).
@@ -123,12 +124,12 @@ static int fpatan_candidate(
             /* These small-integer products are COMPLETE before subtraction. */
             mpq_mul(t, c, x);
             mpq_sub(t, y, t);
-            rounded(t, t, 67, CHOP);
+            x87t_internal_rounded(t, t, 67, CHOP);
             mpq_mul(u, c, y);
             mpq_add(u, x, u);
-            rounded(u, u, 67, CHOP);
+            x87t_internal_rounded(u, u, 67, CHOP);
             mpq_div(z, t, u);
-            rounded(z, z, 67, CHOP);
+            x87t_internal_rounded(z, z, 67, CHOP);
         }
         /* Source-guided interleaved operation roles (D0021).
          * Square uses X67/Y64 and RN64; ordinary products use CHOP67.
@@ -136,52 +137,52 @@ static int fpatan_candidate(
          * transfer is verified on Skylake; Goldmont opcode meanings are
          * not claimed as a physical decode of the Skylake implementation.
          */
-        rounded(t, z, 64, CHOP);
+        x87t_internal_rounded(t, z, 64, CHOP);
         mpq_mul(square, z, t);
-        rounded(square, square, 64, RN);
+        x87t_internal_rounded(square, square, 64, RN);
         mpq_mul(v, square, square);
-        rounded(v, v, 67, CHOP);
+        x87t_internal_rounded(v, v, 67, CHOP);
         if (n) {
             /* Short kernel, with separate even/odd coefficient chains. */
             mpq_mul(t, v, ctx->rom[116]);
-            rounded(t, t, 67, CHOP);
+            x87t_internal_rounded(t, t, 67, CHOP);
             mpq_add(even, ctx->rom[114], t);
-            rounded(even, even, 67, CHOP);
+            x87t_internal_rounded(even, even, 67, CHOP);
             mpq_mul(t, v, ctx->rom[117]);
-            rounded(t, t, 67, CHOP);
+            x87t_internal_rounded(t, t, 67, CHOP);
             mpq_add(odd, ctx->rom[115], t);
-            rounded(odd, odd, 64, RN);
+            x87t_internal_rounded(odd, odd, 64, RN);
         } else {
             /* Long kernel, with the same interleaved evaluation structure. */
             mpq_mul(t, v, ctx->rom[123]);
-            rounded(t, t, 67, CHOP);
+            x87t_internal_rounded(t, t, 67, CHOP);
             mpq_add(odd, ctx->rom[121], t);
-            rounded(odd, odd, 64, RN);
+            x87t_internal_rounded(odd, odd, 64, RN);
             mpq_mul(t, v, ctx->rom[122]);
-            rounded(t, t, 67, CHOP);
+            x87t_internal_rounded(t, t, 67, CHOP);
             mpq_add(even, ctx->rom[120], t);
-            rounded(even, even, 64, RN);
+            x87t_internal_rounded(even, even, 64, RN);
             mpq_mul(t, v, odd);
-            rounded(t, t, 67, CHOP);
+            x87t_internal_rounded(t, t, 67, CHOP);
             mpq_add(odd, ctx->rom[119], t);
-            rounded(odd, odd, 67, CHOP);
+            x87t_internal_rounded(odd, odd, 67, CHOP);
             mpq_mul(t, v, even);
-            rounded(t, t, 67, CHOP);
+            x87t_internal_rounded(t, t, 67, CHOP);
             mpq_add(even, ctx->rom[118], t);
-            rounded(even, even, 67, CHOP);
+            x87t_internal_rounded(even, even, 67, CHOP);
         }
         mpq_mul(t, square, odd);
-        rounded(t, t, 67, CHOP);
+        x87t_internal_rounded(t, t, 67, CHOP);
         mpq_add(h, t, even);
-        rounded(h, h, 64, RN);
+        x87t_internal_rounded(h, h, 64, RN);
         mpq_mul(t, z, square);
-        rounded(t, t, 67, CHOP);
+        x87t_internal_rounded(t, t, 67, CHOP);
         mpq_mul(tail, t, h);
-        rounded(tail, tail, 67, CHOP);
+        x87t_internal_rounded(tail, tail, 67, CHOP);
         mpq_add(angle, z, tail);
         /* The table kernel is intermediate, not the final architectural add. */
         if (n) {
-            rounded(angle, angle, 67, CHOP);
+            x87t_internal_rounded(angle, angle, 67, CHOP);
             mpq_add(angle, angle, ctx->rom[124 + n]);
         }
     }
@@ -189,7 +190,7 @@ static int fpatan_candidate(
      * Internal RN64/CHOP67 operations above do not depend on that RC.
      */
     if (swap || (ix.se & 0x8000))
-        rounded(angle, angle, 67, CHOP);
+        x87t_internal_rounded(angle, angle, 67, CHOP);
     if (swap) {
         if (ix.se & 0x8000)
             mpq_add(angle, ctx->rom[20], angle);
@@ -199,7 +200,9 @@ static int fpatan_candidate(
         mpq_sub(angle, ctx->rom[19], angle);
     if (iy.se & 0x8000)
         mpq_neg(angle, angle);
-    *tiny = mpq_sgn(angle) && qexp(angle) < -16382;
+    *tiny = mpq_sgn(angle) && x87t_internal_qexp(angle) < -16382;
+    if (*tiny && !(masks & X87T_UE))
+        x87t_internal_scale2(angle, angle, 24576);
     *out = encode(angle, rc, c1);
     mpq_clears(y, x, r, z, square, h, tail, angle, t, u, c, v, odd, even, NULL);
     return 0;
@@ -211,15 +214,15 @@ static int fpatan_candidate(
  * This models numerical values and defined arithmetic flags, not hidden FPU
  * pointers, arbitrary restore histories, or undefined condition bits.
  */
-int fpatan_raw80(const atan_constants *ctx,
+int x87t_internal_fpatan_raw80(const atan_constants *ctx,
                  raw80 y,
                  raw80 x,
                  enum mode rc,
                  raw80 *out,
                  int *c1,
-                 unsigned *exceptions)
+                 unsigned *exceptions, unsigned masks)
 {
-    raw_class ky = raw80_classify(y), kx = raw80_classify(x);
+    raw_class ky = x87t_internal_raw80_classify(y), kx = x87t_internal_raw80_classify(x);
     *c1 = 0;
     *exceptions = 0;
     if (ky == RAW_UNSUPPORTED || kx == RAW_UNSUPPORTED) {
@@ -252,7 +255,7 @@ int fpatan_raw80(const atan_constants *ctx,
         *exceptions = 2;
     int special = ky == RAW_ZERO || kx == RAW_ZERO || ky == RAW_INFINITY || kx == RAW_INFINITY;
     if (!special) {
-        int tiny = 0, status = fpatan_candidate(ctx, y, x, rc, out, c1, &tiny);
+        int tiny = 0, status = fpatan_candidate(ctx, y, x, rc, out, c1, &tiny, masks);
         if (status)
             return status;
         /* Tininess is detected on the retained angle before final rounding,
@@ -297,20 +300,22 @@ x87t_error x87t_fpatan(const x87t_context *context,
                        const x87t_control *control,
                        x87t_result *out)
 {
-    x87t_error error = validate_call(context, control, out);
+    x87t_error error = x87t_internal_validate_call(context, control, out);
     if (error)
         return error;
     x87t_result result;
-    result_begin(&result, X87T_REPLACE_ST1_POP);
+    x87t_internal_result_begin(&result, X87T_REPLACE_ST1_POP);
     int c1;
     unsigned exceptions;
-    if (fpatan_raw80(
-            &context->atan, y, x, (enum mode)control->rounding, &result.primary, &c1, &exceptions))
+    if (x87t_internal_fpatan_raw80(
+            &context->atan, y, x, (enum mode)control->rounding, &result.primary, &c1, &exceptions,
+            control->exception_masks))
         return X87T_OUTSIDE_SCOPE;
     result.cc = c1 ? X87T_C1 : 0;
     result.cc_known = X87T_C1;
     result.exceptions = (uint8_t)exceptions;
     result.exceptions_known = 0x3f;
+    x87t_internal_result_finish(&result, control);
     *out = result;
     return X87T_OK;
 }

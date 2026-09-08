@@ -1,7 +1,7 @@
-prefix=${pcfiledir}/../..
+prefix=${pcfiledir}/@X87TRANS_PC_PREFIX_RELATIVE@
 exec_prefix=${prefix}
-libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
-includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+libdir=@X87TRANS_PC_LIBDIR@
+includedir=@X87TRANS_PC_INCLUDEDIR@
 Name: x87trans
 Description: Reconstructed Skylake x87 transcendental numerical library
 Version: @PROJECT_VERSION@

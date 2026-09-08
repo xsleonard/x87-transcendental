@@ -25,7 +25,7 @@ cmake --install build --prefix /desired/prefix
 ```
 
 ```cmake
-find_package(x87trans 0.1 CONFIG REQUIRED)
+find_package(x87trans 0.2 CONFIG REQUIRED)
 target_link_libraries(your_emulator PRIVATE x87trans::x87trans)
 ```
 
@@ -37,6 +37,12 @@ export propagates GMP's link dependency. For non-CMake consumers:
 ```sh
 cc client.c $(pkg-config --cflags --libs --static x87trans) -o client
 ```
+
+For an arbitrary nested `CMAKE_INSTALL_LIBDIR`, set `x87trans_DIR` to that
+directory's `cmake/x87trans` subdirectory if CMake does not discover it through
+the platform's library search convention. Set `PKG_CONFIG_PATH` to its
+`pkgconfig` subdirectory. Relative install paths remain valid after moving the
+installation prefix, including layouts such as `lib/test-triplet`.
 
 Set `BUILD_SHARED_LIBS=ON` for a shared library. Only `x87t_` API functions are
 exported; arithmetic helpers and constants remain private. Set build options
@@ -57,7 +63,16 @@ sticky flags and refusal to use incomplete metadata. It assumes the caller has
 already handled pending exceptions and instruction-specific stack priority;
 it is not a complete x87 execution engine.
 
+Use the [Bochs adapter](bochs.md) for a complete example of integrating the
+arithmetic outcomes into real instruction execution and exception delivery.
+The logical-stack fixture rejects unmasked outcomes explicitly.
+
 For another arithmetic library's ext80 format, convert the sign/exponent and
 significand fields explicitly. Do not alias structures, serialize their padding,
 or assume its exception flag values equal x87 bit positions. Keep guest rounding
 and exception handling explicit at the call site.
+
+The `x87trans-outcomes` development client accepts one line per evaluation:
+`id op rc pc masks x_se x_sig y_se y_sig`. Raw fields and masks are hexadecimal;
+PC is decimal. Unary operations ignore y. Its output follows `x87trans-cli` and
+adds `first_unmasked` as the last field. The ordinary CLI remains all-masked.

@@ -106,13 +106,8 @@ def cases():
     return rows,reference_counts
 
 
-def main():
-    rows,references=cases()
-    inputs=[' '.join([str(i),op,rc,str(pc),*x,*y])
-            for i,(op,rc,pc,x,y,*_) in enumerate(rows)]
-    proc=subprocess.run([str(Path(sys.argv[1]).resolve())],input='\n'.join(inputs)+'\n',
-        text=True,capture_output=True,check=True)
-    results=proc.stdout.splitlines();assert len(results)==len(rows)
+def check_results(rows, results):
+    assert len(results)==len(rows)
     checked=Counter()
     for i,(row,line) in enumerate(zip(rows,results)):
         op,rc,pc,x,y,want,push,c1,c2,flags=row
@@ -126,13 +121,29 @@ def main():
             if push is not None:
                 assert int(f[3])&2 and tuple(int(v,16) for v in f[6:8])==push,(row,line)
         cc,known,raised,raised_known=map(lambda v:int(v,16),f[8:12])
-        if c1 is not None and known&0x200:
+        # Required metadata comes from the case contract, never from the
+        # implementation's own availability claims. C1 on range return and
+        # F2XM1's C2 are outside the defined condition-code contract.
+        required=(0x200 if c1 is not None and want is not None else 0)
+        required|=0x400 if c2 is not None and op!='f2xm1' else 0
+        assert known&required==required,('missing condition metadata',row,line)
+        if required&0x200:
             assert (cc>>9)&1==c1,(row,line);checked['C1']+=1
-        if c2 is not None and known&0x400:
+        if required&0x400:
             assert (cc>>10)&1==c2,(row,line);checked['C2']+=1
         if flags is not None:
             assert raised_known==63 and raised==flags,(row,line);checked['exceptions']+=1
         checked[op]+=1
+    return checked
+
+
+def main():
+    rows,references=cases()
+    inputs=[' '.join([str(i),op,rc,str(pc),*x,*y])
+            for i,(op,rc,pc,x,y,*_) in enumerate(rows)]
+    proc=subprocess.run([str(Path(sys.argv[1]).resolve())],input='\n'.join(inputs)+'\n',
+        text=True,capture_output=True,check=True)
+    checked=check_results(rows,proc.stdout.splitlines())
     print(json.dumps(dict(status='PASS',rows=len(rows),checked=checked,
         independent_reference_checks=references,hardware_executed=False),sort_keys=True))
 

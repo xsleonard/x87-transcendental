@@ -2,7 +2,7 @@
  * Extracted from ia64_sf.h; no host floating-point environment is used. */
 #include "internal/numeric.h"
 
-sf_t sf_zero(int sign)
+sf_t x87t_internal_sf_zero(int sign)
 {
     sf_t z;
     z.cls = SF_FIN;
@@ -12,7 +12,7 @@ sf_t sf_zero(int sign)
     return z;
 }
 
-sf_t sf_qnan(void)
+sf_t x87t_internal_sf_qnan(void)
 {
     sf_t n;
     n.cls = SF_NAN;
@@ -22,7 +22,7 @@ sf_t sf_qnan(void)
     return n;
 }
 
-int sf_is_zero(const sf_t *a)
+int x87t_internal_sf_is_zero(const sf_t *a)
 {
     return a->cls == SF_FIN && a->sig == 0;
 }
@@ -32,13 +32,13 @@ int sf_is_zero(const sf_t *a)
  * significand with explicit integer bit.  Used for table constants and I/O.
  * A biased field of 0 with nonzero sig = pseudo-denormal/denormal input:
  * normalize (fnorm semantics; wre absorbs the range). */
-sf_t sf_from_parts(int sign, uint32_t expfield, uint64_t sig)
+sf_t x87t_internal_sf_from_parts(int sign, uint32_t expfield, uint64_t sig)
 {
     sf_t r;
     r.cls = SF_FIN;
     r.sign = (uint8_t)sign;
     if (sig == 0)
-        return sf_zero(sign);
+        return x87t_internal_sf_zero(sign);
     if (expfield == 0x7FFF) {
         if (sig == 0x8000000000000000ull) {
             r.cls = SF_INF;
@@ -66,7 +66,7 @@ sf_t sf_from_parts(int sign, uint32_t expfield, uint64_t sig)
  * Values out of double-extended range would need denormalization; the
  * algorithm's outputs are in [-1-ulp, 1+ulp] or sin(x)~x for normal x, so
  * only denormal-range results (sin of denormal x) need the shift path. */
-void sf_to_x87(const sf_t *a, uint16_t *se, uint64_t *sig)
+void x87t_internal_sf_to_x87(const sf_t *a, uint16_t *se, uint64_t *sig)
 {
     if (a->cls == SF_NAN) {
         *se = (uint16_t)(0x7FFF | (a->sign << 15));
@@ -95,14 +95,14 @@ void sf_to_x87(const sf_t *a, uint16_t *se, uint64_t *sig)
 }
 
 /* negate / abs (fmerge idioms) */
-sf_t sf_neg(const sf_t *a)
+sf_t x87t_internal_sf_neg(const sf_t *a)
 {
     sf_t r = *a;
     r.sign ^= 1;
     return r;
 }
 
-sf_t sf_abs(const sf_t *a)
+sf_t x87t_internal_sf_abs(const sf_t *a)
 {
     sf_t r = *a;
     r.sign = 0;
@@ -110,11 +110,11 @@ sf_t sf_abs(const sf_t *a)
 }
 
 /* magnitude compare of finite values: |a| < |b| */
-int sf_lt_abs(const sf_t *a, const sf_t *b)
+int x87t_internal_sf_lt_abs(const sf_t *a, const sf_t *b)
 {
-    if (sf_is_zero(a))
-        return !sf_is_zero(b);
-    if (sf_is_zero(b))
+    if (x87t_internal_sf_is_zero(a))
+        return !x87t_internal_sf_is_zero(b);
+    if (x87t_internal_sf_is_zero(b))
         return 0;
     if (a->exp != b->exp)
         return a->exp < b->exp;
@@ -122,9 +122,9 @@ int sf_lt_abs(const sf_t *a, const sf_t *b)
 }
 
 /* signed compare a < b (finite) */
-int sf_lt(const sf_t *a, const sf_t *b)
+int x87t_internal_sf_lt(const sf_t *a, const sf_t *b)
 {
-    int az = sf_is_zero(a), bz = sf_is_zero(b);
+    int az = x87t_internal_sf_is_zero(a), bz = x87t_internal_sf_is_zero(b);
     if (az && bz)
         return 0;
     if (az)
@@ -133,6 +133,6 @@ int sf_lt(const sf_t *a, const sf_t *b)
         return a->sign;
     if (a->sign != b->sign)
         return a->sign;
-    int lt = sf_lt_abs(a, b);
-    return a->sign ? sf_lt_abs(b, a) : lt;
+    int lt = x87t_internal_sf_lt_abs(a, b);
+    return a->sign ? x87t_internal_sf_lt_abs(b, a) : lt;
 }

@@ -5,6 +5,8 @@ example_apply_masked(example_fpu *fpu, const x87t_result *result, uint16_t requi
 {
     if (!fpu || !result || fpu->depth < 1 || fpu->depth > 8)
         return EXAMPLE_BAD_STATE;
+    if (result->completion != X87T_COMPLETE && result->completion != X87T_RANGE_RETURN)
+        return EXAMPLE_BAD_STATE;
     if (result->completion == X87T_RANGE_RETURN) {
         if (result->destination != X87T_NO_WRITE || result->values != 0 ||
             !(result->cc_known & X87T_C2) || !(result->cc & X87T_C2))

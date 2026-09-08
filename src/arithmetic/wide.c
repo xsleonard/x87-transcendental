@@ -3,7 +3,7 @@
 
 /* exact host-integer support for the experimentally
  * selected 66/68/69-bit Round-16 candidate. */
-int uint128_width(u128 v)
+int x87t_internal_uint128_width(u128 v)
 {
     int width = 0;
     while (v) {
@@ -16,7 +16,7 @@ int uint128_width(u128 v)
 /* full unsigned 128x128 multiply.  Round-16 call
  * sites use at most 68-bit operands, but the full helper keeps the carrier
  * honest for the 65-bit reduced-argument path. */
-u256 u128_mul_full(u128 a, u128 b)
+u256 x87t_internal_u128_mul_full(u128 a, u128 b)
 {
     uint64_t a0 = (uint64_t)a, a1 = (uint64_t)(a >> 64);
     uint64_t b0 = (uint64_t)b, b1 = (uint64_t)(b >> 64);
@@ -34,11 +34,11 @@ u256 u128_mul_full(u128 a, u128 b)
     return (u256){hi, lo};
 }
 
-sf_t wv_rn64(wv_t v)
+sf_t x87t_internal_wv_rn64(wv_t v)
 {
     sf_t r;
     if (v.sig == 0)
-        return sf_zero(v.sign);
+        return x87t_internal_sf_zero(v.sign);
     int b = 127;
     while (!((v.sig >> b) & 1))
         b--;
@@ -71,7 +71,7 @@ sf_t wv_rn64(wv_t v)
 /* fused combine: one rounding of  T1*(1+t) +/- T2*S  (all inputs exact).
  * T1,T2 are ROM-width entries; t,S are 64-bit values.  Accumulate exactly
  * in 256-bit fixed point. */
-void acc_add(u256 *acc, int neg, u128 mag_hi, u128 mag_lo)
+void x87t_internal_acc_add(u256 *acc, int neg, u128 mag_hi, u128 mag_lo)
 {
     if (!neg) {
         u128 lo = acc->lo + mag_lo;
@@ -86,11 +86,11 @@ void acc_add(u256 *acc, int neg, u128 mag_hi, u128 mag_lo)
 
 /* add an exact small-wide product at a fixed-point
  * accumulator scale.  Current callers fit in at most 134 product bits. */
-void acc_add_product(u256 *acc, int neg, u128 a, u128 b, int32_t e2, int scale)
+void x87t_internal_acc_add_product(u256 *acc, int neg, u128 a, u128 b, int32_t e2, int scale)
 {
     if (a == 0 || b == 0)
         return;
-    u256 product = u128_mul_full(a, b);
+    u256 product = x87t_internal_u128_mul_full(a, b);
     int sh = e2 - scale;
     u128 hi, lo;
     if (sh == 0) {
@@ -112,7 +112,7 @@ void acc_add_product(u256 *acc, int neg, u128 a, u128 b, int32_t e2, int scale)
         hi = product.lo << (sh - 128);
         lo = 0;
     }
-    acc_add(acc, neg, hi, lo);
+    x87t_internal_acc_add(acc, neg, hi, lo);
 }
 
 /*
@@ -123,7 +123,7 @@ void acc_add_product(u256 *acc, int neg, u128 a, u128 b, int32_t e2, int scale)
  * discarded information in the low stored bit, and UP/DOWN are signed
  * directed modes.
  */
-wv_t acc_round_wide(u256 acc, int32_t scale, int bits, p5_round_t mode)
+wv_t x87t_internal_acc_round_wide(u256 acc, int32_t scale, int bits, p5_round_t mode)
 {
     int neg = (int)(acc.hi >> 127);
     if (neg) {
@@ -192,61 +192,68 @@ wv_t acc_round_wide(u256 acc, int32_t scale, int bits, p5_round_t mode)
 
 /* exact wide multiply followed by an explicitly
  * selected standalone-FSIN internal materialization. */
-wv_t wide_mul(wv_t a, wv_t b, int bits, p5_round_t mode)
+wv_t x87t_internal_wide_mul(wv_t a, wv_t b, int bits, p5_round_t mode)
 {
     int32_t scale = a.e2 + b.e2;
     u256 acc = {0, 0};
-    acc_add_product(&acc, a.sign ^ b.sign, a.sig, b.sig, scale, scale);
-    return acc_round_wide(acc, scale, bits, mode);
+    x87t_internal_acc_add_product(&acc, a.sign ^ b.sign, a.sig, b.sig, scale, scale);
+    return x87t_internal_acc_round_wide(acc, scale, bits, mode);
 }
 
 /* materialize a native P5 ROM constant at an
  * internal width. */
-wv_t constant_round(const p5c_t *constant, int bits, p5_round_t mode)
+wv_t x87t_internal_constant_round(const p5c_t *constant, int bits, p5_round_t mode)
 {
     u256 acc = {0, 0};
-    acc_add_product(&acc, constant->sign, constant->sig, 1, constant->exp2, constant->exp2);
-    return acc_round_wide(acc, constant->exp2, bits, mode);
+    x87t_internal_acc_add_product(&acc, constant->sign, constant->sig, 1, constant->exp2, constant->exp2);
+    return x87t_internal_acc_round_wide(acc, constant->exp2, bits, mode);
 }
 
 /* exact add of a materialized carrier and P5 ROM
  * constant, followed by the standalone-FSIN internal-width rule. */
-wv_t wide_add_constant(wv_t value,
+wv_t x87t_internal_wide_add_constant(wv_t value,
                        const p5c_t *constant,
                        int constant_bits,
                        p5_round_t constant_mode,
                        int bits,
                        p5_round_t mode)
 {
-    wv_t stored = constant_round(constant, constant_bits, constant_mode);
+    wv_t stored = x87t_internal_constant_round(constant, constant_bits, constant_mode);
     int32_t scale = value.e2 < stored.e2 ? value.e2 : stored.e2;
     u256 acc = {0, 0};
-    acc_add_product(&acc, value.sign, value.sig, 1, value.e2, scale);
-    acc_add_product(&acc, stored.sign, stored.sig, 1, stored.e2, scale);
-    return acc_round_wide(acc, scale, bits, mode);
+    x87t_internal_acc_add_product(&acc, value.sign, value.sig, 1, value.e2, scale);
+    x87t_internal_acc_add_product(&acc, stored.sign, stored.sig, 1, stored.e2, scale);
+    return x87t_internal_acc_round_wide(acc, scale, bits, mode);
 }
 
 /* exact addition of two explicit internal
  * carriers followed by a selected materialization.  Round 36 uses this to
  * replay the validated three-FADD reconstruction without host floating
  * point. */
-wv_t wide_add(wv_t left, wv_t right, int bits, p5_round_t mode)
+wv_t x87t_internal_wide_add(wv_t left, wv_t right, int bits, p5_round_t mode)
 {
     int32_t scale = left.e2 < right.e2 ? left.e2 : right.e2;
     u256 acc = {0, 0};
     if (left.sig) {
-        acc_add_product(&acc, left.sign, left.sig, 1, left.e2, scale);
+        x87t_internal_acc_add_product(&acc, left.sign, left.sig, 1, left.e2, scale);
     }
     if (right.sig) {
-        acc_add_product(&acc, right.sign, right.sig, 1, right.e2, scale);
+        x87t_internal_acc_add_product(&acc, right.sign, right.sig, 1, right.e2, scale);
     }
-    return acc_round_wide(acc, scale, bits, mode);
+    return x87t_internal_acc_round_wide(acc, scale, bits, mode);
 }
 
 /* architectural RC rounding of a signed
  * fixed-point accumulator, shared by the baseline and Round-24 combines. */
-sf_t acc_round64_rc(u256 acc, int32_t scale, int neg_out, sf_rc_t rc)
+sf_t x87t_internal_acc_round64_rc(u256 acc, int32_t scale, int neg_out, sf_rc_t rc)
 {
+    int c1;
+    return x87t_internal_acc_round64_meta(acc, scale, neg_out, rc, &c1);
+}
+
+sf_t x87t_internal_acc_round64_meta(u256 acc, int32_t scale, int neg_out, sf_rc_t rc, int *c1)
+{
+    *c1 = 0;
     int neg = (acc.hi >> 127) & 1;
     if (neg) {
         acc.lo = ~acc.lo + 1;
@@ -254,7 +261,7 @@ sf_t acc_round64_rc(u256 acc, int32_t scale, int neg_out, sf_rc_t rc)
     }
     neg ^= neg_out;
     if (acc.hi == 0 && acc.lo == 0)
-        return sf_zero(neg);
+        return x87t_internal_sf_zero(neg);
     int b;
     if (acc.hi) {
         b = 127;
@@ -290,6 +297,7 @@ sf_t acc_round64_rc(u256 acc, int32_t scale, int neg_out, sf_rc_t rc)
         else if (rc == SF_RD)
             inc = neg && (guard || below);
         if (inc) {
+            *c1 = 1;
             top++;
             if (!top) {
                 top = 1ull << 63;
@@ -302,6 +310,7 @@ sf_t acc_round64_rc(u256 acc, int32_t scale, int neg_out, sf_rc_t rc)
         u128 below = sh > 1 ? acc.lo & (((u128)1 << (sh - 1)) - 1) : 0;
         if (rc == SF_RN) {
             if (guard && (below || (top & 1))) {
+                *c1 = 1;
                 top++;
                 if (!top) {
                     top = 1ull << 63;
@@ -310,6 +319,7 @@ sf_t acc_round64_rc(u256 acc, int32_t scale, int neg_out, sf_rc_t rc)
             }
         } else if (rc == SF_RU) {
             if (!neg && (guard || below)) {
+                *c1 = 1;
                 top++;
                 if (!top) {
                     top = 1ull << 63;
@@ -318,6 +328,7 @@ sf_t acc_round64_rc(u256 acc, int32_t scale, int neg_out, sf_rc_t rc)
             }
         } else if (rc == SF_RD) {
             if (neg && (guard || below)) {
+                *c1 = 1;
                 top++;
                 if (!top) {
                     top = 1ull << 63;
@@ -337,7 +348,7 @@ sf_t acc_round64_rc(u256 acc, int32_t scale, int neg_out, sf_rc_t rc)
 /* Rebuild the exact wide reduced argument |r+c| from (r, c).
  * By construction of the M66 reducer, c != 0 only when |r| >= 0.5 (the
  * 65th significand bit), and then c is exactly +-1 unit of 2^-65. */
-wv_t reduced_to_wide(const sf_t *r, const sf_t *c)
+wv_t x87t_internal_reduced_to_wide(const sf_t *r, const sf_t *c)
 {
     wv_t w = {0};
     w.sign = r->sign;

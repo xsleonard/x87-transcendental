@@ -12,20 +12,21 @@ struct x87t_context {
     atan_constants atan;
     log_constants log;
 };
-void atan_constants_init(atan_constants *);
-void atan_constants_clear(atan_constants *);
-void log_constants_init(log_constants *);
-void log_constants_clear(log_constants *);
-int fpatan_raw80(
-    const atan_constants *, raw80 y, raw80 x, enum mode, raw80 *, int *c1, unsigned *exceptions);
-int log_raw80(const log_constants *,
+void x87t_internal_atan_constants_init(atan_constants *);
+void x87t_internal_atan_constants_clear(atan_constants *);
+void x87t_internal_log_constants_init(log_constants *);
+void x87t_internal_log_constants_clear(log_constants *);
+int x87t_internal_fpatan_raw80(
+    const atan_constants *, raw80 y, raw80 x, enum mode, raw80 *, int *c1, unsigned *exceptions,
+    unsigned masks);
+int x87t_internal_log_raw80(const log_constants *,
               int instruction,
               raw80 y,
               raw80 x,
               enum mode,
               raw80 *,
               int *c1,
-              unsigned *exceptions);
-x87t_error evaluate_log(
+              unsigned *exceptions, unsigned masks);
+x87t_error x87t_internal_evaluate_log(
     const x87t_context *, int instruction, raw80 y, raw80 x, const x87t_control *, x87t_result *);
 #endif

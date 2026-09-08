@@ -27,8 +27,13 @@ int main(void)
     CHECK((fpu.status & 1) && (fpu.status & X87T_PE));
     CHECK(x87t_fsincos(ctx, fpu.st[0], &control, &result) == X87T_OK);
     example_fpu before = fpu;
+    x87t_result complete = result;
+    result.exceptions_known = 0;
     CHECK(example_apply_masked(&fpu, &result, X87T_C1 | X87T_C2) == EXAMPLE_NEEDS_METADATA);
     CHECK(!memcmp(&fpu, &before, sizeof(fpu)));
+    CHECK(example_apply_masked(&fpu, &complete, X87T_C1 | X87T_C2) == EXAMPLE_APPLIED);
+    CHECK(fpu.depth == before.depth + 1);
+    before = fpu;
     x87t_raw80 large = {0x403e, UINT64_C(0x8000000000000000)};
     CHECK(x87t_fsincos(ctx, large, &control, &result) == X87T_OK);
     CHECK(example_apply_masked(&fpu, &result, X87T_C2) == EXAMPLE_APPLIED);
@@ -42,10 +47,18 @@ int main(void)
     result.exceptions_known = 63;
     result.destination = X87T_REPLACE_ST0_PUSH;
     CHECK(example_apply_masked(&fpu, &result, 0) == EXAMPLE_APPLIED);
-    CHECK(fpu.depth == 3 && fpu.st[0].se == large.se && fpu.st[1].sig == deeper.sig);
+    CHECK(fpu.depth == before.depth + 1 && fpu.st[0].se == large.se && fpu.st[1].sig == deeper.sig);
     fpu.depth = 8;
     before = fpu;
     CHECK(example_apply_masked(&fpu, &result, 0) == EXAMPLE_BAD_STATE);
+    CHECK(!memcmp(&fpu, &before, sizeof(fpu)));
+    fpu.depth = 3;
+    before = fpu;
+    control.exception_masks = 0;
+    CHECK(x87t_fsin(ctx, (x87t_raw80){0x3ffe, UINT64_C(0x8000000000000000)},
+                     &control, &result) == X87T_OK);
+    CHECK(result.completion == X87T_UNMASKED_WRITE);
+    CHECK(example_apply_masked(&fpu, &result, X87T_C1 | X87T_C2) == EXAMPLE_BAD_STATE);
     CHECK(!memcmp(&fpu, &before, sizeof(fpu)));
     x87t_destroy(ctx);
     puts("PASS masked writeback fixture");

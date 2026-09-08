@@ -1,7 +1,7 @@
 /* Raw operands are classified before any numerical normalization. */
 #include "internal/api.h"
 
-raw_class raw80_classify(x87t_raw80 v)
+raw_class x87t_internal_raw80_classify(x87t_raw80 v)
 {
     unsigned exponent = v.se & 0x7fff;
     if (!exponent) {
@@ -16,6 +16,34 @@ raw_class raw80_classify(x87t_raw80 v)
     if (v.sig == (UINT64_C(1) << 63))
         return RAW_INFINITY;
     return v.sig & (UINT64_C(1) << 62) ? RAW_QNAN : RAW_SNAN;
+}
+
+uint8_t x87t_internal_trig_flags(x87t_raw80 x, int range_return, int sine_component)
+{
+    raw_class kind = x87t_internal_raw80_classify(x);
+    if (kind == RAW_UNSUPPORTED || kind == RAW_SNAN || kind == RAW_INFINITY)
+        return X87T_IE;
+    if (kind == RAW_QNAN || kind == RAW_ZERO || range_return)
+        return 0;
+    return X87T_PE | ((kind == RAW_DENORMAL || kind == RAW_PSEUDO) ? X87T_DE : 0) |
+           ((sine_component && kind == RAW_DENORMAL) ? X87T_UE : 0);
+}
+
+/* The extreme-tiny trig bypass retains the input exactly. Its unmasked
+ * underflow endpoint is input * 2^24576, not a scaled rounded approximation.
+ * H1656/H1659 establish this endpoint for standalone FSIN. */
+void x87t_internal_wrap_trig_underflow(x87t_raw80 x, x87t_result *result,
+                                     const x87t_control *control)
+{
+    if (!(result->exceptions & X87T_UE) || (control->exception_masks & X87T_UE))
+        return;
+    unsigned shift = 0;
+    while (!(x.sig >> 63)) {
+        x.sig <<= 1;
+        ++shift;
+    }
+    x.se = (uint16_t)((x.se & 0x8000) | (24577 - shift));
+    result->primary = x;
 }
 
 x87t_raw80 x87t_load_le(const uint8_t bytes[10])

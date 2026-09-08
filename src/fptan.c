@@ -28,14 +28,14 @@
 static sf_t tangent_horner4(
     const p5c_t *c4, const p5c_t *c3, const p5c_t *c2, const p5c_t *c1, const wv_t *square)
 {
-    wv_t value = constant_round(c4, 67, P5_ROUND_RN);
-    value = wide_mul(value, *square, 67, P5_ROUND_CHOP);
-    value = wide_add_constant(value, c3, 67, P5_ROUND_RN, 64, P5_ROUND_RN);
-    value = wide_mul(value, *square, 67, P5_ROUND_CHOP);
-    value = wide_add_constant(value, c2, 67, P5_ROUND_RN, 64, P5_ROUND_RN);
-    value = wide_mul(value, *square, 67, P5_ROUND_CHOP);
-    value = wide_add_constant(value, c1, 67, P5_ROUND_RN, 64, P5_ROUND_RN);
-    return wv_rn64(value);
+    wv_t value = x87t_internal_constant_round(c4, 67, P5_ROUND_RN);
+    value = x87t_internal_wide_mul(value, *square, 67, P5_ROUND_CHOP);
+    value = x87t_internal_wide_add_constant(value, c3, 67, P5_ROUND_RN, 64, P5_ROUND_RN);
+    value = x87t_internal_wide_mul(value, *square, 67, P5_ROUND_CHOP);
+    value = x87t_internal_wide_add_constant(value, c2, 67, P5_ROUND_RN, 64, P5_ROUND_RN);
+    value = x87t_internal_wide_mul(value, *square, 67, P5_ROUND_CHOP);
+    value = x87t_internal_wide_add_constant(value, c1, 67, P5_ROUND_RN, 64, P5_ROUND_RN);
+    return x87t_internal_wv_rn64(value);
 }
 
 /*
@@ -57,10 +57,10 @@ static wv_t fptan_horner6(const p5c_t *c6,
     const p5c_t *coefficients[] = {c5, c4, c3, c2, c1};
     wv_t value = {c6->sign, c6->exp2, c6->sig, 0};
     for (unsigned index = 0; index < 5; index++) {
-        value = wide_mul(value, square, 67, P5_ROUND_CHOP);
+        value = x87t_internal_wide_mul(value, square, 67, P5_ROUND_CHOP);
         wv_t constant = {
             coefficients[index]->sign, coefficients[index]->exp2, coefficients[index]->sig, 0};
-        value = wide_add(value, constant, 64, P5_ROUND_RN);
+        value = x87t_internal_wide_add(value, constant, 64, P5_ROUND_RN);
     }
     return value;
 }
@@ -69,7 +69,7 @@ static wv_t fptan_horner6(const p5c_t *c6,
 static wv_t fptan_sub_chop67(wv_t left, wv_t right)
 {
     right.sign ^= 1;
-    return wide_add(left, right, 67, P5_ROUND_CHOP);
+    return x87t_internal_wide_add(left, right, 67, P5_ROUND_CHOP);
 }
 
 /* quadrant rotation for the FPTAN quotient pair. */
@@ -100,15 +100,15 @@ static void fptan_rotate(wv_t *sine, wv_t *cosine, int64_t signed_n)
 static void fptan_polynomial_values(
     wv_t magnitude, int residual_sign, int64_t signed_n, wv_t *numerator, wv_t *denominator)
 {
-    wv_t square = wide_mul(magnitude, magnitude, 67, P5_ROUND_CHOP);
-    wv_t p = fptan_horner6(&P5S6_6, &P5S6_5, &P5S6_4, &P5S6_3, &P5S6_2, &P5S6_1, square);
-    wv_t q = fptan_horner6(&P5C6_6, &P5C6_5, &P5C6_4, &P5C6_3, &P5C6_2, &P5C6_1, square);
-    wv_t p_square = wide_mul(square, p, 64, P5_ROUND_RN);
-    wv_t q_square = wide_mul(square, q, 67, P5_ROUND_CHOP);
-    wv_t sine_tail = wide_mul(magnitude, p_square, 67, P5_ROUND_CHOP);
-    wv_t sine = wide_add(magnitude, sine_tail, 67, P5_ROUND_CHOP);
+    wv_t square = x87t_internal_wide_mul(magnitude, magnitude, 67, P5_ROUND_CHOP);
+    wv_t p = fptan_horner6(&x87t_internal_P5S6_6, &x87t_internal_P5S6_5, &x87t_internal_P5S6_4, &x87t_internal_P5S6_3, &x87t_internal_P5S6_2, &x87t_internal_P5S6_1, square);
+    wv_t q = fptan_horner6(&x87t_internal_P5C6_6, &x87t_internal_P5C6_5, &x87t_internal_P5C6_4, &x87t_internal_P5C6_3, &x87t_internal_P5C6_2, &x87t_internal_P5C6_1, square);
+    wv_t p_square = x87t_internal_wide_mul(square, p, 64, P5_ROUND_RN);
+    wv_t q_square = x87t_internal_wide_mul(square, q, 67, P5_ROUND_CHOP);
+    wv_t sine_tail = x87t_internal_wide_mul(magnitude, p_square, 67, P5_ROUND_CHOP);
+    wv_t sine = x87t_internal_wide_add(magnitude, sine_tail, 67, P5_ROUND_CHOP);
     wv_t one = {0, -63, (u128)1 << 63, 0};
-    wv_t cosine = wide_add(one, q_square, 67, P5_ROUND_CHOP);
+    wv_t cosine = x87t_internal_wide_add(one, q_square, 67, P5_ROUND_CHOP);
     sine.sign ^= residual_sign ? 1 : 0;
     fptan_rotate(&sine, &cosine, signed_n);
     *numerator = sine;
@@ -126,7 +126,7 @@ static void fptan_table_values(
          * below misrounds the top ~2^-55 sliver under each interior
          * lane boundary (5/16, 3/8, 7/16, 1/2, 5/8, 3/4) into the
          * next lane (i7 hardware probes, 2026-08-15). */
-        int rw = uint128_width(residual.sig);
+        int rw = x87t_internal_uint128_width(residual.sig);
         int rexp = residual.e2 + rw - 1;
         int lane = (int)(u128)(residual.sig >> (rw - 3)) - 4;
         if (rexp <= -2) {
@@ -138,7 +138,7 @@ static void fptan_table_values(
         }
     }
     int table_index = 0;
-    while (P5TAB[table_index].b != b)
+    while (x87t_internal_P5TAB[table_index].b != b)
         table_index++;
 
     int shift = -6 - residual.e2;
@@ -147,34 +147,34 @@ static void fptan_table_values(
               residual.e2,
               difference < 0 ? (u128)(-difference) : (u128)difference,
               0};
-    wv_t square = wide_mul(a, a, 67, P5_ROUND_CHOP);
-    p5c_t p6s4_4 = P5S4_4;
+    wv_t square = x87t_internal_wide_mul(a, a, 67, P5_ROUND_CHOP);
+    p5c_t p6s4_4 = x87t_internal_P5S4_4;
     p6s4_4.sig -= (u128)1 << 60;
-    sf_t p = tangent_horner4(&p6s4_4, &P5S4_3, &P5S4_2, &P5S4_1, &square);
-    sf_t q = tangent_horner4(&P5C4_4, &P5C4_3, &P5C4_2, &P5C4_1, &square);
+    sf_t p = tangent_horner4(&p6s4_4, &x87t_internal_P5S4_3, &x87t_internal_P5S4_2, &x87t_internal_P5S4_1, &square);
+    sf_t q = tangent_horner4(&x87t_internal_P5C4_4, &x87t_internal_P5C4_3, &x87t_internal_P5C4_2, &x87t_internal_P5C4_1, &square);
     wv_t p_state = {p.sign, p.exp - 63, (u128)p.sig, 0};
     wv_t q_state = {q.sign, q.exp - 63, (u128)q.sig, 0};
-    wv_t p_square = wide_mul(p_state, square, 67, P5_ROUND_CHOP);
-    wv_t sine_tail = wide_mul(p_square, a, 67, P5_ROUND_CHOP);
-    wv_t sine_state = wide_add(a, sine_tail, 64, P5_ROUND_RN);
-    wv_t cosine_tail = wide_mul(q_state, square, 64, P5_ROUND_RN);
+    wv_t p_square = x87t_internal_wide_mul(p_state, square, 67, P5_ROUND_CHOP);
+    wv_t sine_tail = x87t_internal_wide_mul(p_square, a, 67, P5_ROUND_CHOP);
+    wv_t sine_state = x87t_internal_wide_add(a, sine_tail, 64, P5_ROUND_RN);
+    wv_t cosine_tail = x87t_internal_wide_mul(q_state, square, 64, P5_ROUND_RN);
 
     wv_t table_sine = {
-        P5TAB[table_index].sinT.sign, P5TAB[table_index].sinT.exp2, P5TAB[table_index].sinT.sig, 0};
+        x87t_internal_P5TAB[table_index].sinT.sign, x87t_internal_P5TAB[table_index].sinT.exp2, x87t_internal_P5TAB[table_index].sinT.sig, 0};
     wv_t table_cosine = {
-        P5TAB[table_index].cosT.sign, P5TAB[table_index].cosT.exp2, P5TAB[table_index].cosT.sig, 0};
+        x87t_internal_P5TAB[table_index].cosT.sign, x87t_internal_P5TAB[table_index].cosT.exp2, x87t_internal_P5TAB[table_index].cosT.sig, 0};
     wv_t negative_sine = sine_state;
     wv_t negative_table_sine = table_sine;
     negative_sine.sign ^= 1;
     negative_table_sine.sign ^= 1;
 
     wv_t denominator_partial =
-        fptan_sub_chop67(wide_mul(negative_table_sine, negative_sine, 67, P5_ROUND_CHOP),
-                         wide_mul(table_cosine, cosine_tail, 67, P5_ROUND_CHOP));
+        fptan_sub_chop67(x87t_internal_wide_mul(negative_table_sine, negative_sine, 67, P5_ROUND_CHOP),
+                         x87t_internal_wide_mul(table_cosine, cosine_tail, 67, P5_ROUND_CHOP));
     wv_t cosine = fptan_sub_chop67(table_cosine, denominator_partial);
     wv_t numerator_partial =
-        fptan_sub_chop67(wide_mul(table_cosine, negative_sine, 67, P5_ROUND_CHOP),
-                         wide_mul(table_sine, cosine_tail, 67, P5_ROUND_CHOP));
+        fptan_sub_chop67(x87t_internal_wide_mul(table_cosine, negative_sine, 67, P5_ROUND_CHOP),
+                         x87t_internal_wide_mul(table_sine, cosine_tail, 67, P5_ROUND_CHOP));
     wv_t sine = fptan_sub_chop67(table_sine, numerator_partial);
     sine.sign ^= residual_sign ? 1 : 0;
     fptan_rotate(&sine, &cosine, signed_n);
@@ -183,16 +183,16 @@ static void fptan_table_values(
 }
 
 /* exact final quotient with architectural RC. */
-static sf_t fptan_final_divide(wv_t numerator, wv_t denominator, sf_rc_t rc)
+static sf_t fptan_final_divide(wv_t numerator, wv_t denominator, sf_rc_t rc, int *c1)
 {
     int sign = numerator.sign ^ denominator.sign;
     if (!numerator.sig)
-        return sf_zero(sign);
+        return x87t_internal_sf_zero(sign);
     if (!denominator.sig)
         return (sf_t){SF_INF, (uint8_t)sign, 0, 0};
 
-    int numerator_width = uint128_width(numerator.sig);
-    int denominator_width = uint128_width(denominator.sig);
+    int numerator_width = x87t_internal_uint128_width(numerator.sig);
+    int denominator_width = x87t_internal_uint128_width(denominator.sig);
     int ratio_exponent = numerator_width - denominator_width;
     if (ratio_exponent >= 0) {
         if (numerator.sig < (denominator.sig << ratio_exponent))
@@ -228,6 +228,7 @@ static sf_t fptan_final_divide(wv_t numerator, wv_t denominator, sf_rc_t rc)
         increment = !sign && remainder;
     }
     int32_t exponent = ratio_exponent + numerator.e2 - denominator.e2;
+    *c1 = increment;
     if (increment) {
         significand++;
         if (significand == ((u128)1 << 64)) {
@@ -239,18 +240,19 @@ static sf_t fptan_final_divide(wv_t numerator, wv_t denominator, sf_rc_t rc)
 }
 
 /* complete finite/special FPTAN path selection. */
-fsincos_status_t fptan_core(sf_t x, sf_rc_t rc, sf_t *out)
+fsincos_status_t x87t_internal_fptan_core(sf_t x, sf_rc_t rc, sf_t *out, int *c1)
 {
+    *c1 = 0;
     if (x.cls == SF_NAN) {
         *out = x;
         out->sig |= 0x4000000000000000ull;
         return FSINCOS_OK;
     }
     if (x.cls == SF_INF) {
-        *out = sf_qnan();
+        *out = x87t_internal_sf_qnan();
         return FSINCOS_OK;
     }
-    if (sf_is_zero(&x)) {
+    if (x87t_internal_sf_is_zero(&x)) {
         *out = x;
         return FSINCOS_OK;
     }
@@ -259,14 +261,14 @@ fsincos_status_t fptan_core(sf_t x, sf_rc_t rc, sf_t *out)
 
     sf_t r, c;
     int64_t signed_n;
-    sf_t magnitude = sf_abs(&x);
-    if (sf_lt(&magnitude, &PI_BY_4)) {
+    sf_t magnitude = x87t_internal_sf_abs(&x);
+    if (x87t_internal_sf_lt(&magnitude, &x87t_internal_PI_BY_4)) {
         if (x.exp < -68) {
             *out = x;
             return FSINCOS_OK;
         }
         r = x;
-        c = ZERO;
+        c = x87t_internal_ZERO;
         signed_n = 0;
     } else {
         /* h403: the same literal exact division as the FSIN/FCOS
@@ -274,52 +276,64 @@ fsincos_status_t fptan_core(sf_t x, sf_rc_t rc, sf_t *out)
          * only on the 18 known large-argument residual inputs (zero
          * divergence over the sweep/dense corpora), and the exact quotient
          * removes all 25 of their result differences. */
-        uint64_t n_magnitude = reduce_quotient(x.sig, x.exp);
+        uint64_t n_magnitude = x87t_internal_reduce_quotient(x.sig, x.exp);
         signed_n = x.sign ? -(int64_t)n_magnitude : (int64_t)n_magnitude;
-        reduce_remainder(&x, n_magnitude, &r, &c);
+        x87t_internal_reduce_remainder(&x, n_magnitude, &r, &c);
         if (r.cls != SF_FIN)
             return FSINCOS_C2;
     }
 
-    wv_t residual = reduced_to_wide(&r, &c);
+    wv_t residual = x87t_internal_reduced_to_wide(&r, &c);
     int residual_sign = residual.sign;
     residual.sign = 0;
     wv_t numerator, denominator;
-    int residual_exponent = residual.sig ? residual.e2 + uint128_width(residual.sig) - 1 : -16383;
+    int residual_exponent = residual.sig ? residual.e2 + x87t_internal_uint128_width(residual.sig) - 1 : -16383;
     if (residual_exponent <= -3) {
         fptan_polynomial_values(residual, residual_sign, signed_n, &numerator, &denominator);
     } else {
         fptan_table_values(residual, residual_sign, signed_n, &numerator, &denominator);
     }
-    *out = fptan_final_divide(numerator, denominator, rc);
+    *out = fptan_final_divide(numerator, denominator, rc, c1);
     return FSINCOS_OK;
 }
 
 x87t_error
 x87t_fptan(const x87t_context *context, x87t_raw80 x, const x87t_control *control, x87t_result *out)
 {
-    x87t_error error = validate_call(context, control, out);
+    x87t_error error = x87t_internal_validate_call(context, control, out);
     if (error)
         return error;
-    /* The historical decoder loses unsupported encodings. Preserve the
-     * original bits and reject this unimplemented operand class explicitly. */
-    if (raw80_classify(x) == RAW_UNSUPPORTED)
-        return X87T_OUTSIDE_SCOPE;
     x87t_result result;
-    result_begin(&result, X87T_REPLACE_ST0_PUSH);
-    sf_t input = sf_from_parts(x.se >> 15, x.se & 0x7fff, x.sig), value;
-    if (fptan_core(input, (sf_rc_t)control->rounding, &value) == FSINCOS_C2) {
-        result_range(&result);
+    x87t_internal_result_begin(&result, X87T_REPLACE_ST0_PUSH);
+    /* Unsupported encodings must be rejected by the instruction before the
+     * numerical decoder can normalize away their original class. */
+    if (x87t_internal_raw80_classify(x) == RAW_UNSUPPORTED) {
+        result.primary = result.pushed = x87t_internal_X87_INDEFINITE;
+        result.values |= X87T_PUSHED;
+        result.exceptions = X87T_IE;
+        result.cc_known = X87T_C1 | X87T_C2;
+        x87t_internal_result_finish(&result, control);
+        *out = result;
+        return X87T_OK;
+    }
+    sf_t input = x87t_internal_sf_from_parts(x.se >> 15, x.se & 0x7fff, x.sig), value;
+    int c1;
+    if (x87t_internal_fptan_core(input, (sf_rc_t)control->rounding, &value, &c1) == FSINCOS_C2) {
+        x87t_internal_result_range(&result);
     } else {
-        sf_to_x87(&value, &result.primary.se, &result.primary.sig);
+        x87t_internal_sf_to_x87(&value, &result.primary.se, &result.primary.sig);
         /* NaN/indefinite results push a second copy of the result
          * rather than exact one. */
         result.pushed = (result.primary.se & 0x7fff) == 0x7fff
                             ? result.primary
                             : (x87t_raw80){0x3fff, UINT64_C(0x8000000000000000)};
         result.values |= X87T_PUSHED;
-        result.cc_known = X87T_C2;
+        result.cc_known = X87T_C1 | X87T_C2;
+        result.cc = c1 ? X87T_C1 : 0;
     }
+    result.exceptions = x87t_internal_trig_flags(x, result.completion == X87T_RANGE_RETURN, 1);
+    x87t_internal_wrap_trig_underflow(x, &result, control);
+    x87t_internal_result_finish(&result, control);
     *out = result;
     return X87T_OK;
 }
