@@ -1,0 +1,30 @@
+{
+  "capture_contexts": [
+    "00050654:0x1",
+    "000506e3:0xf0"
+  ],
+  "counts": {
+    "pc:24": 1916,
+    "pc:53": 1916,
+    "pc:64": 491600,
+    "rc:rd": 123858,
+    "rc:rn": 123858,
+    "rc:ru": 123858,
+    "rc:rz": 123858,
+    "rows": 495432
+  },
+  "exact_tuple_duplicates": 0,
+  "files": {
+    "categories.tsv.gz": "481e0785a80db545a8104c2e2c1753b3f7f3b497ba4f8d106eed018cd0caefee",
+    "inputs.txt.gz": "ae6058983e1e7d848a49a6ef858aa75f3f5339a52ca41445300a816de59ef89b"
+  },
+  "format": "fptan-corpus-v1-masked-clear-depth1",
+  "labels_included": false,
+  "predictions_included": false,
+  "private_data_included": false,
+  "source_manifests": {
+    "t0002": "f117068dbbb92bd6fa605fad97992d171e4fdb78ff95aea8f5ff73fc70ecb67d",
+    "t0003": "0ee5eda5760cec01e0702fb387ef2920417db6982bf2de6255e28e99d44c818a"
+  },
+  "warning": "Already observed once on both recorded contexts. Reuse saved labels there; audit and reserve before capture on a new context."
+}

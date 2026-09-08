@@ -11,6 +11,12 @@
  *
  * Usage: h491_scan START_HEX COUNT   (scans [START, START+COUNT))
  * Compile: gcc -O2 -o h491_scan h491_scan.c
+ * A different input binade can be selected at compile time with
+ * -DMAG_E2=<value>; the historical se=3ffc scan uses the default -66.
+ * The h1384 analysis extension appends the fourth-product cut s4 when
+ * compiled with -DMERGE_STATE=1.  The h1389 extension appends s4 and the
+ * literal-P5 QX propagate-run length with -DQX_STATE=1.  Default output
+ * remains unchanged.
  */
 #include <stdint.h>
 #include <stdio.h>
@@ -19,6 +25,30 @@
 
 typedef unsigned __int128 u128;
 typedef struct { uint64_t w[4]; } u256;   /* little-endian limbs */
+
+#ifndef MAG_E2
+#define MAG_E2 (-66)
+#endif
+
+#ifndef MERGE_STATE
+#define MERGE_STATE 0
+#endif
+
+#ifndef QX_STATE
+#define QX_STATE 0
+#endif
+
+#ifndef QX_MIN
+#define QX_MIN 0
+#endif
+
+#ifndef Q_STATE
+#define Q_STATE 0
+#endif
+
+#ifndef Q_MIN
+#define Q_MIN 0
+#endif
 
 static u256 mul128(u128 a, u128 b)
 {
@@ -88,6 +118,114 @@ static int bitlen128(u128 v)
     uint64_t lo = (uint64_t)v;
     return lo ? 64 - __builtin_clzll(lo) : 0;
 }
+
+#if QX_STATE || Q_STATE
+typedef struct { u128 sum, carry; } csa_pair;
+
+static csa_pair p5_csa3(u128 a, u128 b, u128 c)
+{
+    csa_pair out = {
+        a ^ b ^ c,
+        ((a & b) | (a & c) | (b & c)) << 1,
+    };
+    return out;
+}
+
+static csa_pair p5_compress4(u128 d, u128 a, u128 b, u128 c)
+{
+    csa_pair first = p5_csa3(a, b, c);
+    return p5_csa3(d, first.sum, first.carry);
+}
+
+static int p5_booth_digit(uint64_t multiplier, int row)
+{
+    static const int8_t booth8[16] = {
+         0,  1,  1,  2,  2,  3,  3,  4,
+        -4, -3, -3, -2, -2, -1, -1,  0,
+    };
+    int code = 0;
+    for (int out_bit = 0; out_bit < 4; out_bit++) {
+        int source_bit = 3 * row - 1 + out_bit;
+        if (source_bit >= 0 && source_bit < 64)
+            code |= (int)((multiplier >> source_bit) & 1) << out_bit;
+    }
+    return booth8[code];
+}
+
+static csa_pair p5_product_tree(u128 multiplicand, u128 multiplier)
+{
+    const u128 pp_mask = (((u128)1 << 70) - 1);
+    u128 inputs[24] = { 0 };
+    int prior_negative = 0;
+    for (int row = 0; row < 22; row++) {
+        int digit = p5_booth_digit((uint64_t)multiplier, row);
+        u128 magnitude = multiplicand
+            * (u128)(digit < 0 ? -digit : digit);
+        u128 encoded = ((u128)1 << 69) | magnitude;
+        if (digit < 0)
+            encoded = (~encoded) & pp_mask;
+        u128 physical = (encoded | ((u128)3 << 70)) << (3 * row);
+        if (prior_negative)
+            physical |= (u128)1 << (3 * (row - 1));
+        inputs[row] = physical;
+        prior_negative = digit < 0;
+    }
+    inputs[22] = (u128)1 << 69;
+
+    csa_pair level1[6];
+    for (int index = 0; index < 6; index++) {
+        u128 *wire = &inputs[4 * index];
+        level1[index] = p5_compress4(
+            wire[0], wire[1], wire[2], wire[3]);
+    }
+    csa_pair level2[3];
+    for (int index = 0; index < 3; index++) {
+        csa_pair left = level1[2 * index];
+        csa_pair right = level1[2 * index + 1];
+        level2[index] = p5_compress4(
+            left.sum, left.carry, right.sum, right.carry);
+    }
+    csa_pair level3 = p5_compress4(
+        level2[0].sum, level2[0].carry,
+        level2[1].sum, level2[1].carry);
+    return p5_compress4(
+        level3.sum, level3.carry,
+        level2[2].sum, level2[2].carry);
+}
+
+static int p5_qx_run(u128 square_input)
+{
+    csa_pair tree = p5_product_tree(square_input, square_input >> 3);
+    csa_pair qx = p5_csa3(
+        tree.sum << 3,
+        tree.carry << 3,
+        square_input * (square_input & 7));
+    const u128 sqrt_two_cut = ((u128)5 << 64)
+        | (u128)UINT64_C(0xa827999fcef32423);
+    int cut = square_input >= sqrt_two_cut ? 67 : 66;
+    int run = 0;
+    u128 propagate = qx.sum ^ qx.carry;
+    for (int position = cut - 1;
+         position >= 0 && ((propagate >> position) & 1);
+         position--)
+        run++;
+    return run;
+}
+
+static int p5_q_run(u128 square_input)
+{
+    csa_pair tree = p5_product_tree(square_input, square_input >> 3);
+    u256 product = mul128(square_input, square_input >> 3);
+    int cut = bitlen256(&product) - 67;
+    int run = 0;
+    u128 propagate = tree.sum ^ tree.carry;
+    for (int position = cut - 1;
+         position >= 0 && ((propagate >> position) & 1);
+         position--)
+        run++;
+    return run;
+}
+#endif
 
 /* signed add, RN to 64 bits (chain adds) */
 static fpv add_rn64(fpv l, fpv r)
@@ -164,7 +302,7 @@ int main(int argc, char **argv)
     uint64_t count = strtoull(argv[2], 0, 10);
     for (uint64_t i = 0; i < count; i++) {
         uint64_t m = start + i;
-        fpv mag = {0, -66, m};
+        fpv mag = {0, MAG_E2, m};
         fpv square = mul_chop67(mag, mag);
         fpv fourth = mul_chop67(square, square);
         fpv neg = chain(fourth, C6_5, C6_3, C6_1);
@@ -254,11 +392,37 @@ int main(int argc, char **argv)
         /* (shr at s4-12 gives retained low bits too; mask keeps 12
            bits which are the tail's top 12 since tail = low s4 bits) */
 
+#if QX_STATE
+        int qx_run = p5_qx_run(square.sig);
+        if (qx_run < QX_MIN)
+            continue;
+        printf("%016llx %d %d %d %d %03x %03x %01x%016llx %d %d %d %d\n",
+               (unsigned long long)m, dist, low3, k, rud,
+               (unsigned)(t12 & 0xfff), (unsigned)(rd12 & 0xfff),
+               (unsigned)(R >> 64), (unsigned long long)R, corr_e,
+               theta, s4, qx_run);
+#elif Q_STATE
+        int q_run = p5_q_run(square.sig);
+        if (q_run < Q_MIN)
+            continue;
+        printf("%016llx %d %d %d %d %03x %03x %01x%016llx %d %d %d %d\n",
+               (unsigned long long)m, dist, low3, k, rud,
+               (unsigned)(t12 & 0xfff), (unsigned)(rd12 & 0xfff),
+               (unsigned)(R >> 64), (unsigned long long)R, corr_e,
+               theta, s4, q_run);
+#elif MERGE_STATE
+        printf("%016llx %d %d %d %d %03x %03x %01x%016llx %d %d %d\n",
+               (unsigned long long)m, dist, low3, k, rud,
+               (unsigned)(t12 & 0xfff), (unsigned)(rd12 & 0xfff),
+               (unsigned)(R >> 64), (unsigned long long)R, corr_e,
+               theta, s4);
+#else
         printf("%016llx %d %d %d %d %03x %03x %01x%016llx %d %d\n",
                (unsigned long long)m, dist, low3, k, rud,
                (unsigned)(t12 & 0xfff), (unsigned)(rd12 & 0xfff),
                (unsigned)(R >> 64), (unsigned long long)R, corr_e,
                theta);
+#endif
     }
     return 0;
 }

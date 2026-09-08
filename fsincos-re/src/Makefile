@@ -4,6 +4,12 @@ LDLIBS  ?= -lm
 
 all: fsincos_itanium fsincos_skylake
 
+# Explicit opt-in packaging of the fixed standalone numerical candidate.
+# This does not replace the historical all/standalone targets or enable FSINCOS.
+general-candidate:
+	python3 ../experiments/h1707_build_standalone_candidate.py --root .. \
+		--binary general/fsin_fcos_candidate --cc "$(CC)" --cflags="-O2"
+
 standalone: standalone/fsin_model standalone/fptan_model standalone/f2xm1_model
 
 standalone/fsin_model: standalone/fsin_model.c
@@ -41,4 +47,4 @@ clean:
 		[ ! -e "$$file" ] || rm "$$file"; \
 	done
 
-.PHONY: all standalone check-fsin-h377 test clean
+.PHONY: all standalone general-candidate check-fsin-h377 test clean

@@ -90,6 +90,7 @@ static int split_tabs(char *line, char **fields, int capacity)
 
 int main(void)
 {
+    int verbose = getenv("H1004_VERBOSE") != NULL;
     FILE *input = fopen("h989_union_legs.tsv", "r");
     if (!input) {
         perror("h989_union_legs.tsv");
@@ -144,6 +145,15 @@ int main(void)
             truth, parse_mode(mode_text));
         int hcr = same_ext80(hardware, correctly_rounded);
         int mcr = same_ext80(model, correctly_rounded);
+        if (verbose)
+            printf("ROW %s %s %04x %016" PRIx64
+                   " hw=%04x:%016" PRIx64
+                   " model=%04x:%016" PRIx64
+                   " cr=%04x:%016" PRIx64 " class=%s\n",
+                   insn, mode_text, operand.se, operand.sig,
+                   hardware.se, hardware.sig, model.se, model.sig,
+                   correctly_rounded.se, correctly_rounded.sig,
+                   hcr ? "HW_CR" : (mcr ? "MODEL_CR" : "NEITHER"));
         if (hcr) {
             hardware_cr++;
             by_mode[mode_index][1]++;

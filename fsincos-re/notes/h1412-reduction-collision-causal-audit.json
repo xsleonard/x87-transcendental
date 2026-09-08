@@ -1,0 +1,157 @@
+{
+  "artifact": "h1412-reduction-collision-causal-audit",
+  "date": "2026-09-03",
+  "scope": "read-only C-model causal audit; analysis only",
+  "hardware_execution": "none",
+  "private_ledgers_opened": false,
+  "h1408_preserved": {
+    "path": "tmp/ledger33/current/h1408_exact_reduction_history_collision.json",
+    "sha256": "b481167facbb3ec83d755e02310bd442598653aa7e9c3ac81ff4c777a450adf3",
+    "modified": false
+  },
+  "pair": [
+    {
+      "instruction": "fcos",
+      "operand": "3ffc d920000000749eaa",
+      "reduction_quotient": 0,
+      "proposed_inverse_equation_carry_into_column_64": 0
+    },
+    {
+      "instruction": "fsin",
+      "operand": "3fff e433daa22177560a",
+      "reduction_quotient": 1,
+      "proposed_inverse_equation_carry_into_column_64": 1
+    }
+  ],
+  "conclusion": {
+    "current_c_model_cause": "The default-on Round-84 exact-operand output overlay changes only the direct FCOS RN result from 3ffe:fa4448c75102c99d to 3ffe:fa4448c75102c99c after the common arithmetic pipeline has completed.",
+    "m66_carry_status": "correlated_not_consumed",
+    "m66_carry_explanation": "The reported carry is computed by the reverse-preimage equation (2*q*M66)+residual. It is not returned by sky_reduce_rc, is not retained by wv_from_rc, and is not consumed by the polynomial, terminal, final-rounding, or output code. The q=0 direct FCOS operand does not call sky_reduce_rc at all. It remains a proposed silicon discriminator, not a demonstrated cause in this C model.",
+    "silicon_causality": "not determined; no hardware was executed"
+  },
+  "source_line_evidence": [
+    {
+      "path": "src/fsincos_skylake.c",
+      "lines": "293-349",
+      "evidence": "sky_reduce_rc returns only r and c; temporary product carries and subtraction borrows are not exported."
+    },
+    {
+      "path": "src/fsincos_skylake.c",
+      "lines": "3104-3120",
+      "evidence": "wv_from_rc reconstructs only the exact signed residual and retains no quotient or reducer-history field."
+    },
+    {
+      "path": "src/fsincos_skylake.c",
+      "lines": "8754-8767",
+      "evidence": "The direct FCOS path assigns r=x, c=0, and signed_n=phase_increment=1 without invoking reduction."
+    },
+    {
+      "path": "src/fsincos_skylake.c",
+      "lines": "8768-8776",
+      "evidence": "The external FSIN path obtains q=1, reduces, and also enters the producer with signed_n=1."
+    },
+    {
+      "path": "src/fsincos_skylake.c",
+      "lines": "8779-8809",
+      "evidence": "Both paths produce the same r/c, magnitude, residual sign, producer selection, retain flag, and eligibility flag."
+    },
+    {
+      "path": "src/fsincos_skylake.c",
+      "lines": "8166-8184",
+      "evidence": "The common final add has no input for original operand, instruction identity, quotient, or reduction carry."
+    },
+    {
+      "path": "src/fsincos_skylake.c",
+      "lines": "9074-9075",
+      "evidence": "The Round-84 table contains the exact direct FCOS d920/RN result 3ffe:fa4448c75102c99c."
+    },
+    {
+      "path": "src/fsincos_skylake.c",
+      "lines": "9087-9100",
+      "evidence": "r84_lookup matches exact operand, instruction, and rounding mode, then overwrites the architectural result."
+    },
+    {
+      "path": "src/fsincos_skylake.c",
+      "lines": "9122-9135",
+      "evidence": "FSIN converts the arithmetic result and consults R84_FSIN; the external operand has no matching entry."
+    },
+    {
+      "path": "src/fsincos_skylake.c",
+      "lines": "9141-9154",
+      "evidence": "FCOS converts the arithmetic result and then consults R84_FCOS, which matches the direct d920/RN key."
+    },
+    {
+      "path": "experiments/h1404_exact_preimage_smt.py",
+      "lines": "1874-1881",
+      "evidence": "The proposed carry is calculated independently as a ripple carry in the reverse exact-preimage addition."
+    }
+  ],
+  "reproduction": {
+    "compiler": "Apple clang version 17.0.0 (clang-1700.6.4.2), arm64-apple-darwin24.6.0",
+    "source": {
+      "path": "src/fsincos_skylake.c",
+      "sha256": "8281c7a1e71fbf71cb6c6417e004e517b453dbb6d9b4e0293ce7af03ff0bea95"
+    },
+    "builds": {
+      "ledger_on": {
+        "command": "cc -O2 -ffp-contract=off -DG_ROUND84=1 -o /private/tmp/h1412_r84_on fsincos-re/src/fsincos_skylake.c -lm",
+        "binary_sha256": "e45d6a0dec0fd96ec280431cc4d50c1177316c99541cfcab53992c227946bed5"
+      },
+      "ledger_off": {
+        "command": "cc -O2 -ffp-contract=off -DG_ROUND84=0 -o /private/tmp/h1412_r84_off fsincos-re/src/fsincos_skylake.c -lm",
+        "binary_sha256": "fee7ac6a49f54efe9d0ec9d81a94d02e6c63b292ed7c688e1596abf83b434438"
+      }
+    },
+    "run_template": "<binary> --batch --<instruction>-standalone --rc=<mode>",
+    "outputs": {
+      "ledger_on": {
+        "rn": {
+          "fcos_direct": "OK 3ffe fa4448c75102c99c",
+          "fsin_external": "OK 3ffe fa4448c75102c99d"
+        },
+        "rd": {
+          "fcos_direct": "OK 3ffe fa4448c75102c99c",
+          "fsin_external": "OK 3ffe fa4448c75102c99c"
+        },
+        "ru": {
+          "fcos_direct": "OK 3ffe fa4448c75102c99d",
+          "fsin_external": "OK 3ffe fa4448c75102c99d"
+        },
+        "rz": {
+          "fcos_direct": "OK 3ffe fa4448c75102c99c",
+          "fsin_external": "OK 3ffe fa4448c75102c99c"
+        }
+      },
+      "ledger_off": {
+        "rn": {
+          "fcos_direct": "OK 3ffe fa4448c75102c99d",
+          "fsin_external": "OK 3ffe fa4448c75102c99d"
+        },
+        "rd": {
+          "fcos_direct": "OK 3ffe fa4448c75102c99c",
+          "fsin_external": "OK 3ffe fa4448c75102c99c"
+        },
+        "ru": {
+          "fcos_direct": "OK 3ffe fa4448c75102c99d",
+          "fsin_external": "OK 3ffe fa4448c75102c99d"
+        },
+        "rz": {
+          "fcos_direct": "OK 3ffe fa4448c75102c99c",
+          "fsin_external": "OK 3ffe fa4448c75102c99c"
+        }
+      }
+    }
+  },
+  "validation": {
+    "ledger_off_pair_equal_in_all_modes": true,
+    "ledger_toggle_changes_only_direct_fcos_rn": true,
+    "identical_arithmetic_state": "DI_RC2 through DI_FIN values are identical; DI_FIN ra is excluded because it is an ASLR-dependent return address, not arithmetic state.",
+    "h1408_observed_trace_claim": "preserved: DI_RED, DI_POLY, DI_TC, DI_R59, and DI_BR remain byte-identical"
+  },
+  "recommended_instrumentation": [
+    "Add DI_R84 around r84_lookup with hit, instruction, rounding mode, exact operand, pre-overlay result, and post-overlay result.",
+    "Add DI_PRE_RED with direct/reduced path, phase increment, quotient and signed quotient, A/B limbs, B-construction carries, subtraction borrow chain, and resulting r/c.",
+    "Run causal comparisons with G_ROUND84=0 so the operand-keyed overlay cannot masquerade as propagated arithmetic history.",
+    "Normalize DI_FIN by excluding its ASLR-dependent return-address field."
+  ]
+}
