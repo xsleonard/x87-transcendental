@@ -91,3 +91,5 @@ CMakeFiles/
 /research/fsincos-re/capture-kit/crossgen/*.tsv
 /research/fsincos-re/capture-kit/bin/*
 !/research/fsincos-re/capture-kit/bin/SHA256SUMS
+
+/.scratch
