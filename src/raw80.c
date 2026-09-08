@@ -20,6 +20,11 @@ raw_class x87t_internal_raw80_classify(x87t_raw80 v)
 
 uint8_t x87t_internal_trig_flags(x87t_raw80 x, int range_return, int sine_component)
 {
+    /* Use the original encoding, before normalization. Set PE for a finite
+     * nonzero input when the instruction completes, regardless of whether
+     * its internal products were exact. Denormals and pseudo-denormals set
+     * DE. Only true denormals set UE for sine or tangent; FCOS passes
+     * sine_component=0. Handle special encodings before checking C2. */
     raw_class kind = x87t_internal_raw80_classify(x);
     if (kind == RAW_UNSUPPORTED || kind == RAW_SNAN || kind == RAW_INFINITY)
         return X87T_IE;

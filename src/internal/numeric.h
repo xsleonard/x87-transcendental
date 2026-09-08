@@ -6,7 +6,15 @@
 typedef unsigned __int128 u128;
 typedef x87t_raw80 x80_t;
 typedef enum { SF_RN = 0, SF_RD = 1, SF_RU = 2, SF_RZ = 3 } sf_rc_t;
+/* Finite values are stored as integers times powers of two. RN means
+ * nearest with ties to even, RD toward -infinity, RU toward +infinity,
+ * and RZ toward zero. P5_ROUND_CHOP also truncates toward zero.
+ * Each arithmetic call specifies its width independently of guest PC. */
 /* value = (-1)^sign * sig * 2^(exp-63); exp is the leading-bit exponent. */
+/* A finite nonzero sf_t has bit 63 of sig set. Zero has sig=0 and keeps
+ * its sign; exp is ignored. The exponent must fit int32_t but can exceed
+ * raw80 limits. Classify raw80 bits before decoding, since normalization
+ * can turn an unsupported encoding into an apparently valid value. */
 typedef enum { SF_FIN, SF_INF, SF_NAN } sf_cls_t;
 typedef struct {
     uint8_t cls, sign;
@@ -14,12 +22,21 @@ typedef struct {
     uint64_t sig;
 } sf_t;
 /* Wide value = (-1)^sign * sig * 2^e2. rh is retained materialization metadata. */
+/* sig need not be normalized or odd. Its 128-bit field holds whatever bits
+ * the previous operation kept; the next call chooses its own rounding width.
+ * rh is -1 if rounding made the value smaller, +1 if larger, and 0 if exact.
+ * It records a direction, not the discarded bits. Ordinary wide arithmetic
+ * ignores rh when reading its inputs. */
 typedef struct {
     uint8_t sign;
     int32_t e2;
     u128 sig;
     int8_t rh;
 } wv_t;
+/* As an unsigned integer, this is hi*2^128+lo. Signed accumulators interpret
+ * the same bits as two's complement and multiply by 2^scale. Callers must
+ * prevent signed overflow; these helpers neither check nor clamp it.
+ * Unsigned multiplication can use all 256 bits for its product. */
 typedef struct {
     u128 hi, lo;
 } u256;

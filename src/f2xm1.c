@@ -1,26 +1,63 @@
 /* F2XM1: tiny, interleaved polynomial and table evaluation. */
+/*
+ * Compute 2^x - 1 for -1 <= x <= 1. Handle signed zero, NaNs and unsupported
+ * encodings before doing arithmetic. Infinities return OUTSIDE_SCOPE.
+ * Finite inputs outside [-1,1] are returned unchanged with PE set, matching
+ * the observations; the instruction does not guarantee this behavior.
+ *
+ * Return exact results for x = +/-1. For 0 < |x| < 2^-68, use x*L, where
+ * L is the stored approximation to ln(2). For 2^-68 <= |x| < 1/4, evaluate
+ * a polynomial in z = x*ln(2). For 1/4 <= |x| < 1, choose a table midpoint c:
+ *     r = x - c,  d = 2^c - 1,
+ *     2^x - 1 = d + (1 + d)*(2^r - 1).
+ * The identity explains how to combine the table value with an approximation
+ * to 2^r-1. The code uses a rounded table value and rounds each operation
+ * separately, so rearranging the expression can change its result.
+ *
+ * CHOP67 means truncate to 67 significant bits toward zero. RN64 means
+ * round to 64 bits, nearest with ties to even. Most products use CHOP67;
+ * selected products and ordinary additions use RN64. The last operation
+ * uses the guest rounding mode (RC). Guest precision control (PC) does not
+ * change these widths. Subnormal results are rounded directly to raw80.
+ * The public function sets exception flags and decides whether to write the
+ * result. C1 records whether final rounding increased the result's magnitude.
+ *
+ * h254 and h258 tested these choices of width and rounding mode. Keeping
+ * more bits can change both result bits and C1. Later fixes added signaling
+ * NaN quieting and direct raw80 rounding for tiny products.
+ */
 #include "internal/numeric.h"
 #include "constants/f2xm1.h"
 
 /* expose a constant as an exact wide carrier. */
+/* Both types store (-1)^sign * sig * 2^scale, using exp2 or e2 for scale.
+ * Copy the stored approximation without rounding it again. */
 static wv_t f2xm1_constant(const p5c_t *constant)
 {
     return (wv_t){constant->sign, constant->exp2, constant->sig, 0};
 }
 
 /* h254/h258 ordinary-multiply class. */
+/* Multiply the input significands as stored, then truncate the product to
+ * 67 bits toward zero. Unlike the standalone trig helper, this function
+ * does not truncate either input first. It ignores their rh fields. */
 static wv_t f2xm1_mul_chop67(wv_t left, wv_t right)
 {
     return x87t_internal_wide_mul(left, right, 67, P5_ROUND_CHOP);
 }
 
 /* h254/h258 multiply-class materialization. */
+/* Round the full product directly to RN64. Chopping it to 67 bits first
+ * could change the rounding decision. Used for L*r, the initial long-path
+ * L*x, and two later products in that polynomial. */
 static wv_t f2xm1_mul_rn64(wv_t left, wv_t right)
 {
     return x87t_internal_wide_mul(left, right, 64, P5_ROUND_RN);
 }
 
 /* h254/h258 ordinary-add class. */
+/* Align both operands in the integer accumulator, add, then round to RN64.
+ * The 128-bit fields hold the operands; they do not set the rounding width. */
 static wv_t f2xm1_add_rn64(wv_t left, wv_t right)
 {
     return x87t_internal_wide_add(left, right, 64, P5_ROUND_RN);
@@ -33,6 +70,10 @@ static wv_t f2xm1_add_constant_rn64(wv_t value, const p5c_t *constant)
 }
 
 /* final add with architectural rounding control. */
+/* The aligned sum fits in 256 bits at these call sites. Round it once to
+ * 64 significant bits using RC. Set c1 if rounding increases its magnitude.
+ * This says nothing about its error relative to the true value of 2^x-1.
+ * The caller handles PE, UE and the raw80 exponent limits. */
 static sf_t f2xm1_final_add(wv_t left, wv_t right, sf_rc_t rc, int *c1)
 {
     int32_t scale = left.e2 < right.e2 ? left.e2 : right.e2;
@@ -59,6 +100,9 @@ static sf_t f2xm1_final_multiply(wv_t value, const p5c_t *constant, sf_rc_t rc, 
  * the destination spacing also makes the subsequent store exact. */
 static sf_t f2xm1_tiny_raw80(sf_t x, sf_rc_t rc, int *c1)
 {
+    /* x must be finite, nonzero and normalized, with x.exp <= -16382.
+     * The integer product is scaled by 2^(x.exp-63 + F2_LN2.exp2). Round
+     * directly to multiples of 2^-16445; raw80 inputs give 67 <= shift <= 130. */
     int32_t scale = x.exp - 63 + F2_LN2.exp2;
     int shift = -16445 - scale;
     u256 magnitude = {0, 0};
@@ -88,6 +132,12 @@ static sf_t f2xm1_tiny_raw80(sf_t x, sf_rc_t rc, int *c1)
 }
 
 /* reconstructed six-coefficient table polynomial. */
+/* Requires normalized x with 1/4 <= |x| < 1. Split each magnitude interval,
+ * [1/4,1/2) and [1/2,1), into 16 equal cells. Each cell includes its lower
+ * boundary and excludes its upper one. The top four fraction bits give lane.
+ * Rows 0..15 are for positive [1/2,1), and rows 16..31 for positive [1/4,1/2).
+ * Add 32 to select the corresponding negative midpoint. Its value is
+ * c = (-1)^x.sign * numerator/128; negative_anchor stores -c exactly. */
 static sf_t f2xm1_table_path(sf_t x, sf_rc_t rc, int *c1)
 {
     wv_t input = {x.sign, x.exp - 63, x.sig, 0};
@@ -99,6 +149,11 @@ static sf_t f2xm1_table_path(sf_t x, sf_rc_t rc, int *c1)
     wv_t z = f2xm1_mul_rn64(f2xm1_constant(&F2_LN2), residual);
     wv_t z2 = f2xm1_mul_chop67(z, z);
 
+    /* With A[j] = F2_SHORT[j], the ideal polynomial is
+     * z + A[0]z^2 + A[1]z^3 + ... + A[5]z^7.
+     * even holds z plus the even powers; odd holds the odd powers from z^3.
+     * The code computes residual=RN64(x-c), z=RN64(L*residual), then
+     * z2=CHOP67(z*z). Each later multiply and add rounds separately. */
     wv_t even =
         f2xm1_add_constant_rn64(f2xm1_mul_chop67(z2, f2xm1_constant(&F2_SHORT[4])), &F2_SHORT[2]);
     even = f2xm1_add_constant_rn64(f2xm1_mul_chop67(z2, even), &F2_SHORT[0]);
@@ -110,6 +165,10 @@ static sf_t f2xm1_table_path(sf_t x, sf_rc_t rc, int *c1)
     odd = f2xm1_mul_chop67(z, f2xm1_mul_chop67(z2, odd));
 
     wv_t polynomial = f2xm1_add_rn64(even, odd);
+    /* lookup stores d=2^c-1 rounded to 67 bits, nearest with ties to even.
+     * First round 1+lookup to RN64. Multiply by polynomial and chop to
+     * 67 bits. Finally add lookup using guest RC. Fusing these operations
+     * or using a separate table for 2^c would change the rounding steps. */
     wv_t lookup = f2xm1_constant(&F2_TABLE[index]);
     wv_t one_plus_lookup = f2xm1_add_rn64(lookup, (wv_t){0, 0, 1, 0});
     wv_t scaled = f2xm1_mul_chop67(one_plus_lookup, polynomial);
@@ -117,6 +176,14 @@ static sf_t f2xm1_table_path(sf_t x, sf_rc_t rc, int *c1)
 }
 
 /* reconstructed eleven-coefficient long path. */
+/* Requires 2^-68 <= |x| < 1/4. With B[j]=F2_LONG[j], the polynomial is
+ * z + B[0]z^2 + ... + B[10]z^12, where z=ln(2)*x.
+ * Compute L*x twice: tmp1 uses CHOP67, and tmp2 uses RN64. Their product,
+ * chopped to 67 bits, replaces tmp2 and serves as z^2 in both chains.
+ * Squaring either rounded value instead would give a different calculation.
+ * tmp5 collects B[1],B[3],...,B[9] for the odd powers after multiplying by tmp1.
+ * tmp6 collects B[2],B[4],...,B[10] for the even powers after multiplying by tmp2.
+ * tmp3 starts with the quadratic term B[0]*tmp2, then adds both chains. */
 static sf_t f2xm1_long_path(sf_t x, sf_rc_t rc, int *c1)
 {
     wv_t input = {x.sign, x.exp - 63, x.sig, 0};
@@ -141,6 +208,8 @@ static sf_t f2xm1_long_path(sf_t x, sf_rc_t rc, int *c1)
     tmp6 = f2xm1_mul_chop67(tmp2, tmp6);
     tmp5 = f2xm1_add_constant_rn64(tmp5, &F2_LONG[1]);
     tmp6 = f2xm1_add_constant_rn64(tmp6, &F2_LONG[2]);
+    /* Round these two products to RN64 before the next multiplication.
+     * Keeping 67 bits here can change the later sums. */
     tmp5 = f2xm1_mul_rn64(tmp2, tmp5);
     tmp6 = f2xm1_mul_rn64(tmp2, tmp6);
     tmp5 = f2xm1_mul_chop67(tmp1, tmp5);
@@ -152,6 +221,9 @@ static sf_t f2xm1_long_path(sf_t x, sf_rc_t rc, int *c1)
 }
 
 /* complete finite-value F2XM1 path selection. */
+/* For finite nonzero x, exp = floor(log2(|x|)). Exactly 2^-68 takes the
+ * long polynomial; exactly 1/4 takes the table. Handle +/-1 before looking
+ * up a table entry. Zero keeps its sign. */
 sf_t x87t_internal_f2xm1_core(sf_t x, sf_rc_t rc, int *c1)
 {
     *c1 = 0;
@@ -191,6 +263,11 @@ x87t_f2xm1(const x87t_context *context, x87t_raw80 x, const x87t_control *contro
     x87t_result result;
     x87t_internal_result_begin(&result, X87T_REPLACE_ST0);
     result.cc_known = X87T_C1;
+    /* Classify the original encoding before sf_from_parts normalizes it.
+     * PE is reported for every finite nonzero operand here, including
+     * +/-1 and the |x|>1 bypass, even if final rounding discards no bits.
+     * Denormals and pseudo-denormals also raise DE. Signaling NaNs and
+     * unsupported encodings raise IE. */
     if (kind == RAW_UNSUPPORTED) {
         result.primary = x87t_internal_X87_INDEFINITE;
         result.exceptions = X87T_IE;
@@ -226,6 +303,10 @@ x87t_f2xm1(const x87t_context *context, x87t_raw80 x, const x87t_control *contro
             }
         }
     }
+    /* Unmasked IE or DE prevents the result from being written and clears C1.
+     * Unmasked UE or PE allows the write; UE uses the scaled product above.
+     * result_finish reports that decision. The caller updates the register
+     * and handles exception delivery. */
     x87t_internal_result_finish(&result, control);
     *out = result;
     return X87T_OK;

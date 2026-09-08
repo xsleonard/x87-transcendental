@@ -1,8 +1,28 @@
+/* Arithmetic helpers for FPATAN and the logarithms. An fv holds an integer
+ * of at most 256 bits, a sign and a power-of-two scale. Callers handle NaNs,
+ * infinities and unsupported raw80 encodings before using these helpers.
+ *
+ * Construction and scaling are exact, as is multiplication of two magnitudes
+ * of at most 128 bits each. Addition, division and rounding take an explicit
+ * result width of 1..128 significant bits. The 256-bit storage does not set
+ * the precision of those operations. Exponents can exceed the raw80 range.
+ *
+ * fencode and fencode_sum round to raw80 and return C1. Callers set exception
+ * flags and decide whether the result is written. Rounding an intermediate
+ * before the instruction calls for it can change both the result and C1.
+ */
 #include "internal/finite.h"
 #include "internal/numeric.h"
 #include <stdlib.h>
 
 /* Exact dyadic arithmetic and rounding primitives. */
+/* Align the larger operand's leading bit at bit 318; bit 319 leaves room
+ * for a carry. sum_work represents
+ *     (-1)^negative * (integer + fraction) * 2^scale.
+ * tail=0 means fraction=0; tail=1 means 0<fraction<1. Rounding needs only
+ * this distinction because every supported rounding position is above the
+ * fraction. sum() explains why alignment and subtraction preserve that bound.
+ */
 enum { WORDS = 5, WINDOW_TOP = 318 };
 typedef struct {
     uint64_t word[WORDS];
@@ -107,6 +127,10 @@ static magnitude subtract(magnitude a, magnitude b)
 }
 static fv value(magnitude a, int exponent, unsigned negative)
 {
+    /* Remove trailing zero bits from the magnitude and add their count to
+     * the exponent, keeping the value exact. The input may exceed 256 bits
+     * only if removing those zeros makes it fit in the four result words.
+     */
     fv r = {{0}, 0, 0};
     if (!width(a))
         return r;
@@ -170,6 +194,10 @@ int x87t_internal_fexp(fv a)
 }
 fv x87t_internal_fdecode(raw80 a)
 {
+    /* Finite raw80 is (-1)^sign * sig * 2^(E-16383-63). Use E=1 when
+     * the stored exponent is zero, so denormals and pseudo-denormals decode
+     * exactly. The caller must check the input class and handle DE.
+     */
     fv r = x87t_internal_fuint(a.sig);
     r = x87t_internal_fscale(r, ((a.se & 0x7fff) ? (a.se & 0x7fff) : 1) - 16383 - 63);
     return a.se & 0x8000 ? x87t_internal_fneg(r) : r;
@@ -214,6 +242,14 @@ static sum_work sum(fv a, fv b)
      * window. A discarded tail belongs only to the smaller operand. For a
      * subtraction, borrow one unit and retain the complementary positive
      * tail: this is essential for directed rounding of pi minus tiny angles. */
+    /* Put the larger magnitude first so its sign is the result's sign.
+     * It contains at most 256 bits, so placing its leading bit at position
+     * 318 preserves the entire operand. The smaller operand can lose bits
+     * only if its leading exponent is at least 64 lower. In that case
+     * subtraction can move the leading bit down only to position 317.
+     * Rounding to at most 128 bits therefore
+     * uses a guard bit in integer; tail only tells us that lower bits exist.
+     */
     if (abs_compare(a, b) < 0) {
         fv t = a;
         a = b;
@@ -244,6 +280,11 @@ static sum_work sum(fv a, fv b)
 }
 static int increment(unsigned odd, unsigned guard, unsigned rest, unsigned negative, enum mode rc)
 {
+    /* odd is the last kept bit, guard is the first discarded bit, and
+     * rest is true if any lower bit is nonzero. At an exact tie (guard=1,
+     * rest=0), RN increments only if odd=1. An increment increases the
+     * magnitude, so RD and RU must also check the sign.
+     */
     if (!guard && !rest)
         return 0;
     if (rc == RD)
@@ -254,6 +295,11 @@ static int increment(unsigned odd, unsigned guard, unsigned rest, unsigned negat
 }
 static fv at_step(sum_work a, int scale, enum mode rc, int *c1)
 {
+    /* Round to a multiple of 2^scale. fadd chooses scale for the requested
+     * significand width; raw80 encoding also limits the spacing to at least
+     * 2^-16445. Set c1 when rounding increments the magnitude, rather than
+     * whenever nonzero bits are discarded.
+     */
     int shift = scale - a.scale;
     if (shift <= 0) {
         require(!a.tail);
@@ -281,6 +327,9 @@ fv x87t_internal_fadd(fv a, fv b, int bits, enum mode rc)
 }
 fv x87t_internal_fround(fv a, int bits, enum mode rc)
 {
+    /* Adding zero lets fadd do the one requested rounding step. Passing,
+     * returning or assigning an fv does not round it.
+     */
     return x87t_internal_fadd(a, x87t_internal_fuint(0), bits, rc);
 }
 int x87t_internal_fratio_exp(fv a, fv b)
@@ -333,6 +382,11 @@ uint64_t x87t_internal_ffloor(fv a)
 }
 static raw80 encode(sum_work w, enum mode rc, int *c1)
 {
+    /* For a value with leading exponent E, round once to a multiple of
+     * 2^(max(E,-16382)-63). This gives 64 significant bits for normal
+     * values and spacing 2^-16445 for subnormals. A rounding carry can
+     * produce the minimum normal value or overflow. The caller sets flags.
+     */
     raw80 out = {0, 0};
     int e = width(w.integer) ? w.scale + width(w.integer) - 1 : -16382;
     if (e < -16382)
@@ -344,6 +398,10 @@ static raw80 encode(sum_work w, enum mode rc, int *c1)
     }
     fv q = at_step(w, e - 63, rc, c1);
     if (x87t_internal_fsign(q) && x87t_internal_fexp(q) > 16383) {
+        /* On overflow, RN and rounding away from zero return infinity;
+         * the other modes return the largest finite value with this sign.
+         * Set C1 to 1 for infinity and 0 for the finite result.
+         */
         int inf = rc == RN || (rc == RD && w.negative) || (rc == RU && !w.negative);
         out.se = (uint16_t)((w.negative << 15) | (inf ? 0x7fff : 0x7ffe));
         out.sig = inf ? (UINT64_C(1) << 63) : UINT64_MAX;
@@ -368,6 +426,12 @@ raw80 x87t_internal_fencode(fv a, enum mode rc, int *c1)
 }
 raw80 x87t_internal_fencode_sum(fv a, fv b, enum mode rc, unsigned masks, int *c1, int *tiny)
 {
+    /* Round a+b directly to raw80. Rounding the sum to a fixed number of
+     * significant bits first could change FPATAN's last result bit and C1.
+     * Test whether the nonzero sum is below minimum normal before rounding.
+     * If it is tiny and UE is unmasked, multiply it by 2^24576 before rounding.
+     * The caller uses tiny to set UE and decide whether to write the result.
+     */
     sum_work w = sum(a, b);
     *tiny = width(w.integer) && w.scale + width(w.integer) - 1 < -16382;
     if (*tiny && !(masks & X87T_UE))

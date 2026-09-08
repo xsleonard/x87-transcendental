@@ -1,3 +1,19 @@
+/* Handle tiny residuals for FSIN, FCOS and FSINCOS. phase=0 computes
+ * sine and phase=1 cosine. Accept only nonzero finite x with |x| < 2^63;
+ * return 0 if the caller must use another path. Reduction uses the M66
+ * constant and quadrant rule from reduce.c. The remainder t must satisfy
+ * 0 < |t| < 2^-32. After reduction, also require c=0 so that r represents
+ * t exactly with 64 significant bits.
+ *
+ * For u = |t|, sin(u) = u - u^3/6 + ... and cos(u) = 1 - u^2/2 + ... .
+ * Both are slightly smaller than their leading values, u and 1. Choose
+ * the leading value or the next smaller 64-bit value according to the
+ * final sign and guest RC; no polynomial is evaluated here.
+ *
+ * For direct |x| < 2^-68, including all denormals, instead return x for
+ * sine or 1 for cosine in every rounding mode, with C1=0. H1638-H1643
+ * saved-data checks supported both this shortcut and the predecessor rule.
+ */
 #include "internal/numeric.h"
 
 int x87t_internal_trig_tiny(x80_t in, int phase, sf_rc_t rc, x80_t *out, numerical_metadata *meta)
@@ -24,6 +40,9 @@ int x87t_internal_trig_tiny(x80_t in, int phase, sf_rc_t rc, x80_t *out, numeric
     }
     int cosine = (unsigned)n & 1u;
     int negative = (((unsigned)n >> 1) & 1u) ^ (cosine ? 0 : r.sign);
+    /* At |x| = 2^-68, use the usual leading-value or predecessor rule.
+     * The final sign determines whether RD or RU rounds toward zero.
+     * PC does not reduce the 64-bit precision used here. */
     int bypass = !reduced && x.exp < -68;
     int toward_zero = rc == SF_RZ || (rc == SF_RD && !negative) || (rc == SF_RU && negative);
     sf_t result = cosine ? x87t_internal_ONE : x87t_internal_sf_abs(&r);
@@ -39,7 +58,14 @@ int x87t_internal_trig_tiny(x80_t in, int phase, sf_rc_t rc, x80_t *out, numeric
         }
     }
     result.sign = negative;
+    /* For a denormal sine input, sf_to_x87 undoes normalization exactly
+     * by shifting away padding zeros. For a pseudo-denormal, it preserves
+     * the value and writes the canonical normal encoding. */
     x87t_internal_sf_to_x87(&result, &out->se, &out->sig);
+    /* Outside the shortcut, the small correction reduces the magnitude.
+     * Choosing the leading value therefore rounds up in magnitude (C1=1);
+     * choosing its predecessor gives C1=0. trig_flags sets PE, DE and UE
+     * separately. */
     int c1 = bypass ? 0 : !toward_zero;
     meta->c1 = c1;
     meta->c1_known = 1;

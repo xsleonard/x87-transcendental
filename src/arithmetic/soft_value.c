@@ -1,5 +1,9 @@
 /* Software values use integer significands and an unbounded exponent.
  * Extracted from ia64_sf.h; no host floating-point environment is used. */
+/* The exponent can exceed raw80 limits, but must fit int32_t. A finite nonzero
+ * sf_t has a normalized 64-bit significand. These routines convert the
+ * representation; arithmetic helpers elsewhere perform the rounding
+ * requested by guest RC. */
 #include "internal/numeric.h"
 
 sf_t x87t_internal_sf_zero(int sign)
@@ -34,6 +38,10 @@ int x87t_internal_sf_is_zero(const sf_t *a)
  * normalize (fnorm semantics; wre absorbs the range). */
 sf_t x87t_internal_sf_from_parts(int sign, uint32_t expfield, uint64_t sig)
 {
+    /* Requires sign=0 or 1 and a 15-bit expfield. The caller must handle
+     * unsupported encodings first. A pseudo-denormal has the same value as
+     * exponent field 1. Keep its original classification in the caller so
+     * the caller can set DE; normalization loses that distinction. */
     sf_t r;
     r.cls = SF_FIN;
     r.sign = (uint8_t)sign;
@@ -66,6 +74,13 @@ sf_t x87t_internal_sf_from_parts(int sign, uint32_t expfield, uint64_t sig)
  * Values out of double-extended range would need denormalization; the
  * algorithm's outputs are in [-1-ulp, 1+ulp] or sin(x)~x for normal x, so
  * only denormal-range results (sin of denormal x) need the shift path. */
+/* This helper now also serves instructions other than trig. Pass a value
+ * that has already been rounded. The subnormal shift simply discards bits:
+ * it does not use RC, save guard or sticky bits, or set C1, UE or PE.
+ * Finite results must fit the raw80 range; NaNs and infinities use their
+ * own branches. Round subnormal results to multiples of 2^-16445 before
+ * calling, as the F2XM1 tiny helper does. Rounding first to 64 significant
+ * bits and then discarding bits here can give the wrong result and C1. */
 void x87t_internal_sf_to_x87(const sf_t *a, uint16_t *se, uint64_t *sig)
 {
     if (a->cls == SF_NAN) {

@@ -64,6 +64,15 @@ void x87t_internal_result_range(x87t_result *result)
 /* Early operand exceptions suppress all numerical writes and later flags.
  * Register-destination overflow/underflow and precision complete their writes;
  * their numerical entry points supply the appropriate rounded endpoint. */
+/* Choose the first new unmasked exception in IE, DE, ZE, OE, UE, PE order.
+ * IE, DE or ZE stops the instruction before it writes a result: keep only
+ * the selected flag, clear C1, and cancel the register update, push or pop.
+ * OE, UE or PE allows the write, keeping the calculated flags and C1.
+ *
+ * This function does no arithmetic. For unmasked OE or UE, the numerical
+ * routine must already have scaled and rounded the result. The caller
+ * updates registers and handles existing flags, stack state and exception
+ * delivery after any permitted write. */
 void x87t_internal_result_finish(x87t_result *result, const x87t_control *control)
 {
     unsigned unmasked = result->exceptions & ~control->exception_masks & 0x3f;

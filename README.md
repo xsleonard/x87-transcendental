@@ -55,6 +55,10 @@ installation, pkg-config and the [Bochs adapter](docs/bochs.md).
 | [docs/](docs/) | Contract, integration, algorithms, provenance and migration |
 | [research/](research/) | Preserved research sources, manuscripts and evidence |
 
+For maintainers, the [algorithm index](docs/algorithms/README.md) maps the
+numerical programs, and the [code documentation guideline](docs/code-documentation-guidelines.md)
+explains how to document their mathematics and finite-precision behavior.
+
 Tests include 1,800 numerical witnesses, 22,528 new hardware outcome witnesses,
 independent rational references, concurrency and integration contracts. The Bochs
 adapter passed 60,514 guest instruction/state checks. See

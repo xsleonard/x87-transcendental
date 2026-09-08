@@ -1,3 +1,18 @@
+/* Reduce finite normalized x when PI_BY_4 <= |x| < 2^63, using the
+ * stored PI_BY_4 threshold. Write
+ *     |x| = sig*2^(e-63),  -1 <= e <= 62,
+ *     M = 0x3243f6a8885a308d3,  M66 = M*2^-65.
+ * N is the nearest integer to |x|/M66. The signed remainder is
+ *     t = x - sign(x)*N*M66,
+ * where sign(x) is +1 or -1.
+ *
+ * Integer division and subtraction compute this remainder exactly for
+ * the stored M66. Using a closer approximation to pi/2 would change it.
+ * Round t to nearest/even at 64 significant bits for r, and keep the
+ * difference in c, so r+c = t exactly. The H1627-H1629 analysis showed
+ * that t is a multiple of 2^-65 with |t| < M66/2. The kernels that follow
+ * use this bound on the remainder's size and spacing.
+ */
 /* Centered reduction by the fixed 66-bit pi/2 constant. */
 #include "internal/numeric.h"
 
@@ -13,6 +28,9 @@ typedef struct {
  */
 uint64_t x87t_internal_reduce_quotient(uint64_t sig, int32_t e)
 {
+    /* For -1 <= e <= 62, the shift e+2 is in [1,64] and the dividend
+     * fits in 128 bits. M is odd, so 2*remainder cannot equal M. There is
+     * no halfway case when choosing the nearest quotient. */
     u128 dividend = (u128)sig << (e + 2);
     u128 divisor = ((u128)3 << 64) | SKY_M66_LO;
     u128 quotient = dividend / divisor;
@@ -22,6 +40,10 @@ uint64_t x87t_internal_reduce_quotient(uint64_t sig, int32_t e)
     return (uint64_t)quotient;
 }
 
+/* N is the nonnegative quotient for |x|. The shorthand below assumes
+ * positive x; for negative x the subtraction is x - (-N)*M66. The exact
+ * remainder has magnitude <= floor(M/2)*2^-65, so its integer magnitude
+ * at scale 2^-65 fits in 65 bits. */
 /* r + c = x - N*M66 exactly; returns via out params */
 void x87t_internal_reduce_remainder(const sf_t *x, uint64_t N, sf_t *r, sf_t *c)
 {
@@ -58,6 +80,8 @@ void x87t_internal_reduce_remainder(const sf_t *x, uint64_t N, sf_t *r, sf_t *c)
     D.l2 = hi->l2 - lo->l2 - borrow;
     dneg ^= x->sign; /* apply x's sign */
     /* |d| < 2^65 (r <= ~pi/4 * 2^65): l2 must be 0, l1 in {0,1} */
+    /* This guard catches a violated precondition: N must be the nearest
+     * quotient returned by reduce_quotient for this x. */
     if (D.l2 != 0 || D.l1 > 1) {
         *r = x87t_internal_sf_qnan();
         *c = x87t_internal_sf_qnan();
@@ -68,6 +92,10 @@ void x87t_internal_reduce_remainder(const sf_t *x, uint64_t N, sf_t *r, sf_t *c)
         *c = x87t_internal_sf_zero(dneg);
         return;
     }
+    /* Only |t| >= 1/2 needs splitting. If the low bit of the 65-bit
+     * magnitude is set, t is halfway between two 64-bit values. Round r
+     * to the even one and set c to the difference, 0 or +/-2^-65. Keeping
+     * c preserves the exact remainder for table evaluation. */
     if (D.l1) { /* 65 significant bits: round */
         int g = (int)(D.l0 & 1);
         uint64_t kept = ((uint64_t)1 << 63) | (D.l0 >> 1);

@@ -1,5 +1,6 @@
-/* Reconstructed Skylake x87 transcendental functions.
- * See docs/api.md for the emulation preview's scope and outcome contract.
+/* Reconstructed x87 transcendental functions on raw80 operands.
+ * Each result contains values, arithmetic flags and instructions for updating
+ * the registers. The caller checks the stack and handles exception delivery.
  */
 #ifndef X87TRANS_H
 #define X87TRANS_H
