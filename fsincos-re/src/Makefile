@@ -6,6 +6,7 @@ all: fsincos_itanium fsincos_skylake
 
 # Explicit opt-in packaging of the fixed standalone numerical candidate.
 # This does not replace the historical all/standalone targets or enable FSINCOS.
+# H1708: all now also uses these kernels; this target adds a restricted CLI.
 general-candidate:
 	python3 ../experiments/h1707_build_standalone_candidate.py --root .. \
 		--binary general/fsin_fcos_candidate --cc "$(CC)" --cflags="-O2"
@@ -24,13 +25,16 @@ standalone/f2xm1_model: standalone/f2xm1_model.c
 fsincos_itanium: fsincos_itanium.c ia64_sf.h ../data/frcpa-recip-table.h
 	$(CC) $(CFLAGS) -o $@ fsincos_itanium.c $(LDLIBS)
 
-fsincos_skylake: fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h
+fsincos_skylake: fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h \
+		general/standalone_polynomial.h general/standalone_table.h general/standalone_tiny.h
 	$(CC) $(CFLAGS) -Wno-unused-const-variable -o $@ fsincos_skylake.c $(LDLIBS)
 
-fsin_exhaustive: fsin_exhaustive.c fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h
+fsin_exhaustive: fsin_exhaustive.c fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h \
+		general/standalone_polynomial.h general/standalone_table.h general/standalone_tiny.h
 	$(CC) $(CFLAGS) -O3 -Wno-unused-function -Wno-unused-const-variable -o $@ fsin_exhaustive.c $(LDLIBS) -pthread
 
-sibling_exhaustive: sibling_exhaustive.c fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h
+sibling_exhaustive: sibling_exhaustive.c fsincos_skylake.c ia64_sf.h p5_rom_constants.h f2xm1_constants.h ../data/frcpa-recip-table.h \
+		general/standalone_polynomial.h general/standalone_table.h general/standalone_tiny.h
 	$(CC) $(CFLAGS) -O3 -Wno-unused-function -Wno-unused-const-variable -o $@ sibling_exhaustive.c $(LDLIBS) -pthread
 
 check-fsin-h377: fsincos_skylake
