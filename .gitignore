@@ -18,14 +18,76 @@ __pycache__/
 
 capture-kit-captures/
 
-fsincos-re/supplemental/
+/fsincos-re/supplemental/
 
 # Private local x87 standalone models.
-fsincos-re/src/standalone/
+/fsincos-re/src/standalone/
 
 *.tar.gz
+*.tar
+*.tgz
+*.xz
+*.bz2
+*.7z
 *.gz
-fsincos-re/stageA/
+# This bounded hardware regression fixture is required by the offline tests.
+!/tests/data/outcome-witnesses.json.gz
+/fsincos-re/stageA/
 
 # Regenerable pandoc render of the paper (see paper/README.md).
-fsincos-re/paper/skylake-x87-preview.html
+/fsincos-re/paper/skylake-x87-preview.html
+# Generated manuscript PDF; reference publications under data/ remain versioned.
+/fsincos-re/paper/skylake-x87.pdf
+
+# Library build tools and generated output.
+/.tools/
+build/
+build-*/
+cmake-build-*/
+/output/
+/tmp/
+/research/output/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.dSYM/
+CMakeCache.txt
+CMakeFiles/
+*.log
+
+# Relocated research retains its previous private/generated exclusions.
+/fsincos-re/output/
+/fsincos-re/deliverables/
+/fsincos-re/paper/generated-suite/
+/fsincos-re/src/test_f2xm1_driver
+/fsincos-re/src/general/fsin_fcos_candidate
+
+# Archived campaign data and research working files.
+/fsincos-re/tmp/
+
+# Bulk corpora, exported capture jobs, database indexes and observation banks.
+# Keep the suite's generators and tests; keep regression fixtures in tests/data/.
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+/fsincos-re/corpus-suite/corpus-v1/
+/fsincos-re/corpus-suite/jobs-*/
+/fsincos-re/corpus-suite/releases/
+/fsincos-re/corpus-suite/references/
+/fsincos-re/corpus-suite/captures/
+/fsincos-re/corpus-suite/observations/
+/fsincos-re/corpus-suite/comparisons/
+/fsincos-re/corpus-suite/capture_numeric
+/fsincos-re/transfer-tests/
+/fsincos-re/reports/
+
+# Generated historical capture inputs, results and prebuilt executables stay local.
+/fsincos-re/capture-kit/inputs/
+/fsincos-re/capture-kit/crossgen/*.txt
+/fsincos-re/capture-kit/crossgen/*.tsv
+/fsincos-re/capture-kit/bin/*
+!/fsincos-re/capture-kit/bin/SHA256SUMS
