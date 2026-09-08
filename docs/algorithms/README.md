@@ -11,14 +11,18 @@ mathematical explanations, finite-precision contracts, boundaries and provenance
 
 | Family | Current program | Preserved derivation |
 | --- | --- | --- |
-| FSIN/FCOS | `src/trig/standalone_polynomial.c`, `table.c`, `tiny.c`, `reduce.c` | [Trig pseudocode](../../research/fsincos-re/docs/TRIG-PSEUDOCODE.md) |
-| FSINCOS | `src/trig/paired_polynomial.c`, shared table/tiny/reducer | [Paired correction](../../research/fsincos-re/notes/h1717-policy2-promotion.md) |
+| FSIN/FCOS | [Evaluator and polynomial](../../src/trig/sin_cos.c), shared table/tiny/reducer | [Trig pseudocode](trig.md) |
+| FSINCOS | [Paired evaluator and polynomial](../../src/trig/sincos.c), shared table/tiny/reducer | [Paired correction](../../research/fsincos-re/notes/h1717-policy2-promotion.md) |
 | FPTAN | `src/fptan.c` | [Sibling pseudocode](../../research/fsincos-re/docs/SIBLING-PSEUDOCODE.md) |
 | F2XM1 | `src/f2xm1.c` | [Storage correction](../../research/fsincos-re/docs/verification-expansion/f2xm1-integration.md) |
 | FPATAN | `src/fpatan.c` | [Algorithm](../../research/fsincos-re/fpatan-re/ALGORITHM.md) |
 | FYL2X/FYL2XP1 | `src/log/logarithm.c` | [Algorithm](../../research/fsincos-re/fyl2x-re/ALGORITHM.md) |
 
-Standalone multiply truncates its X and Y input ports to 67 and 64 bits,
+Each trig evaluator presents classification, one argument reduction and the
+tiny/polynomial/table choice in order. Its polynomial follows in the same file.
+Shared precision operations live in [wide.c](../../src/arithmetic/wide.c).
+
+FSIN/FCOS multiplication truncates its X and Y input ports to 67 and 64 bits,
 respectively. Its two interleaved coefficient chains differ from the paired
 FSINCOS Horner schedule, whose products each undergo CHOP67 before RN64 addition.
 The table's RN64 product is rounded from the exact port product. Reduction uses

@@ -386,28 +386,44 @@ sf_t x87t_internal_acc_round64_meta(u256 acc, int32_t scale, int neg_out, sf_rc_
     };
 }
 
-/* Rebuild the exact wide reduced argument |r+c| from (r, c).
- * By construction of the M66 reducer, c != 0 only when |r| >= 0.5 (the
- * 65th significand bit), and then c is exactly +-1 unit of 2^-65. */
-/* The returned value includes the sign of r+c; the magnitude bars above
- * describe only sig. Save the sign before clearing it for a magnitude-only
- * calculation. Pass either the reducer's r,c pair or normalized r with c=0.
- * This helper relies on that relationship between r and c. */
-wv_t x87t_internal_reduced_to_wide(const sf_t *r, const sf_t *c)
+/* Both types represent (-1)^sign * sig * 2^scale. p5c_t uses exp2
+ * for scale and wv_t uses e2. Copy the stored integer exactly, without
+ * rounding. Having 128 bits of storage does not set an operation's
+ * precision; each arithmetic helper chooses that explicitly. */
+wv_t x87t_internal_constant_exact(const p5c_t *c)
 {
-    wv_t w = {0};
-    w.sign = r->sign;
-    if (c->sig == 0) {
-        w.sig = (u128)r->sig;
-        w.e2 = r->exp - 63;
-        return w;
-    }
-    u128 m = ((u128)r->sig) << 1; /* r.exp == -1 here; scale 2^-65 */
-    if (c->sign == r->sign)
-        m += 1;
-    else
-        m -= 1;
-    w.sig = m;
-    w.e2 = -65;
-    return w;
+    return (wv_t){c->sign, c->exp2, c->sig, 0};
+}
+
+/* Let Tn truncate a magnitude to n significant bits and keep its sign.
+ * Compute T67(T67(x)*T64(y)). Multiplying each input by exact one performs
+ * the input truncations; wide_mul then forms their exact integer product
+ * and truncates it to 67 bits. Swapping x and y can change the result.
+ * H1627-H1629 showed that truncating the second square to 64 bits in
+ * fourth = M(square,square) can change its value. The other input
+ * truncations leave operands unchanged in the reachable cosine polynomial. */
+wv_t x87t_internal_mul_x67_y64_chop67(wv_t x, wv_t y)
+{
+    /* Uniform X67/Y64 input ports. H1629 bounds every reachable initial
+     * polynomial residual; only the fourth-power Y cut can change value. */
+    wv_t one = {0, 0, 1, 0};
+    x = x87t_internal_wide_mul(x, one, 67, P5_ROUND_CHOP);
+    y = x87t_internal_wide_mul(y, one, 64, P5_ROUND_CHOP);
+    return x87t_internal_wide_mul(x, y, 67, P5_ROUND_CHOP);
+}
+
+/* Align x and y at min(x.e2,y.e2), add exactly, then round the sum
+ * to the requested number of significant bits. RN means nearest/even;
+ * CHOP truncates the magnitude. The aligned operands and sum must fit
+ * a signed 256-bit accumulator, with alignment shifts in [0,255].
+ * The rh fields describe earlier rounding and are ignored here. */
+wv_t x87t_internal_wide_add_plain(wv_t x, wv_t y, int bits, p5_round_t mode)
+{
+    /* Plain signed addition followed by one specified materialization.
+     * Incumbent FADD history classifiers are not part of this program. */
+    int32_t scale = x.e2 < y.e2 ? x.e2 : y.e2;
+    u256 sum = {0, 0};
+    x87t_internal_acc_add_product(&sum, x.sign, x.sig, 1, x.e2, scale);
+    x87t_internal_acc_add_product(&sum, y.sign, y.sig, 1, y.e2, scale);
+    return x87t_internal_acc_round_wide(sum, scale, bits, mode);
 }

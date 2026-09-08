@@ -3,7 +3,7 @@
  * zero, NaNs, infinity and unsupported encodings separately. The caller
  * checks the stack and delivers any pending exception.
  *
- * cos(x) = sin(x + pi/2), so phase=1 advances the quadrant selection by
+ * cos(x) = sin(x + pi/2), so TRIG_COSINE advances the quadrant selection by
  * one without adding pi/2 to x. The reducer uses the stored constant M66
  * in place of pi/2. Depending on the residual, it uses a tiny-result rule,
  * a polynomial or a table. It applies the quadrant sign before rounding
@@ -11,7 +11,9 @@
  * its 67-bit magnitude truncations and 64-bit nearest/even rounding steps.
  * Guest PC24 and PC53 do not change these widths.
  */
-/* Standalone fcos entry; shared kernels retain the selected phase. */
+/* FCOS API and exception handling. The numerical algorithm starts at
+ * x87t_internal_sin_cos_evaluate in trig/sin_cos.c; its polynomial is there
+ * too. TRIG_COSINE selects cosine through reduction and the shared kernels. */
 #include "internal/numeric.h"
 x87t_error
 x87t_fcos(const x87t_context *context, x87t_raw80 x, const x87t_control *control, x87t_result *out)
@@ -22,8 +24,8 @@ x87t_fcos(const x87t_context *context, x87t_raw80 x, const x87t_control *control
     x87t_result result;
     x87t_internal_result_begin(&result, X87T_REPLACE_ST0);
     numerical_metadata meta = {0};
-    if (x87t_internal_standalone_evaluate(x, 1, &result.primary, (sf_rc_t)control->rounding, &meta) ==
-        FSINCOS_C2) {
+    if (x87t_internal_sin_cos_evaluate(x, TRIG_COSINE, &result.primary, (sf_rc_t)control->rounding, &meta) ==
+        TRIG_RANGE) {
         x87t_internal_result_range(&result);
     } else {
         result.cc_known = X87T_C2 | (meta.c1_known ? X87T_C1 : 0);

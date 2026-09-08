@@ -1,6 +1,6 @@
 /* Reconstruct sine or cosine from a table for FSIN, FCOS and FSINCOS.
  * residual holds u = |t|, with 1/4 <= u < 13/16. residual_sign holds t's
- * sign; signed_n selects the function and quadrant sign. The caller has
+ * sign; quadrant selects the function and quadrant sign. The caller has
  * already handled special inputs and smaller residuals.
  *
  * Choose a center T = b/64 and subtract it exactly: a = u-T. Then
@@ -25,7 +25,7 @@
  * Compute RN64(T67(x)*T64(y)): form the exact product of the truncated
  * inputs, then round directly to nearest/even at 64 bits.
  * mul_x67_y64_chop67 instead truncates that product to 67 bits. */
-wv_t x87t_internal_mul_x67_y64_rn64(wv_t x, wv_t y)
+static wv_t mul_x67_y64_rn64(wv_t x, wv_t y)
 {
     /* RN64 of the exact port product, NOT RN64 of a CHOP67 product. */
     wv_t one = {0, 0, 1, 0};
@@ -37,7 +37,7 @@ wv_t x87t_internal_mul_x67_y64_rn64(wv_t x, wv_t y)
 /* Evaluate c1 + square*(c2 + square*(c3 + square*c4)), where square
  * already approximates a^2. Truncate each product to CHOP67 before adding
  * the next coefficient at RN64. Copying a wv_t does not round it. */
-wv_t x87t_internal_table_horner4(wv_t square, const p5c_t *c4, const p5c_t *c3, const p5c_t *c2, const p5c_t *c1)
+static wv_t table_horner4(wv_t square, const p5c_t *c4, const p5c_t *c3, const p5c_t *c2, const p5c_t *c1)
 {
     /* Orient the <=67-bit square on X and the <=64-bit coefficient or
      * prior Horner sum on Y. This is a numerical commutation, not recovered
@@ -51,8 +51,8 @@ wv_t x87t_internal_table_horner4(wv_t square, const p5c_t *c4, const p5c_t *c3, 
     return value;
 }
 
-sf_t x87t_internal_trig_table(
-    wv_t residual, int residual_sign, int64_t signed_n, sf_rc_t rc, numerical_metadata *meta)
+sf_t x87t_internal_sin_cos_table(
+    wv_t residual, int residual_sign, int64_t quadrant, sf_rc_t rc, numerical_metadata *meta)
 {
     int rw = x87t_internal_uint128_width(residual.sig);
     int top = residual.e2 + rw - 1;
@@ -91,8 +91,8 @@ sf_t x87t_internal_trig_table(
      * 2^-25 from the coefficient. H1633-H1635 used this adjusted value,
      * inherited from the earlier implementation. */
     sine4.sig -= (u128)1 << 60; /* Established P6 coefficient, not a new fit. */
-    wv_t p = x87t_internal_table_horner4(square, &sine4, &x87t_internal_P5S4_3, &x87t_internal_P5S4_2, &x87t_internal_P5S4_1);
-    wv_t q = x87t_internal_table_horner4(square, &x87t_internal_P5C4_4, &x87t_internal_P5C4_3, &x87t_internal_P5C4_2, &x87t_internal_P5C4_1);
+    wv_t p = table_horner4(square, &sine4, &x87t_internal_P5S4_3, &x87t_internal_P5S4_2, &x87t_internal_P5S4_1);
+    wv_t q = table_horner4(square, &x87t_internal_P5C4_4, &x87t_internal_P5C4_3, &x87t_internal_P5C4_2, &x87t_internal_P5C4_1);
     /* Treating square as a^2, p and q are cubic polynomials. Thus
      * sine_state approximates a + a^3*p and cosine_tail approximates a^2*q.
      * Chop the products for sine_tail to 67 bits before adding a at RN64.
@@ -100,11 +100,11 @@ sf_t x87t_internal_trig_table(
     wv_t p_square = x87t_internal_mul_x67_y64_chop67(square, p);
     wv_t sine_tail = x87t_internal_mul_x67_y64_chop67(p_square, a);
     wv_t sine_state = x87t_internal_wide_add_plain(a, sine_tail, 64, P5_ROUND_RN);
-    wv_t cosine_tail = x87t_internal_mul_x67_y64_rn64(square, q);
+    wv_t cosine_tail = mul_x67_y64_rn64(square, q);
     wv_t tsin = x87t_internal_constant_exact(&x87t_internal_P5TAB[index].sinT);
     wv_t tcos = x87t_internal_constant_exact(&x87t_internal_P5TAB[index].cosT);
-    int cosine = (unsigned)signed_n & 1u;
-    int negative = ((unsigned)signed_n >> 1) & 1u;
+    int cosine = (unsigned)quadrant & 1u;
+    int negative = ((unsigned)quadrant >> 1) & 1u;
     /* first and second are the two correction terms in the identities
      * above. For cosine, negate first. For sine, use t's sign when choosing
      * the final sign. Chop each product and their signed sum to 67 bits.

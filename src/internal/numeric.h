@@ -48,7 +48,9 @@ typedef enum {
     P5_ROUND_UP,
     P5_ROUND_DOWN
 } p5_round_t;
-typedef enum { FSINCOS_OK, FSINCOS_C2 } fsincos_status_t;
+typedef enum { TRIG_OK, TRIG_RANGE } trig_status_t;
+/* Advancing the quadrant by one selects cosine without changing the input. */
+typedef enum { TRIG_SINE = 0, TRIG_COSINE = 1 } trig_function_t;
 typedef struct {
     int c1, c1_known;
 } numerical_metadata;
@@ -80,26 +82,24 @@ wv_t x87t_internal_wide_add_constant(wv_t value,
 wv_t x87t_internal_wide_add(wv_t left, wv_t right, int bits, p5_round_t mode);
 sf_t x87t_internal_acc_round64_rc(u256 acc, int32_t scale, int neg_out, sf_rc_t rc);
 sf_t x87t_internal_acc_round64_meta(u256, int32_t scale, int neg_out, sf_rc_t, int *c1);
-wv_t x87t_internal_reduced_to_wide(const sf_t *r, const sf_t *c);
-uint64_t x87t_internal_reduce_quotient(uint64_t sig, int32_t e);
-void x87t_internal_reduce_remainder(const sf_t *x, uint64_t N, sf_t *r, sf_t *c);
 wv_t x87t_internal_constant_exact(const p5c_t *c);
 wv_t x87t_internal_mul_x67_y64_chop67(wv_t x, wv_t y);
 wv_t x87t_internal_wide_add_plain(wv_t x, wv_t y, int bits, p5_round_t mode);
-wv_t x87t_internal_standalone_chain(wv_t fourth, const p5c_t *c5, const p5c_t *c3, const p5c_t *c1);
-sf_t x87t_internal_standalone_polynomial(
-    wv_t magnitude, int residual_sign, int64_t signed_n, sf_rc_t rc, numerical_metadata *meta);
-wv_t x87t_internal_mul_x67_y64_rn64(wv_t x, wv_t y);
-wv_t x87t_internal_table_horner4(wv_t square, const p5c_t *c4, const p5c_t *c3, const p5c_t *c2, const p5c_t *c1);
-sf_t x87t_internal_trig_table(
-    wv_t residual, int residual_sign, int64_t signed_n, sf_rc_t rc, numerical_metadata *meta);
-int x87t_internal_trig_tiny(x80_t in, int phase, sf_rc_t rc, x80_t *out, numerical_metadata *meta);
-sf_t x87t_internal_paired_final(wv_t lead, wv_t tail, int negative, sf_rc_t rc, int *c1);
-void x87t_internal_paired_polynomial(
-    wv_t magnitude, int residual_sign, int64_t signed_n, sf_rc_t rc, x80_t out[2], int c1[2]);
-fsincos_status_t
-x87t_internal_paired_evaluate(x80_t in, x80_t *sin_out, x80_t *cos_out, sf_rc_t rc, numerical_metadata *meta);
+
+/* Exact reduction shared by sine, cosine and tangent (trig/reduce.c). */
+uint64_t x87t_internal_reduce_quotient(uint64_t sig, int32_t e);
+void x87t_internal_reduce_remainder(const sf_t *x, uint64_t N, sf_t *r, sf_t *c);
+wv_t x87t_internal_reduced_to_wide(const sf_t *r, const sf_t *c);
+
+/* Sine/cosine kernels consume reduced arguments; evaluators accept raw80. */
+sf_t x87t_internal_sin_cos_table(
+    wv_t residual, int residual_sign, int64_t quadrant, sf_rc_t rc, numerical_metadata *meta);
+sf_t x87t_internal_sin_cos_tiny(
+    sf_t residual, int64_t quadrant, int bypass, sf_rc_t rc, numerical_metadata *meta);
+trig_status_t x87t_internal_sin_cos_evaluate(
+    x80_t in, trig_function_t function, x80_t *out, sf_rc_t rc, numerical_metadata *meta);
+trig_status_t
+x87t_internal_sincos_evaluate(x80_t in, x80_t *sin_out, x80_t *cos_out, sf_rc_t rc, numerical_metadata *meta);
 sf_t x87t_internal_f2xm1_core(sf_t x, sf_rc_t rc, int *c1);
-fsincos_status_t x87t_internal_fptan_core(sf_t x, sf_rc_t rc, sf_t *out, int *c1);
-fsincos_status_t x87t_internal_standalone_evaluate(x80_t, int, x80_t *, sf_rc_t, numerical_metadata *);
+trig_status_t x87t_internal_fptan_core(sf_t x, sf_rc_t rc, sf_t *out, int *c1);
 #endif

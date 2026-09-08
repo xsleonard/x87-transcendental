@@ -304,24 +304,24 @@ static sf_t fptan_final_divide(wv_t numerator, wv_t denominator, sf_rc_t rc, int
 }
 
 /* complete finite/special FPTAN path selection. */
-fsincos_status_t x87t_internal_fptan_core(sf_t x, sf_rc_t rc, sf_t *out, int *c1)
+trig_status_t x87t_internal_fptan_core(sf_t x, sf_rc_t rc, sf_t *out, int *c1)
 {
     *c1 = 0;
     if (x.cls == SF_NAN) {
         *out = x;
         out->sig |= 0x4000000000000000ull;
-        return FSINCOS_OK;
+        return TRIG_OK;
     }
     if (x.cls == SF_INF) {
         *out = x87t_internal_sf_qnan();
-        return FSINCOS_OK;
+        return TRIG_OK;
     }
     if (x87t_internal_sf_is_zero(&x)) {
         *out = x;
-        return FSINCOS_OK;
+        return TRIG_OK;
     }
     if (x.exp >= 63)
-        return FSINCOS_C2;
+        return TRIG_RANGE;
 
     sf_t r, c;
     int64_t signed_n;
@@ -332,7 +332,7 @@ fsincos_status_t x87t_internal_fptan_core(sf_t x, sf_rc_t rc, sf_t *out, int *c1
          * Reduced arguments do not use this bypass. */
         if (x.exp < -68) {
             *out = x;
-            return FSINCOS_OK;
+            return TRIG_OK;
         }
         r = x;
         c = x87t_internal_ZERO;
@@ -347,7 +347,7 @@ fsincos_status_t x87t_internal_fptan_core(sf_t x, sf_rc_t rc, sf_t *out, int *c1
         signed_n = x.sign ? -(int64_t)n_magnitude : (int64_t)n_magnitude;
         x87t_internal_reduce_remainder(&x, n_magnitude, &r, &c);
         if (r.cls != SF_FIN)
-            return FSINCOS_C2;
+            return TRIG_RANGE;
     }
 
     wv_t residual = x87t_internal_reduced_to_wide(&r, &c);
@@ -363,7 +363,7 @@ fsincos_status_t x87t_internal_fptan_core(sf_t x, sf_rc_t rc, sf_t *out, int *c1
         fptan_table_values(residual, residual_sign, signed_n, &numerator, &denominator);
     }
     *out = fptan_final_divide(numerator, denominator, rc, c1);
-    return FSINCOS_OK;
+    return TRIG_OK;
 }
 
 x87t_error
@@ -387,7 +387,7 @@ x87t_fptan(const x87t_context *context, x87t_raw80 x, const x87t_control *contro
     }
     sf_t input = x87t_internal_sf_from_parts(x.se >> 15, x.se & 0x7fff, x.sig), value;
     int c1;
-    if (x87t_internal_fptan_core(input, (sf_rc_t)control->rounding, &value, &c1) == FSINCOS_C2) {
+    if (x87t_internal_fptan_core(input, (sf_rc_t)control->rounding, &value, &c1) == TRIG_RANGE) {
         x87t_internal_result_range(&result);
     } else {
         x87t_internal_sf_to_x87(&value, &result.primary.se, &result.primary.sig);

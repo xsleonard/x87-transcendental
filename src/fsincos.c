@@ -13,7 +13,9 @@
  * steps. PC24 and PC53 do not change these widths.
  * C1 comes from rounding the final cosine result.
  */
-/* FSINCOS preserves its distinct paired polynomial and final cosine C1. */
+/* FSINCOS API and exception handling. The numerical algorithm starts at
+ * x87t_internal_sincos_evaluate in trig/sincos.c, alongside its distinct
+ * paired polynomial. C1 comes from the final cosine result. */
 #include "internal/numeric.h"
 x87t_error x87t_fsincos(const x87t_context *context,
                         x87t_raw80 x,
@@ -26,8 +28,8 @@ x87t_error x87t_fsincos(const x87t_context *context,
     x87t_result result;
     x87t_internal_result_begin(&result, X87T_REPLACE_ST0_PUSH);
     numerical_metadata meta = {0};
-    if (x87t_internal_paired_evaluate(x, &result.primary, &result.pushed, (sf_rc_t)control->rounding, &meta) ==
-        FSINCOS_C2) {
+    if (x87t_internal_sincos_evaluate(x, &result.primary, &result.pushed, (sf_rc_t)control->rounding, &meta) ==
+        TRIG_RANGE) {
         x87t_internal_result_range(&result);
     } else {
         /* primary replaces the old ST(0) with sine. The caller then pushes

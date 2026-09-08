@@ -17,8 +17,8 @@ add_library(x87trans
   src/fsin.c src/fcos.c src/fsincos.c src/fptan.c src/f2xm1.c
   src/fpatan.c src/fyl2x.c src/fyl2xp1.c
   src/arithmetic/soft_value.c src/arithmetic/wide.c src/arithmetic/finite.c
-  src/trig/reduce.c src/trig/standalone.c src/trig/standalone_polynomial.c
-  src/trig/paired_polynomial.c src/trig/table.c src/trig/tiny.c
+  src/trig/reduce.c src/trig/sin_cos.c src/trig/sincos.c
+  src/trig/table.c src/trig/tiny.c
   src/log/logarithm.c src/constants/trig.c)
 add_library(x87trans::x87trans ALIAS x87trans)
 target_compile_features(x87trans PRIVATE c_std_11)

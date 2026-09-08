@@ -6,6 +6,8 @@
  * requested by guest RC. */
 #include "internal/numeric.h"
 
+const x80_t x87t_internal_X87_INDEFINITE = {0xffff, UINT64_C(0xc000000000000000)};
+
 sf_t x87t_internal_sf_zero(int sign)
 {
     sf_t z;

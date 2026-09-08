@@ -134,3 +134,29 @@ void x87t_internal_reduce_remainder(const sf_t *x, uint64_t N, sf_t *r, sf_t *c)
         *c = x87t_internal_sf_zero(dneg);
     }
 }
+
+/* Rebuild the exact wide reduced argument |r+c| from (r, c).
+ * By construction of the M66 reducer, c != 0 only when |r| >= 0.5 (the
+ * 65th significand bit), and then c is exactly +-1 unit of 2^-65. */
+/* The returned value includes the sign of r+c; the magnitude bars above
+ * describe only sig. Save the sign before clearing it for a magnitude-only
+ * calculation. Pass either the reducer's r,c pair or normalized r with c=0.
+ * This helper relies on that relationship between r and c. */
+wv_t x87t_internal_reduced_to_wide(const sf_t *r, const sf_t *c)
+{
+    wv_t w = {0};
+    w.sign = r->sign;
+    if (c->sig == 0) {
+        w.sig = (u128)r->sig;
+        w.e2 = r->exp - 63;
+        return w;
+    }
+    u128 m = ((u128)r->sig) << 1; /* r.exp == -1 here; scale 2^-65 */
+    if (c->sign == r->sign)
+        m += 1;
+    else
+        m -= 1;
+    w.sig = m;
+    w.e2 = -65;
+    return w;
+}
