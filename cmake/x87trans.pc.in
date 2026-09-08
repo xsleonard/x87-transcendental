@@ -6,5 +6,4 @@ Name: x87trans
 Description: Reconstructed Skylake x87 transcendental numerical library
 Version: @PROJECT_VERSION@
 Libs: -L${libdir} -lx87trans
-Requires.private: gmp
 Cflags: -I${includedir}

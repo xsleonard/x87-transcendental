@@ -24,7 +24,7 @@ using absolute include/library paths appropriate to the installation:
 ./configure --with-nogui --with-x=no --disable-readline \
   --enable-x86-64 --enable-avx --enable-debugger --enable-iodebug \
   CXXFLAGS='-O2 -std=c++11 -I/path/to/x87trans/include' \
-  LIBS='/path/to/x87trans/build/libx87trans.a -L/path/to/gmp/lib -lgmp'
+  LIBS='/path/to/x87trans/build/libx87trans.a'
 make -j4
 ```
 

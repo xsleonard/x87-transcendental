@@ -11,7 +11,8 @@ emulator owns its registers, stack, tags and exception delivery. This is a
 outcomes share one explicit result contract. The ABI remains provisional.
 See the [API contract](docs/api.md) before applying results to guest state.
 
-Build with CMake 3.20+, a C11 compiler supporting `unsigned __int128`, and GMP:
+Build with CMake 3.20+ and a C11 compiler supporting `unsigned __int128`.
+The library needs no external arithmetic dependency:
 
 ```sh
 cmake -S . -B build
@@ -41,8 +42,7 @@ if (context) {
 ```
 
 For CMake consumers, link `x87trans::x87trans` through `add_subdirectory` or an
-installed package. Static consumers also link GMP; the exported target carries
-that dependency. [Integration instructions](docs/integration.md) cover C/C++,
+installed package. Static consumers link only x87trans. [Integration instructions](docs/integration.md) cover C/C++,
 installation, pkg-config and the [Bochs adapter](docs/bochs.md).
 
 | Location | Contents |

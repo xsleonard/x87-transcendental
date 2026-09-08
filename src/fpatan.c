@@ -1,6 +1,6 @@
 /* Skylake FPATAN reconstruction: the fixed V7 numerical program (D0027).
  * D0023/D0024/D0026 provide 624,312 prospective observations with no misses.
- * Exact GMP arithmetic, no operand ledger, native FPATAN or algorithm flags.
+ * Explicit finite integer arithmetic; no operand ledger, native FPATAN or algorithm flags.
  * The retained filename is historical. See ALGORITHM.md and ACCEPTANCE.md
  * for the masked numerical contract, delivery checks and evidence limits.
  * The following V4 notes are historical, not the current validation status.
@@ -21,56 +21,26 @@
 #include "constants/atan.h"
 #include <stdlib.h>
 
-static raw80 encode(const mpq_t in, enum mode mode, int *c1)
-{
-    raw80 out = {0, 0};
-    int sign = mpq_sgn(in) < 0;
-    mpq_t q, a, b;
-    mpq_inits(q, a, b, NULL);
-    int e = mpq_sgn(in) ? x87t_internal_qexp(in) : -16382;
-    if (e < -16382)
-        e = -16382;
-    x87t_internal_at_step(q, in, e - 63, mode);
-    mpq_abs(a, q);
-    mpq_abs(b, in);
-    *c1 = mpq_cmp(a, b) > 0;
-    if (mpq_sgn(q)) {
-        e = x87t_internal_qexp(q);
-        if (e < -16382)
-            e = -16382;
-        x87t_internal_scale2(a, a, 63 - e);
-        if (mpz_cmp_ui(mpq_denref(a), 1))
-            abort();
-        if (mpz_sizeinbase(mpq_numref(a), 2) > 64)
-            abort();
-        size_t count = 0;
-        mpz_export(&out.sig, &count, 1, sizeof(out.sig), 0, 0, mpq_numref(a));
-        if (count > 1)
-            abort();
-    }
-    out.se = (uint16_t)((sign << 15) | (out.sig < (UINT64_C(1) << 63) ? 0 : e + 16383));
-    mpq_clears(q, a, b, NULL);
-    return out;
-}
-
 void x87t_internal_atan_constants_init(atan_constants *ctx)
 {
-    for (int i = 0; i < 157; i++)
-        mpq_init(ctx->rom[i]);
+    *ctx = (atan_constants){0};
     for (size_t i = 0; i < sizeof(constants) / sizeof(constants[0]); i++) {
         int k = constants[i].index;
-        if (mpz_set_str(mpq_numref(ctx->rom[k]), constants[i].sig, 16))
-            abort();
-        if (constants[i].sign)
-            mpq_neg(ctx->rom[k], ctx->rom[k]);
-        x87t_internal_scale2(ctx->rom[k], ctx->rom[k], constants[i].scale);
+        ctx->rom[k] = x87t_internal_fhex(constants[i].sig, constants[i].scale, constants[i].sign);
     }
 }
 
-void x87t_internal_atan_constants_clear(atan_constants *ctx)
+static fv mul67(fv a, fv b)
 {
-    for (int i = 0; i < 157; i++)
-        mpq_clear(ctx->rom[i]);
+    return x87t_internal_fround(x87t_internal_fmul(a, b), 67, CHOP);
+}
+static fv add64(fv a, fv b)
+{
+    return x87t_internal_fadd(a, b, 64, RN);
+}
+static fv add67(fv a, fv b)
+{
+    return x87t_internal_fadd(a, b, 67, CHOP);
 }
 
 /* A single global numerical graph, no operand ledger or fitted exceptions.
@@ -83,53 +53,45 @@ static int fpatan_candidate(
     if (!iy.sig || !ix.sig || (iy.se & 0x7fff) == 0x7fff || (ix.se & 0x7fff) == 0x7fff ||
         ((iy.se & 0x7fff) && !(iy.sig >> 63)) || ((ix.se & 0x7fff) && !(ix.sig >> 63)))
         return 2;
-    mpq_t y, x, r, z, square, h, tail, angle, t, u, c, v, odd, even;
-    mpq_inits(y, x, r, z, square, h, tail, angle, t, u, c, v, odd, even, NULL);
+    fv y = x87t_internal_fabs(x87t_internal_fdecode(iy));
+    fv x = x87t_internal_fabs(x87t_internal_fdecode(ix));
+    fv z, square, h, tail, t, u, c, v, odd, even;
+    /* Keep the terminal addition unevaluated until its specified cut. */
+    fv angle_left, angle_right = x87t_internal_fuint(0);
 
     /* Normalize magnitudes into the first octant; retain the swap for later.
-     * r is the exact ratio, z the reduced argument, and square/v are z^2/z^4
+     * r = y/x is compared exactly, z is the reduced argument, and square/v are z^2/z^4
      * after their specified cuts. t and u are reusable arithmetic temporaries.
      */
-    x87t_internal_decode(y, iy);
-    x87t_internal_decode(x, ix);
-    mpq_abs(y, y);
-    mpq_abs(x, x);
-    int swap = mpq_cmp(y, x) > 0;
-    if (swap)
-        mpq_swap(y, x);
-    mpq_div(r, y, x);
+    int swap = x87t_internal_fcmp(y, x) > 0;
+    if (swap) {
+        t = y;
+        y = x;
+        x = t;
+    }
     int n = 0;
     /* Tiny-ratio bypass, direct polynomial, or table-assisted reduction. */
-    if (x87t_internal_qexp(r) < -40) {
-        x87t_internal_rounded(angle, r, 67, CHOP);
+    if (x87t_internal_fratio_exp(y, x) < -40) {
+        angle_left = x87t_internal_fdiv(y, x, 67, CHOP);
     } else {
-        if (mpq_cmp_ui(r, 3, 64) <= 0) {
-            x87t_internal_rounded(z, r, 67, CHOP);
+        fv y64 = x87t_internal_fscale(y, 6);
+        if (x87t_internal_fcmp(y64, x87t_internal_fmul(x, x87t_internal_fuint(3))) <= 0) {
+            z = x87t_internal_fdiv(y, x, 67, CHOP);
         } else {
             /* Historical V4: nearest table index; ties upwards, using the exact ratio.
              * V7 replaces it with nearest/lower ties: ceil(32*r - 1/2).
              */
-            mpq_mul_2exp(t, r, 5);
-            mpq_set_ui(u, 1, 2);
-            mpq_sub(t, t, u);
-            mpz_t index;
-            mpz_init(index);
-            mpz_cdiv_q(index, mpq_numref(t), mpq_denref(t));
-            n = (int)mpz_get_ui(index);
-            mpz_clear(index);
-            if (n < 1 || n > 32)
+            for (n = 1; n <= 32; ++n)
+                if (x87t_internal_fcmp(y64,
+                        x87t_internal_fmul(x, x87t_internal_fuint(2 * n + 1))) <= 0)
+                    break;
+            if (n > 32)
                 abort();
-            mpq_set_ui(c, (unsigned)n, 32);
-            mpq_canonicalize(c);
+            c = x87t_internal_fscale(x87t_internal_fuint(n), -5);
             /* These small-integer products are COMPLETE before subtraction. */
-            mpq_mul(t, c, x);
-            mpq_sub(t, y, t);
-            x87t_internal_rounded(t, t, 67, CHOP);
-            mpq_mul(u, c, y);
-            mpq_add(u, x, u);
-            x87t_internal_rounded(u, u, 67, CHOP);
-            mpq_div(z, t, u);
-            x87t_internal_rounded(z, z, 67, CHOP);
+            t = add67(y, x87t_internal_fneg(x87t_internal_fmul(c, x)));
+            u = add67(x, x87t_internal_fmul(c, y));
+            z = x87t_internal_fdiv(t, u, 67, CHOP);
         }
         /* Source-guided interleaved operation roles (D0021).
          * Square uses X67/Y64 and RN64; ordinary products use CHOP67.
@@ -137,74 +99,52 @@ static int fpatan_candidate(
          * transfer is verified on Skylake; Goldmont opcode meanings are
          * not claimed as a physical decode of the Skylake implementation.
          */
-        x87t_internal_rounded(t, z, 64, CHOP);
-        mpq_mul(square, z, t);
-        x87t_internal_rounded(square, square, 64, RN);
-        mpq_mul(v, square, square);
-        x87t_internal_rounded(v, v, 67, CHOP);
+        t = x87t_internal_fround(z, 64, CHOP);
+        square = x87t_internal_fround(x87t_internal_fmul(z, t), 64, RN);
+        v = mul67(square, square);
         if (n) {
             /* Short kernel, with separate even/odd coefficient chains. */
-            mpq_mul(t, v, ctx->rom[116]);
-            x87t_internal_rounded(t, t, 67, CHOP);
-            mpq_add(even, ctx->rom[114], t);
-            x87t_internal_rounded(even, even, 67, CHOP);
-            mpq_mul(t, v, ctx->rom[117]);
-            x87t_internal_rounded(t, t, 67, CHOP);
-            mpq_add(odd, ctx->rom[115], t);
-            x87t_internal_rounded(odd, odd, 64, RN);
+            t = mul67(v, ctx->rom[116]);
+            even = add67(ctx->rom[114], t);
+            t = mul67(v, ctx->rom[117]);
+            odd = add64(ctx->rom[115], t);
         } else {
             /* Long kernel, with the same interleaved evaluation structure. */
-            mpq_mul(t, v, ctx->rom[123]);
-            x87t_internal_rounded(t, t, 67, CHOP);
-            mpq_add(odd, ctx->rom[121], t);
-            x87t_internal_rounded(odd, odd, 64, RN);
-            mpq_mul(t, v, ctx->rom[122]);
-            x87t_internal_rounded(t, t, 67, CHOP);
-            mpq_add(even, ctx->rom[120], t);
-            x87t_internal_rounded(even, even, 64, RN);
-            mpq_mul(t, v, odd);
-            x87t_internal_rounded(t, t, 67, CHOP);
-            mpq_add(odd, ctx->rom[119], t);
-            x87t_internal_rounded(odd, odd, 67, CHOP);
-            mpq_mul(t, v, even);
-            x87t_internal_rounded(t, t, 67, CHOP);
-            mpq_add(even, ctx->rom[118], t);
-            x87t_internal_rounded(even, even, 67, CHOP);
+            t = mul67(v, ctx->rom[123]);
+            odd = add64(ctx->rom[121], t);
+            t = mul67(v, ctx->rom[122]);
+            even = add64(ctx->rom[120], t);
+            t = mul67(v, odd);
+            odd = add67(ctx->rom[119], t);
+            t = mul67(v, even);
+            even = add67(ctx->rom[118], t);
         }
-        mpq_mul(t, square, odd);
-        x87t_internal_rounded(t, t, 67, CHOP);
-        mpq_add(h, t, even);
-        x87t_internal_rounded(h, h, 64, RN);
-        mpq_mul(t, z, square);
-        x87t_internal_rounded(t, t, 67, CHOP);
-        mpq_mul(tail, t, h);
-        x87t_internal_rounded(tail, tail, 67, CHOP);
-        mpq_add(angle, z, tail);
+        t = mul67(square, odd);
+        h = add64(t, even);
+        t = mul67(z, square);
+        tail = mul67(t, h);
+        angle_left = z;
+        angle_right = tail;
         /* The table kernel is intermediate, not the final architectural add. */
         if (n) {
-            x87t_internal_rounded(angle, angle, 67, CHOP);
-            mpq_add(angle, angle, ctx->rom[124 + n]);
+            angle_left = add67(angle_left, angle_right);
+            angle_right = ctx->rom[124 + n];
         }
     }
     /* Restore the quadrant before applying the caller's architectural RC.
      * Internal RN64/CHOP67 operations above do not depend on that RC.
      */
-    if (swap || (ix.se & 0x8000))
-        x87t_internal_rounded(angle, angle, 67, CHOP);
-    if (swap) {
-        if (ix.se & 0x8000)
-            mpq_add(angle, ctx->rom[20], angle);
-        else
-            mpq_sub(angle, ctx->rom[20], angle);
-    } else if (ix.se & 0x8000)
-        mpq_sub(angle, ctx->rom[19], angle);
-    if (iy.se & 0x8000)
-        mpq_neg(angle, angle);
-    *tiny = mpq_sgn(angle) && x87t_internal_qexp(angle) < -16382;
-    if (*tiny && !(masks & X87T_UE))
-        x87t_internal_scale2(angle, angle, 24576);
-    *out = encode(angle, rc, c1);
-    mpq_clears(y, x, r, z, square, h, tail, angle, t, u, c, v, odd, even, NULL);
+    if (swap || (ix.se & 0x8000)) {
+        angle_right = add67(angle_left, angle_right);
+        angle_left = ctx->rom[swap ? 20 : 19];
+        if (!swap || !(ix.se & 0x8000))
+            angle_right = x87t_internal_fneg(angle_right);
+    }
+    if (iy.se & 0x8000) {
+        angle_left = x87t_internal_fneg(angle_left);
+        angle_right = x87t_internal_fneg(angle_right);
+    }
+    *out = x87t_internal_fencode_sum(angle_left, angle_right, rc, masks, c1, tiny);
     return 0;
 }
 
@@ -266,31 +206,24 @@ int x87t_internal_fpatan_raw80(const atan_constants *ctx,
             *exceptions |= 16;
         return 0;
     }
-    mpq_t angle;
-    mpq_init(angle);
+    fv angle = x87t_internal_fuint(0);
     int sx = (x.se >> 15), sy = (y.se >> 15);
     if (ky == RAW_ZERO || kx == RAW_INFINITY) {
         if (ky == RAW_INFINITY) {
-            mpq_div_2exp(angle, ctx->rom[20], 1);
-            if (sx) {
-                mpq_t three;
-                mpq_init(three);
-                mpq_set_ui(three, 3, 1);
-                mpq_mul(angle, angle, three);
-                mpq_clear(three);
-            }
+            angle = x87t_internal_fscale(ctx->rom[20], -1);
+            if (sx)
+                angle = x87t_internal_fmul(angle, x87t_internal_fuint(3));
         } else if (sx)
-            mpq_set(angle, ctx->rom[19]);
+            angle = ctx->rom[19];
     } else
-        mpq_set(angle, ctx->rom[20]);
-    if (mpq_sgn(angle)) {
+        angle = ctx->rom[20];
+    if (x87t_internal_fsign(angle)) {
         if (sy)
-            mpq_neg(angle, angle);
-        *out = encode(angle, rc, c1);
+            angle = x87t_internal_fneg(angle);
+        *out = x87t_internal_fencode(angle, rc, c1);
         *exceptions |= 32;
     } else
         *out = (raw80){(uint16_t)(sy << 15), 0};
-    mpq_clear(angle);
     return 0;
 }
 

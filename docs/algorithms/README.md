@@ -20,9 +20,11 @@ FSINCOS Horner schedule, whose products each undergo CHOP67 before RN64 addition
 The table's RN64 product is rounded from the exact port product. Reduction uses
 exact division by the preserved 66-bit pi/2 constant.
 
-The GMP arctangent and logarithm files share exact scaling, quantization and
-raw decoding helpers in `src/arithmetic/rational.c`. Their final encoders remain
-separate because overflow policy and reachable result domains differ.
+The arctangent and logarithm files share exact finite values, explicitly rounded
+operations and raw80 encoding in `src/arithmetic/finite.c`. FPATAN retains its
+final sum until architectural quantization; logarithms retain their exact final
+product. Their different tininess/exception policies remain in the instruction
+kernels. See [bounds and rounding](../finite-arithmetic.md).
 
 The source archive carries standalone algorithm descriptions in this directory;
 the links above additionally connect a full checkout to the historical evidence.

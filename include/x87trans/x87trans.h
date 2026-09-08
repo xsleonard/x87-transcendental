@@ -75,7 +75,7 @@ typedef enum {
 
 /* Initialize once. Constants are immutable; scratch is private to each call.
  * Destroy after all evaluations finish. destroy(NULL) is valid. Allocation
- * failure returns NULL subject to GMP's allocator/failure behavior.
+ * failure returns NULL. Evaluation performs no allocation.
  */
 X87T_API x87t_context *x87t_create(void);
 X87T_API void x87t_destroy(x87t_context *context);

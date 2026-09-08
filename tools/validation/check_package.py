@@ -35,9 +35,13 @@ def main():
     for name,digest in manifest.items():
         assert hashlib.sha256((source/name).read_bytes()).hexdigest()==digest,name
     assert not (source/'research').exists() and not (source/'fsincos-re').exists()
+    assert not (source/'cmake/FindGMP.cmake').exists()
+    assert not (source/'src/arithmetic/rational.c').exists()
+    assert not (source/'src/internal/rational.h').exists()
     build=directory/'build';install=directory/'installed'
     run([cmake,'-S',source,'-B',build,'-DCMAKE_BUILD_TYPE=Release',
          '-DX87TRANS_BUILD_TESTS=ON','-DX87TRANS_BUILD_TOOLS=ON',
+         '-DCMAKE_DISABLE_FIND_PACKAGE_GMP=ON',
          '-DCMAKE_INSTALL_LIBDIR='+args.libdir])
     run([cmake,'--build',build,'-j','4'])
     run([cmake,'-E','env','CTEST_OUTPUT_ON_FAILURE=1',cmake,'--build',build,'--target','test'])
@@ -79,17 +83,19 @@ int main(void) {
         # Arbitrary nested libdirs are not CMake's platform search convention.
         # Locate their package explicitly; its imported paths must still relocate.
         extra=['-Dx87trans_DIR='+str(relocated/args.libdir/'cmake/x87trans')] if label=='installed' and args.libdir!='lib' else []
-        run([cmake,'-S',consumer,'-B',target,option,*extra])
+        run([cmake,'-S',consumer,'-B',target,option,'-DCMAKE_DISABLE_FIND_PACKAGE_GMP=ON',*extra])
         run([cmake,'--build',target,'-j','4'])
         run([target/'client_c']);run([target/'client_cpp'])
     env=dict(os.environ)
     env['PKG_CONFIG_PATH']=str(relocated/args.libdir/'pkgconfig')+os.pathsep+env.get('PKG_CONFIG_PATH','')
     flags=shlex.split(run(['pkg-config','--cflags','--libs','--static','x87trans'],env=env))
+    assert [f for f in flags if f.startswith('-l')]==['-lx87trans'],flags
     run(['cc',consumer/'main.c',*flags,'-o',directory/'pkg-client'])
     run([directory/'pkg-client'])
     print(json.dumps(dict(status='PASS',directory=str(directory),source_files=len(manifest),
         source_hashes_verified=True,package_tests=True,relocated_install=True,
         c_consumer=True,cpp_consumer=True,vendored_consumer=True,pkg_config=True,
-        research_required=False,libdir=args.libdir),sort_keys=True))
+        research_required=False,gmp_discovery_disabled=True,external_arithmetic_libraries=False,
+        libdir=args.libdir),sort_keys=True))
 
 if __name__=='__main__':main()

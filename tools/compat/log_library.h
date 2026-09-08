@@ -22,7 +22,7 @@ typedef enum { X87_LOG_OK = 0, X87_LOG_BAD_ARGUMENT = 1, X87_LOG_OUTSIDE_SCOPE =
 
 /* Create once and reuse; temporaries are private to each evaluation.
  * Destroy after all evaluations finish. Destroy(NULL) is valid. Allocation
- * failure returns NULL, subject to GMP's allocator behavior.
+ * failure returns NULL.
  */
 x87_log *x87_log_create(void);
 void x87_log_destroy(x87_log *context);

@@ -28,7 +28,7 @@ typedef enum { X87_FPATAN_OK = 0, X87_FPATAN_BAD_ARGUMENT = 1 } x87_fpatan_error
 
 /* Create once and reuse. Destroy only after evaluations finish. No mutable
  * evaluation state is retained in the initialized context. NULL is accepted
- * by destroy. Allocation failure returns NULL (subject to GMP's allocator).
+ * by destroy. Allocation failure returns NULL.
  */
 x87_fpatan *x87_fpatan_create(void);
 void x87_fpatan_destroy(x87_fpatan *context);

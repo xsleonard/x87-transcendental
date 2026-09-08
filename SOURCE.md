@@ -11,13 +11,13 @@ are needed. All numerical changes belong in the files below.
 | FSINCOS | [fsincos.c](src/fsincos.c) | [Paired polynomial](src/trig/paired_polynomial.c); shared table and tiny arithmetic |
 | FPTAN | [fptan.c](src/fptan.c) | Instruction-specific numerator/denominator programs and final divide |
 | F2XM1 | [f2xm1.c](src/f2xm1.c) | Tiny, long and table paths, including raw80 subnormal rounding |
-| FPATAN | [fpatan.c](src/fpatan.c) | Exact GMP arctangent, special operands and mask-dependent outcomes |
+| FPATAN | [fpatan.c](src/fpatan.c) | Explicit finite arctangent, special operands and mask-dependent outcomes |
 | FYL2X | [fyl2x.c](src/fyl2x.c) | [Shared logarithm](src/log/logarithm.c) |
 | FYL2XP1 | [fyl2xp1.c](src/fyl2xp1.c) | Shared logarithm with explicit domain policy |
 
 The [exact reducer](src/trig/reduce.c) is shared where the numerical graphs
 agree. [Wide integer arithmetic](src/arithmetic/wide.c), [software values](src/arithmetic/soft_value.c)
-and [rational arithmetic](src/arithmetic/rational.c) preserve each precision cut.
+and [bounded finite arithmetic](src/arithmetic/finite.c) preserve each precision cut.
 [Raw classification](src/raw80.c) runs before normalization.
 The [common outcome policy](src/context.c) selects newly unmasked exceptions and
 write suppression; final arithmetic stages construct adjusted UE/OE results.

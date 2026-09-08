@@ -1,9 +1,10 @@
 # Building and embedding
 
-Prerequisites: CMake 3.20+, C11 with `unsigned __int128`, and GMP headers/library.
+Prerequisites: CMake 3.20+ and C11 with `unsigned __int128`. No external
+arithmetic library is required.
 GCC/Clang are the initial compiler targets. The reorganization was exercised with
 Apple Clang on AArch64 macOS; other platform coverage must be recorded separately.
-The public header is usable from both C and C++ and contains no GMP types.
+The public header is usable from both C and C++ and exposes only the library's own types and standard integer types.
 Python 3 is needed only for the saved-witness test target and development scripts.
 
 ```sh
@@ -29,10 +30,8 @@ find_package(x87trans 0.2 CONFIG REQUIRED)
 target_link_libraries(your_emulator PRIVATE x87trans::x87trans)
 ```
 
-Pass the installation root in `CMAKE_PREFIX_PATH` when necessary. GMP discovery
-uses pkg-config hints and ordinary CMake library/header searches. Explicit
-`GMP_INCLUDE_DIR` and `GMP_LIBRARY` overrides are also supported. The static
-export propagates GMP's link dependency. For non-CMake consumers:
+Pass the installation root in `CMAKE_PREFIX_PATH` when necessary. Neither static
+nor shared consumers need an additional arithmetic library. For non-CMake consumers:
 
 ```sh
 cc client.c $(pkg-config --cflags --libs --static x87trans) -o client

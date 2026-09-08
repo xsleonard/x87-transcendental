@@ -5,10 +5,10 @@ identifies the profile as `skylake-emulation-preview`. The eight functions use
 one raw80 representation, control structure and result structure. The ABI is
 provisional; recompile consumers when updating from 0.1.
 
-`x87t_create` initializes immutable GMP constants. A context can be shared across
+`x87t_create` initializes immutable integer constants in one allocation. A context can be shared across
 threads; each call owns its temporaries. Destroy it after all calls finish.
-Creation can return NULL; GMP's allocator failure policy also applies. There is
-no mutable process-global or thread-local evaluation state.
+Creation returns NULL on allocation failure. Evaluation allocates no memory.
+There is no mutable process-global or thread-local evaluation state.
 
 Raw80 contains the original sign/exponent word and explicit 64-bit significand.
 Preserve the original encoding: normalizing before evaluation loses distinctions
@@ -93,7 +93,8 @@ according to completion, even when a late unmasked exception is pending. The
 [Bochs integration](bochs.md) exercises this division through actual guest
 instructions, FXSAVE and guest exception handlers.
 
-The runtime uses integer arithmetic and GMP, without host transcendental
-instructions, libm, files, network access or diagnostic output. Internal
-assertions and GMP invariant checks remain. Recoverable allocation exhaustion
-and exhaustive correctness over every raw80 encoding are not promised.
+The runtime uses bounded integer arithmetic, without an external arithmetic
+library, host transcendental instructions, libm, files, network access or
+diagnostic output. Internal invariant checks remain, including arithmetic bounds
+checked in Release builds. Exhaustive correctness over every raw80 encoding is
+not promised. See [the arithmetic design](finite-arithmetic.md).

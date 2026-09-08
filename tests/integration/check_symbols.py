@@ -13,4 +13,6 @@ if sys.platform=='darwin':symbols=[s.removeprefix('_') for s in symbols]
 compiler_symbols={'__asan_globals_registered','___asan_globals_registered'}
 unexpected=[s for s in symbols if not s.startswith('x87t_') and s not in compiler_symbols]
 assert not unexpected,unexpected
-print('PASS library symbol namespace:',len(symbols),'symbols')
+undefined=subprocess.check_output([sys.argv[1],'-u',sys.argv[2]],text=True)
+assert not re.search(r'\b_+gmp\w*',undefined), 'GMP reference in library'
+print('PASS library symbol namespace:',len(symbols),'symbols; no GMP references')

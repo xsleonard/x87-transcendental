@@ -1,21 +1,19 @@
 #ifndef X87TRANS_INTERNAL_BINARY_H
 #define X87TRANS_INTERNAL_BINARY_H
-#include "internal/rational.h"
+#include "internal/finite.h"
 #include <stddef.h>
 typedef struct {
-    mpq_t rom[157];
+    fv rom[157];
 } atan_constants;
 typedef struct {
-    mpq_t rom[270];
+    fv rom[270];
 } log_constants;
 struct x87t_context {
     atan_constants atan;
     log_constants log;
 };
 void x87t_internal_atan_constants_init(atan_constants *);
-void x87t_internal_atan_constants_clear(atan_constants *);
 void x87t_internal_log_constants_init(log_constants *);
-void x87t_internal_log_constants_clear(log_constants *);
 int x87t_internal_fpatan_raw80(
     const atan_constants *, raw80 y, raw80 x, enum mode, raw80 *, int *c1, unsigned *exceptions,
     unsigned masks);

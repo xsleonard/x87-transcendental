@@ -17,8 +17,6 @@ void x87t_destroy(x87t_context *context)
 {
     if (!context)
         return;
-    x87t_internal_atan_constants_clear(&context->atan);
-    x87t_internal_log_constants_clear(&context->log);
     free(context);
 }
 
