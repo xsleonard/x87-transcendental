@@ -1,0 +1,80 @@
+{
+  "audit_scope": "Parsed both original completion summaries and checked contiguous counter ranges, class totals, three-mode counts and zero mismatch counters.",
+  "checked_fields": "Result and directed-bound C1 on non-C2 returns; C2 and unchanged operand on range returns; model interval consistency.",
+  "current_comparator_sha256": "4d188caad01b44d284f4b16c25c1d02946d3b556bf40162bf59a339c93e26477",
+  "hardware_executed_by_this_audit": false,
+  "inputs": 1076741824,
+  "instruction_executions": 3230225472,
+  "limits": [
+    "The retained record contains aggregate completion logs, not per-input hardware labels.",
+    "A selected binary64-derived traversal is not exhaustive binary64 or raw80 coverage.",
+    "Zero/ infinity classes have no sampled inputs; binary64 subnormals convert to normalized raw80.",
+    "C1 was not checked on C2 returns. No total of in-range C1 checks is recorded.",
+    "No disjointness from other campaigns is claimed."
+  ],
+  "observation_unit": "Native FSIN instruction executions, including range returns and special values",
+  "precision_control": 64,
+  "review_checksums_sha256": "84f0c03b3d489d58187acaeaa6b59142fce4a659a862a0ed254e71574dd7da4f",
+  "review_main_source_sha256": "490039e787a89b4efa4df58f0804356cc47c9e882f0e6427b16923217e375e32",
+  "review_note": "notes/REVIEW-20260905-independent-verification.md",
+  "review_note_sha256": "80cb858d65f157d57be638f3cb905354c39738f1a4b8268aa4b97f27c3846941",
+  "rounding_modes": [
+    "rn",
+    "rd",
+    "ru"
+  ],
+  "runs": [
+    {
+      "classes": {
+        "infinity": 0,
+        "normal": 2996993,
+        "qnan": 817,
+        "snan": 715,
+        "subnormal": 1475,
+        "zero": 0
+      },
+      "counts": {
+        "C1_misses": 0,
+        "C2_misses": 0,
+        "C2_output_misses": 0,
+        "count": 3000000,
+        "inputs": 3000000,
+        "model_interval_failures": 0,
+        "observations": 9000000,
+        "output_misses": 0
+      },
+      "log": "transfer-tests/review-20260905/xeon_fsin_exhaustive/fsin_exhaustive_h1716.log",
+      "log_sha256": "d9da608b9be937290b98f81e44a94240c839922aca7cc5fb4ab82bbf41be94f0",
+      "start": 0,
+      "summary": "SUMMARY start=0000000000000000 count=3000000 seed=0000000000001716 threads=2 mode_mask=7 inputs=3000000 observations=9000000 classes=zero:0,subnormal:1475,normal:2996993,infinity:0,qnan:817,snan:715 output_misses=0 C1_misses=0 C2_misses=0 C2_output_misses=0 model_interval_failures=0 elapsed=1.677641 inputs_per_second=1788224.782"
+    },
+    {
+      "classes": {
+        "infinity": 0,
+        "normal": 1072692614,
+        "qnan": 263127,
+        "snan": 262440,
+        "subnormal": 523643,
+        "zero": 0
+      },
+      "counts": {
+        "C1_misses": 0,
+        "C2_misses": 0,
+        "C2_output_misses": 0,
+        "count": 1073741824,
+        "inputs": 1073741824,
+        "model_interval_failures": 0,
+        "observations": 3221225472,
+        "output_misses": 0
+      },
+      "log": "transfer-tests/review-20260905/xeon_fsin_exhaustive/fsin_exhaustive_h1716_bits30.log",
+      "log_sha256": "9f30caa3cf51a5be81761c4292eb61f0bfa6e41d5d1cc32a8a8bef792f3a7632",
+      "start": 3000000,
+      "summary": "SUMMARY start=00000000002dc6c0 count=1073741824 seed=0000000000001716 threads=2 mode_mask=7 inputs=1073741824 observations=3221225472 classes=zero:0,subnormal:523643,normal:1072692614,infinity:0,qnan:263127,snan:262440 output_misses=0 C1_misses=0 C2_misses=0 C2_output_misses=0 model_interval_failures=0 elapsed=617.163639 inputs_per_second=1739800.852"
+    }
+  ],
+  "seed": "0x1716",
+  "source_relation": "The review predates H1717; H1717 changed only the paired header, leaving standalone FSIN unchanged. The review identifies the tested build, but these aggregate logs do not independently pin the comparator binary or all its dependencies.",
+  "status": "COMPLETED_NATIVE_RUN_LOGS_ZERO_REPORTED_MISSES",
+  "summary_builder_sha256": "a8f9e3935c54bab771f9f2a3ddd1aa47b3c6ced22f35eb584b09c03e8191bada"
+}

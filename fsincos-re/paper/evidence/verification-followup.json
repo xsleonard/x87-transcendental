@@ -1,0 +1,14 @@
+{
+  "fpatan_added_i7_cases": 28456,
+  "fpatan_common_catalog_cases": 7571628,
+  "full_recorded_streams_match": true,
+  "hardware_executed": false,
+  "limits": "Confirmation of the stated saved input/control tuples, not every raw80 input. Numerical algorithms unchanged.",
+  "logarithm_i7_cases": 51636,
+  "logarithm_remaining_Xeon_cases": 890172,
+  "source_receipts": {
+    "tmp/verification-expansion/coverage/verification-expansion-ties-i7-v1/CROSS-CPU.json": "b627bd4c6b253c75af6049bae6ddc02739b5c6cd8674f10f459dbb8975f92201",
+    "tmp/verification-expansion/logarithms/RESULT.json": "8a482d2a6359299941684ba79d8a147f94ec635e2c39b5848bdb812f50386870"
+  },
+  "status": "PASS_SAVED_TWO_PROCESSOR_CONFIRMATIONS"
+}

@@ -1,0 +1,33 @@
+{
+  "rows": 17583,
+  "differences_from_validated_model": {
+    "square-rn64": {
+      "fyl2x": 1,
+      "fyl2xp1": 1
+    },
+    "square-chop67": {
+      "fyl2xp1": 2,
+      "fyl2x": 1
+    },
+    "product-rn67": {
+      "fyl2xp1": 726,
+      "fyl2x": 328
+    },
+    "sum-chop67": {
+      "fyl2xp1": 19,
+      "fyl2x": 18
+    },
+    "table-div-chop67": {
+      "fyl2xp1": 23,
+      "fyl2x": 15
+    },
+    "table-den-chop67": {
+      "fyl2xp1": 21,
+      "fyl2x": 15
+    },
+    "direct-div-rn67": {
+      "fyl2xp1": 587,
+      "fyl2x": 297
+    }
+  }
+}

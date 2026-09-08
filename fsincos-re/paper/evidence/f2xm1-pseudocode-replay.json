@@ -1,0 +1,185 @@
+{
+  "constants_sha256": "f1c3d75154189ad6265e92c716a1985901bd0f5a5954285abd7a8584f98f5b43",
+  "elapsed_seconds": 2.0921378135681152,
+  "hardware_executed": false,
+  "instruction": "F2XM1",
+  "result": {
+    "capture_manifest_sha256": "54f21d30b1288f40daaa726b19939706021ae6ba94b2b19cba9c4bf8d91be74f",
+    "counts": {
+      "C1_misses": 0,
+      "RC:rd": 8550,
+      "RC:rn": 8550,
+      "RC:ru": 8550,
+      "output_misses": 0,
+      "rows": 25650
+    },
+    "hardware_files": {
+      "f2xm1_validation_h257_rd_status.txt": "c4bddff31b768f7b049f32029d3cf63c417f3a326a7ae041f6b8b8fbb5aa3c49",
+      "f2xm1_validation_h257_rn_status.txt": "86d8df2906b414d5a81d79d2db2dde12d7d5532b75e5017f530bfc71e3ca195a",
+      "f2xm1_validation_h257_ru_status.txt": "b15510f672ca9a9ac3025c6b3acb6a4dec0ec5cbfc9b04028ad4b635e9a78a86"
+    },
+    "input_sha256": "dd5ac3cf3ca1f07112077f496876074121545b13047574b4ad18c501b1cf0225",
+    "scope": "H257 saved input/output rows, RN/RD/RU; no inference of full raw80/state coverage",
+    "witnesses": [
+      {
+        "C1": 0,
+        "input": [
+          "0000",
+          "0000000000000000"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "0000",
+          "0000000000000000"
+        ]
+      },
+      {
+        "C1": 1,
+        "input": [
+          "3fb6",
+          "806d21f06522697f"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "3fb5",
+          "b209622ce726b492"
+        ]
+      },
+      {
+        "C1": 0,
+        "input": [
+          "3fb6",
+          "8113ccbabb7d1e82"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "3fb5",
+          "b2f06ee804242aa5"
+        ]
+      },
+      {
+        "C1": 1,
+        "input": [
+          "3fb6",
+          "82581b71b13eb24d"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "3fb5",
+          "b4b204d3d8f514d5"
+        ]
+      },
+      {
+        "C1": 0,
+        "input": [
+          "3fb6",
+          "82592fd3885705c0"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "3fb5",
+          "b4b383f97f48f85f"
+        ]
+      },
+      {
+        "C1": 1,
+        "input": [
+          "3fb6",
+          "82e954f07d0318c5"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "3fb5",
+          "b57b57c79527ec03"
+        ]
+      },
+      {
+        "C1": 1,
+        "input": [
+          "3fb6",
+          "84359f43949c4eb1"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "3fb5",
+          "b747febee67dd394"
+        ]
+      },
+      {
+        "C1": 1,
+        "input": [
+          "3fb6",
+          "843af1fec5776a1e"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "3fb5",
+          "b74f5fe46df0545b"
+        ]
+      },
+      {
+        "C1": 1,
+        "input": [
+          "3fb6",
+          "85a29be5ad413141"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "3fb5",
+          "b941f96c64faad0e"
+        ]
+      },
+      {
+        "C1": 0,
+        "input": [
+          "3fb6",
+          "8626f63ff65acc49"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "3fb5",
+          "b9f974567ef4b5a8"
+        ]
+      },
+      {
+        "C1": 0,
+        "input": [
+          "3fb6",
+          "873dc02d1bb386e3"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "3fb5",
+          "bb7bf01077d9e8a4"
+        ]
+      },
+      {
+        "C1": 0,
+        "input": [
+          "3fb6",
+          "8801e8eb4c026700"
+        ],
+        "instruction": "F2XM1",
+        "mode": "rn",
+        "result": [
+          "3fb5",
+          "bc8bdf407b2454f6"
+        ]
+      }
+    ]
+  },
+  "specification_sha256": "3d6a4bfef67fbd0bc31a3a0d02ef3d7ac4b31fb79ff0d967859d44a2f16d5217",
+  "status": "PASS",
+  "verifier_sha256": "5ad1e6bf6de2007e15602002ba7df5f53555109ffaadc85fe22464e94fb4aa5e"
+}

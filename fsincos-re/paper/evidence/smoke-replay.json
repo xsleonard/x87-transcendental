@@ -1,0 +1,16 @@
+{
+  "counts": {
+    "C:f2xm1": 72,
+    "C:fcos": 96,
+    "C:fpatan": 152,
+    "C:fptan": 212,
+    "C:fsin": 96,
+    "C:fsincos": 96,
+    "fpatan_reference_checks": 152,
+    "sibling_reference_checks": 284
+  },
+  "hardware_executed": false,
+  "rows": 724,
+  "scope": "Bundled saved hardware witnesses; unary CLI does not expose C1 or per-row PC",
+  "status": "PASS"
+}

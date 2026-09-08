@@ -1,0 +1,61 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "binary": "fsincos-re/fyl2x-re/build/log_batch",
+      "binary_sha256": "bd8b5652a773e3fbdaa030bff57f83ffff8938b3d5f36581e2308eb0124df5b2",
+      "job": "l0002",
+      "rows": 145116,
+      "mismatches": 0
+    },
+    {
+      "binary": "fsincos-re/fyl2x-re/build/log_batch",
+      "binary_sha256": "bd8b5652a773e3fbdaa030bff57f83ffff8938b3d5f36581e2308eb0124df5b2",
+      "job": "l0003",
+      "rows": 174480,
+      "mismatches": 0
+    },
+    {
+      "binary": "fsincos-re/fyl2x-re/build/log_batch",
+      "binary_sha256": "bd8b5652a773e3fbdaa030bff57f83ffff8938b3d5f36581e2308eb0124df5b2",
+      "job": "l0004",
+      "rows": 193104,
+      "mismatches": 0
+    },
+    {
+      "binary": "fsincos-re/fyl2x-re/build/log_batch",
+      "binary_sha256": "bd8b5652a773e3fbdaa030bff57f83ffff8938b3d5f36581e2308eb0124df5b2",
+      "job": "l0005",
+      "rows": 420212,
+      "mismatches": 0
+    },
+    {
+      "binary": "fsincos-re/fyl2x-re/build-sanitize/x87-log",
+      "binary_sha256": "d9c4f8b9e2371eff31b426fa304b7e3e951f4ab39181929966465673973f4aca",
+      "job": "l0002",
+      "rows": 145116,
+      "mismatches": 0
+    },
+    {
+      "binary": "fsincos-re/fyl2x-re/build-sanitize/x87-log",
+      "binary_sha256": "d9c4f8b9e2371eff31b426fa304b7e3e951f4ab39181929966465673973f4aca",
+      "job": "l0003",
+      "rows": 174480,
+      "mismatches": 0
+    },
+    {
+      "binary": "fsincos-re/fyl2x-re/build-sanitize/x87-log",
+      "binary_sha256": "d9c4f8b9e2371eff31b426fa304b7e3e951f4ab39181929966465673973f4aca",
+      "job": "l0004",
+      "rows": 193104,
+      "mismatches": 0
+    },
+    {
+      "binary": "fsincos-re/fyl2x-re/build-sanitize/x87-log",
+      "binary_sha256": "d9c4f8b9e2371eff31b426fa304b7e3e951f4ab39181929966465673973f4aca",
+      "job": "l0005",
+      "rows": 420212,
+      "mismatches": 0
+    }
+  ]
+}

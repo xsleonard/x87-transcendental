@@ -1,0 +1,124 @@
+{
+  "status": "PASS_INDEPENDENT_TWO_CPU_CHALLENGE",
+  "corpus_counts": {
+    "pc:24": 117412,
+    "pc:53": 117412,
+    "pc:64": 7336804,
+    "rc:rd": 1892907,
+    "rc:rn": 1892907,
+    "rc:ru": 1892907,
+    "rc:rz": 1892907,
+    "rows": 7571628
+  },
+  "counts": {
+    "i7": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 445588,
+      "union_misses": 0
+    },
+    "skylake": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 445588,
+      "union_misses": 0
+    }
+  },
+  "cross_cpu": {
+    "C1_differences": 0,
+    "exception_differences": 0,
+    "preload_exception_differences": 0,
+    "raw_preload_status_differences": 0,
+    "raw_status_differences": 0,
+    "result_differences": 0,
+    "rows": 445588
+  },
+  "family_counts": {
+    "i7:exhaustive-window": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 149112,
+      "union_misses": 0
+    },
+    "i7:lattice-math-boundary": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 47768,
+      "union_misses": 0
+    },
+    "i7:math-bracket": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 100104,
+      "union_misses": 0
+    },
+    "i7:raw-balanced-ratios": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 16512,
+      "union_misses": 0
+    },
+    "i7:raw-exponent-permutation": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 132092,
+      "union_misses": 0
+    },
+    "skylake:exhaustive-window": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 149112,
+      "union_misses": 0
+    },
+    "skylake:lattice-math-boundary": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 47768,
+      "union_misses": 0
+    },
+    "skylake:math-bracket": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 100104,
+      "union_misses": 0
+    },
+    "skylake:raw-balanced-ratios": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 16512,
+      "union_misses": 0
+    },
+    "skylake:raw-exponent-permutation": {
+      "before_exception_misses": 0,
+      "candidate_C1_misses": 0,
+      "candidate_misses": 0,
+      "exception_misses": 0,
+      "rows": 132092,
+      "union_misses": 0
+    }
+  },
+  "limits": "Finite independent challenge on two recorded CPU contexts. No exhaustive full-format correctness or equivalence proof.",
+  "source_report_sha256": "d2c8a641eae7335140de421bea4b1c7bf7a0b7356f36f19ebb1aa11da2eb79ad"
+}
