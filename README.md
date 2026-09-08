@@ -66,3 +66,9 @@ Original-work licensing remains undecided; no distribution license is assigned
 by this reorganization. [Provenance](docs/provenance.md) records the source and
 constant origins. The [migration guide](docs/migration.md) explains the old
 paths and the completed relocation of campaign data into `research/`.
+
+## AI use
+
+Initially developed with Claude Fable but finished with Codex 5.6-sol and Astra.
+Claude repeatedly refused to make progress with the work due to safety checks
+and claims of impossibility.
