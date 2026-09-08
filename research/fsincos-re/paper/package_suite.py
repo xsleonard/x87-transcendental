@@ -46,7 +46,6 @@ fpatan-re/PSEUDOCODE.md
 fpatan-re/ALGORITHM.md
 fpatan-re/DELIVERY.md
 fpatan-re/ACCEPTANCE.md
-fpatan-re/ADVERSARIAL-PLAN.md
 fpatan-re/paper/skylake-fpatan.tex
 fyl2x-re/log_model.c
 fyl2x-re/log_library.c
@@ -87,12 +86,9 @@ paper/verify_fpatan_catalog.py
 paper/make_smoke_witnesses.py
 paper/check_witnesses.py
 paper/package_suite.py
-paper/suite-manifest.json
 paper/EVIDENCE.md
 paper/TRIG-FINDINGS.md
-paper/SUITE-OUTLINE.md
 paper/SOURCES.md
-paper/PUBLICATION-REVIEW.md
 """.split()
 
 README = r"""# x87 transcendental models — programmer review package
@@ -294,7 +290,7 @@ No public identifier has been assigned. Licensing remains undecided.
 Read [x87-suite.tex](x87-suite.tex) or the [compiled PDF](../../output/pdf/x87-suite.pdf).
 Run `make paper` from the package root to regenerate numbers, listings and PDF.
 Python 3.10+ and Tectonic are required; its first build may download TeX assets.
-The [review record](PUBLICATION-REVIEW.md), [evidence register](EVIDENCE.md)
+The [evidence register](EVIDENCE.md)
 and [source register](SOURCES.md) describe this local technical report.
 """,
         "fsincos-re/fpatan-re/paper/README.md":"""# Earlier FPATAN manuscript

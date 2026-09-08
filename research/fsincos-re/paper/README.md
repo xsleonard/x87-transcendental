@@ -2,7 +2,7 @@
 
 **Reconstructing FSIN, FCOS and FSINCOS from Public Constants and Processor
 Tests** is the current article: [PDF](../../output/pdf/x87-suite.pdf),
-[LaTeX source](x87-suite.tex), [review record](PUBLICATION-REVIEW.md).
+and [LaTeX source](x87-suite.tex).
 
 The main contribution is the FSIN/FCOS/FSINCOS reconstruction: distinct
 standalone and paired schedules, operand widths, table rounding destinations,
@@ -32,8 +32,8 @@ python3 fsincos-re/paper/build_suite.py
 Add `--render` to generate page PNGs using Poppler. The first Tectonic build
 may download its TeX packages and fonts. Counts and listings are generated
 from canonical source and authenticated receipts; changed specification
-hashes stop the build. [suite-manifest.json](suite-manifest.json) pins the
-article and evidence. Source formatting is independent of any eventual venue.
+hashes stop the build. The generated `generated-suite/suite-manifest.json`
+records article and evidence hashes for that build. Source formatting is independent of any eventual venue.
 
 The [programmer package](../../output/release/x87-suite-review-v6/README.md)
 contains a clean build/check entry point and offline hardware witnesses.
@@ -42,10 +42,7 @@ report and review artifact, not a claim of external peer review or an
 assigned public repository/DOI.
 
 The [evidence register](EVIDENCE.md) and [source register](SOURCES.md) explain
-the claims. The [current outline](SUITE-OUTLINE.md) records the corrected emphasis.
-The [original plan](PUBLICATION-PLAN.md) is retained as a superseded work-order
-record; its equal weighting of the instruction families no longer guides the article. The earlier
-trig-specific manuscript below remains preserved.
+the claims and their supporting sources.
 
 ## Earlier paper: Thirty Years of the Pentium Kernel
 

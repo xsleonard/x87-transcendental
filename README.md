@@ -52,24 +52,27 @@ installation, pkg-config and the [Bochs adapter](docs/bochs.md).
 | [SOURCE.md](SOURCE.md) | Instruction and helper source map |
 | [tests/](tests/) | Saved hardware regressions, independent references and API tests |
 | [tools/](tools/) | CLI consumers, optional old API adapters, validation and packaging |
-| [docs/](docs/) | Contract, integration, algorithms, provenance and migration |
+| [docs/](docs/) | Contract, integration, algorithms, validation and provenance |
 | [research/](research/) | Preserved research sources, manuscripts and evidence |
 
 For maintainers, the [algorithm index](docs/algorithms/README.md) maps the
 numerical programs, and the [code documentation guideline](docs/code-documentation-guidelines.md)
 explains how to document their mathematics and finite-precision behavior.
+Keep temporary plans and task receipts in ignored `.scratch/` or `output/`;
+`docs/` contains maintained documentation.
 
-Tests include 1,800 numerical witnesses, 22,528 new hardware outcome witnesses,
+Tests include 1,800 numerical witnesses, 22,528 hardware outcome witnesses,
 independent rational references, concurrency and integration contracts. The Bochs
 adapter passed 60,514 guest instruction/state checks. See
 [validation and limits](docs/validation.md). No hardware capture is part of a
 normal build or check. Agreement is scoped to the retained evidence and selected
 profile, without a universal claim across CPU generations.
 
-Original-work licensing remains undecided; no distribution license is assigned
-by this reorganization. [Provenance](docs/provenance.md) records the source and
-constant origins. The [migration guide](docs/migration.md) explains the old
-paths and the completed relocation of campaign data into `research/`.
+Original project material is licensed under the **GNU Lesser General Public
+License v3.0 only** (`LGPL-3.0-only`); see [the license notice](LICENSE.md),
+[COPYING.LESSER](COPYING.LESSER) and [COPYING](COPYING). Third-party material
+retains its existing terms and notices. [Provenance](docs/provenance.md) records
+the source and constant origins.
 
 ## AI use
 

@@ -23,6 +23,5 @@ The [common outcome policy](src/context.c) selects newly unmasked exceptions and
 write suppression; final arithmetic stages construct adjusted UE/OE results.
 
 [Constants](src/constants/) are compiled literal data; [private headers](src/internal/)
-are not installed. The [extraction map](docs/extracted-source.json) connects
-historical symbols to the new implementation. Historical experiments and the
-Itanium reference remain in [research/](research/), outside the product build.
+are not installed. Historical experiments and the Itanium reference remain in
+[research/](research/), outside the product build.

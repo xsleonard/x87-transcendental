@@ -35,10 +35,15 @@ LOCKS = {
 digest = verifier.primary.digest
 
 
+def artifact_path(root, name):
+    path = root / name
+    return path if path.exists() else root / 'tmp/retired-notes' / name
+
+
 def reconcile(root, inventory, targets, old):
     classes, reviewed = Counter(), {}
     for name, entry in inventory.items():
-        assert digest(root / name) == entry['sha256'], name
+        assert digest(artifact_path(root, name)) == entry['sha256'], name
         seen = set(entry['operands'])
         if name.startswith('transfer-tests/h1641/'):
             assert seen <= old
@@ -92,10 +97,10 @@ def main():
     assert private.is_dir() and not out.exists() and out.is_relative_to(root)
     evidence = dict(LOCKS)
     for name, sha in evidence.items():
-        assert digest(root / name) == sha, name
+        assert digest(artifact_path(root, name)) == sha, name
     bank = json.loads((root / BANK).read_text())
     for name, sha in bank['sha256']['evidence'].items():
-        assert digest(root / name) == sha, name
+        assert digest(artifact_path(root, name)) == sha, name
         evidence[name] = sha
     assert bank_module.operands(root) == bank['operands']
     repeated = bank_module.predictions(root, bank['operands'])
@@ -118,7 +123,8 @@ def main():
     print('Replaying predictions and refreshing paired-operand public/private checks.', flush=True)
     process = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     assert process.returncode in (0, 1) and not process.stderr
-    found = {Path(line).resolve().relative_to(root).as_posix() for line in process.stdout.decode().splitlines()}
+    found = {Path(line).resolve().relative_to(root).as_posix().removeprefix('tmp/retired-notes/')
+             for line in process.stdout.decode().splitlines()}
     # The preparation just added source literals for the EXCLUDED old pair.
     # Reconcile those explicit new software sources, not an arbitrary glob
     # exemption that could conceal other historical operands or captures.

@@ -188,7 +188,7 @@ def main():
     args = parser.parse_args(); root, out = args.root.resolve(), args.output_dir.resolve()
     assert not out.exists()
     for name, expected in LOCKS.items(): assert digest(root / name) == expected, name
-    history = (root / 'notes/HANDOFF-collision-gate.md').read_text()
+    history = (root / 'tmp/retired-notes/notes/HANDOFF-collision-gate.md').read_text()
     assert all(fragment in history for fragment in HISTORY)
     a = (root / 'experiments/h727_gen.py').read_text()
     b = (root / 'experiments/h773_gen.py').read_text()

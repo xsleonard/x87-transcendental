@@ -128,7 +128,7 @@ numerical-output obstruction, not just a flag interpretation issue.
 The public physical ROM source is P5, not this Skylake CPU. Its arctan
 range-reduction identity is described as a hypothesis by the source author.
 Neither the source nor a large discovery-set match establishes exact P5→P6
-coefficient/schedule transfer. See the original provenance in `HANDOFF.md`.
+coefficient/schedule transfer. See [the algorithm](ALGORITHM.md) for the public-source lineage.
 
 The terminal gap already rules out coefficient-only repair of V5. Separate
 bounded checks also reject a shared A118 change in three feasible fixed-square

@@ -4,6 +4,7 @@ import ast
 import hashlib
 import json
 from pathlib import Path
+import re
 
 HERE = Path(__file__).resolve().parent
 PROJECT = HERE.parent
@@ -15,6 +16,13 @@ def digest(path):
         for block in iter(lambda: stream.read(1 << 20), b""):
             h.update(block)
     return h.hexdigest()
+
+
+def pseudocode_program_digest(path):
+    """Bind replay evidence to executable Python blocks independently of prose."""
+    blocks = re.findall(r"^```python\n(.*?)^```", Path(path).read_text(), re.M | re.S)
+    assert len(blocks) == 5
+    return hashlib.sha256("\n".join(blocks).encode()).hexdigest()
 
 
 def before_f2xm1_correction_digest(path):

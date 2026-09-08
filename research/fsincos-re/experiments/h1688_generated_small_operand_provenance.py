@@ -66,7 +66,7 @@ def public_history(root):
               for r in matches if r['kind'] == 'small_denormal'}
     assert actual == {(sign, sig) for sign in (0, 0x8000) for sig in small_sigs}
     assert len(matches) == 18 and len(keys) == 144
-    historical = (root / 'notes/HANDOFF-collision-gate.md').read_text()
+    historical = (root / 'tmp/retired-notes/notes/HANDOFF-collision-gate.md').read_text()
     start, end = historical.index(NOTE_START), historical.index(NOTE_END)
     excerpt = historical[start:end]
     assert '3,318 operands' in excerpt and 'FSIN+FCOS x rn/rd/ru/rz' in excerpt

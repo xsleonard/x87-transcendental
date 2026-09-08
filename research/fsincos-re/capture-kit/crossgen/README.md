@@ -1,8 +1,8 @@
 # Cross-generation borrow-gate probe
 
 Tests whether another x86 chip reproduces Skylake's FCOS
-terminal-borrow behavior bit-exactly (the Rounds 57/58
-phenomenon; see notes/HANDOFF-collision-gate.md).
+terminal-borrow behavior bit-exactly. See the
+[terminal arithmetic specification](../../notes/algorithm-spec.md).
 
     ./check.sh
 

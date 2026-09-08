@@ -1,8 +1,8 @@
 # Bounded finite arithmetic
 
 FPATAN, FYL2X and FYL2XP1 use `src/internal/finite.h` and
-`src/arithmetic/finite.c`. This replaces GMP without changing the reconstructed
-numerical programs. The five other kernels retain their existing integer
+`src/arithmetic/finite.c` to execute the reconstructed numerical programs.
+The five other kernels use their instruction-specific integer
 arithmetic. There is no host floating-point calculation or external arithmetic
 dependency. Evaluation uses automatic storage; only context creation allocates.
 
@@ -12,7 +12,7 @@ An `fv` represents `(-1)^negative * magnitude * 2^exponent`. Its magnitude has
 four little-endian 64-bit words. Nonzero magnitudes are normalized to odd integers;
 zero has sign and exponent zero. The binary exponent is separate, so even a
 32,000-bit operand gap does not allocate a 32,000-bit integer. The private zero
-leading-exponent convention is -1, preserving the earlier rational helper.
+leading-exponent convention is -1.
 
 Literal parsing, raw80 decoding, sign changes, scaling and comparisons are exact.
 Multiplication accepts two magnitudes of at most 128 bits and returns their full
@@ -100,11 +100,10 @@ remainders, cancellation, word boundaries, ties and neighbors, large signed
 tails, raw80 decoding/encoding, C1 and unmasked sum adjustments. It does not
 reimplement the C window or long-division algorithm.
 
-Before removal, the temporary GMP reference matched every public outcome field
-on 388,596 inputs generated before either program ran. The reference source,
-compiled build and comparison tool were then deleted. Their hashes and results
-remain in the receipt. `tools/validation/replay_binary.py` independently checks the complete
-retained FPATAN/logarithm hardware corpus against authenticated capture receipts.
-The [removal results](gmp-removal-results.json) record counts and hashes. Hardware
-agreement remains evidence for the selected Skylake profile, not an exhaustive
-proof for all operand pairs or CPU models.
+`tools/validation/replay_binary.py` checks complete instruction results against
+the retained FPATAN/logarithm hardware corpus and authenticates the capture
+receipts. The test fixtures retain their capture hashes and CPU context;
+[validation](validation.md) gives the commands and data requirements.
+Hardware agreement remains evidence
+for the selected Skylake profile, not an exhaustive proof for all operand
+pairs or CPU models.

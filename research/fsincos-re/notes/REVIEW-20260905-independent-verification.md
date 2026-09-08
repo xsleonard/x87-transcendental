@@ -73,16 +73,7 @@ paired cosine lane `…361e`, both as hardware.
 - Process note: the H1700+ sessions computed predictions on the local Apple
   Silicon Mac; this review rebuilt and re-scored everything on the x86 hosts.
 
-## Other findings for the maintainers
+## Coverage accounting
 
-- 752 files, including the promoted source, paper and the whole h1070–h1715
-  campaign, are uncommitted since `fb4fd84`.
-- `GOAL.md` had the i7 address truncated to `142.132.217.24`; fixed to `.243`
-  (the handoff still carries the truncated form in several historical lines).
-- The Xeon disk is at 99% (about 0.7 GB free after this review); the i7 has
-  about 1.6 GB free.
-- H1715 (compound internal-boundary challenge) is prepared software-only
-  (`SOFTWARE_ONLY_NOT_FROZEN`, capture binary built on the Xeon), never frozen
-  or run, and not mentioned in the handoff.
 - The suite wall script skips comb8/comb10 and totals 180.7M results, not the
   182,737,480 figure quoted in the notes; both sets pass.

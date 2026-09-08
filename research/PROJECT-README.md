@@ -148,8 +148,7 @@ keeping its algorithms, constants and evidence together. The explanation
 focuses on the final calculation and the derivation of the sine/cosine rules;
 development history stays in the research records. The appendices follow
 the same order and preserve all eight specifications and 239 literal entries.
-See [publication and build details](fsincos-re/paper/README.md) and the
-[review record](fsincos-re/paper/PUBLICATION-REVIEW.md).
+See [publication and build details](fsincos-re/paper/README.md).
 
 The [programmer release](output/release/x87-suite-review-v6/README.md) is a
 local package with one Makefile for building and checking the code. Licensing

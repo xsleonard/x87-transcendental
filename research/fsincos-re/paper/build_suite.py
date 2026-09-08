@@ -11,7 +11,8 @@ from pathlib import Path
 import re
 import subprocess
 from suite_support import (HERE, PROJECT, digest, write_json,
-                           before_f2xm1_correction_digest, reference_ast_digest)
+                           before_f2xm1_correction_digest, reference_ast_digest,
+                           pseudocode_program_digest)
 
 GEN = HERE / "generated-suite"
 OUTPUT = PROJECT.parent / "output/pdf"
@@ -124,7 +125,7 @@ def prepare():
     assert tan['specification_sha256'] == integrated['previous_reference_sha256']
     for receipt in (f2,tan):
         assert receipt["constants_sha256"] == digest(PROJECT / "docs/sibling-constants.json")
-    assert atan["pseudocode_sha256"] == digest(PROJECT / "fpatan-re/PSEUDOCODE.md")
+    assert atan["pseudocode_program_sha256"] == pseudocode_program_digest(PROJECT / "fpatan-re/PSEUDOCODE.md")
     ft = f2["result"]["counts"]
     tt = tan["result"]["jobs"]["t0002"]["counts"]
     at = atan["counts"]
@@ -232,7 +233,7 @@ def main():
     problems=[line for line in log.splitlines() if any(s in line for s in ("Overfull", "undefined", "LaTeX Warning"))]
     if problems:raise SystemExit("TeX issues:\n"+"\n".join(problems))
     files=[HERE / "x87-suite.tex",HERE / "suite-references.bib",Path(__file__),
-           HERE / "TRIG-FINDINGS.md",HERE / "SUITE-OUTLINE.md",
+           HERE / "TRIG-FINDINGS.md",
            HERE / "suite_support.py",HERE / "verify_siblings.py",HERE / "audit_trig_history.py",
            HERE / "verify_f2xm1_integration.py",
            HERE / "verify_fpatan_catalog.py",HERE / "check_witnesses.py",
@@ -247,8 +248,9 @@ def main():
            PROJECT / "docs/sibling-constants.json",PROJECT / "fpatan-re/PSEUDOCODE.md",
            PROJECT / "src/test_f2xm1.py",PROJECT / "src/test_f2xm1_driver.c",
            PROJECT / "src/f2xm1_regressions.json",
-           *sorted((HERE / "evidence").glob("*.json")),*sorted(GEN.iterdir())]
-    write_json(HERE / "suite-manifest.json",dict(format="x87-suite-publication-v1",
+           *sorted((HERE / "evidence").glob("*.json")),
+           *sorted(p for p in GEN.iterdir() if p.name != "suite-manifest.json")]
+    write_json(GEN / "suite-manifest.json",dict(format="x87-suite-publication-v1",
         figures=values,literal_rows=literal_count,
         source_files={str(p.relative_to(PROJECT.parent)):digest(p) for p in files},
         pdf_sha256=digest(OUTPUT / "x87-suite.pdf"),licensing="Undecided for original work; per author instruction",

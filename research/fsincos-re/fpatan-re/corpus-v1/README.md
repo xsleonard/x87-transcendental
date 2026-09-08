@@ -52,6 +52,28 @@ does not encode a CPU, allowing outputs from different CPUs to be joined
 without changing the inputs. Preserve the entire returned result/status,
 not only the numeric output, and record the actual capture identity separately.
 
+## Boundary construction
+
+The corpus builders target interactions between the internal arithmetic cuts
+and the final raw80 rounding boundary:
+
+- Joint internal/final ties test whether a changed intermediate rounding rule
+  reaches the observable output. A tie at one node can be masked downstream.
+- Equal retained states with different discarded bits test whether the
+  proposed state representation contains enough information.
+- Table-cell boundaries combine numerator cancellation with denominator cuts;
+  input pairs must satisfy the actual cell-selection inequalities.
+- Exact-square ties must be reachable from raw80 operands. Arbitrary halfway
+  values in an abstract multiplication are not necessarily reachable here.
+- Power-of-two scaling and sign/octant transforms connect normal, subnormal
+  and exponent-boundary cases while exposing exceptional paths separately.
+- Independent mathematical bounds and raw-bit strata test the model without
+  using its arithmetic to choose every input.
+
+The per-pack analyses give the integer constructions, inverse maps and
+coverage limits. A generated boundary pool is distinct from its admitted
+hardware observations; excluded or unreachable candidates are not passes.
+
 ## No-repeat rule
 
 Every tuple in `inputs/` has already been observed on the recorded Skylake

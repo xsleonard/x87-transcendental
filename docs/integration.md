@@ -2,7 +2,7 @@
 
 Prerequisites: CMake 3.20+ and C11 with `unsigned __int128`. No external
 arithmetic library is required.
-GCC/Clang are the initial compiler targets. The reorganization was exercised with
+GCC/Clang are the initial compiler targets. Recorded build coverage uses
 Apple Clang on AArch64 macOS; other platform coverage must be recorded separately.
 The public header is usable from both C and C++ and exposes only the library's own types and standard integer types.
 Python 3 is needed only for the saved-witness test target and development scripts.
@@ -71,7 +71,50 @@ significand fields explicitly. Do not alias structures, serialize their padding,
 or assume its exception flag values equal x87 bit positions. Keep guest rounding
 and exception handling explicit at the call site.
 
-The `x87trans-outcomes` development client accepts one line per evaluation:
-`id op rc pc masks x_se x_sig y_se y_sig`. Raw fields and masks are hexadecimal;
-PC is decimal. Unary operations ignore y. Its output follows `x87trans-cli` and
-adds `first_unmasked` as the last field. The ordinary CLI remains all-masked.
+## Command-line clients
+
+`make tools` builds the clients in `build/`. The ordinary `x87trans-cli` accepts
+one request per line, with every exception masked:
+
+```text
+id instruction rn|rd|ru|rz pc x_se x_sig [y_se y_sig]
+```
+
+Supply y only for binary instructions. Both clients take x before y;
+the library's binary functions take y before x. PC is decimal (24, 53 or 64),
+and raw sign/exponent and significand fields are hexadecimal.
+
+```sh
+printf 'sample fsincos rn 64 3ffe 8000000000000000\n' | build/x87trans-cli
+```
+
+The output fields are:
+
+```text
+id error completion values primary_se primary_sig pushed_se pushed_sig cc cc_known exceptions exceptions_known destination
+```
+
+Raw values, condition codes and exception masks are hexadecimal. Error,
+completion, values and destination are decimal integers defined by the
+[public API](api.md).
+
+`x87trans-outcomes` accepts explicit exception masks:
+
+```text
+id instruction rn|rd|ru|rz pc masks x_se x_sig y_se y_sig
+```
+
+Masks are hexadecimal. Both y fields are required, including for unary
+instructions, which ignore them. Its output appends the hexadecimal
+`first_unmasked` field to the ordinary client's fields.
+
+Compatibility clients are `fsincos_skylake` for the unary batch protocol,
+`fpatan` for the arctangent line protocol, and `x87-log` for logarithms.
+The binary compatibility clients retain their original y-before-x input order.
+
+## Source packages
+
+`make package` creates a source archive under `output/release/`. It includes the
+library, tests, examples, documentation and a SHA-256 file manifest. Research
+archives and generated build output are excluded. See [validation](validation.md)
+for the isolated package and consumer checks.

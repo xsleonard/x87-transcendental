@@ -15,7 +15,7 @@ from pathlib import Path
 import re
 import sys
 import time
-from suite_support import PROJECT, digest, write_json
+from suite_support import PROJECT, digest, pseudocode_program_digest, write_json
 
 
 def load_reference():
@@ -86,6 +86,7 @@ def main():
     assert {k:totals[k] for k in catalog["counts"]} == catalog["counts"]
     write_json(args.out, dict(status="PASS", hardware_executed=False, counts=totals, jobs=jobs,
         pseudocode_sha256=digest(PROJECT / "fpatan-re/PSEUDOCODE.md"),
+        pseudocode_program_sha256=pseudocode_program_digest(PROJECT / "fpatan-re/PSEUDOCODE.md"),
         catalog_sha256=digest(catalog_path), verifier_sha256=digest(Path(__file__)),
         elapsed_seconds=time.time()-started, scope="23 named Skylake packs; no new hardware or all-input proof"))
 

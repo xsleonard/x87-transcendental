@@ -455,6 +455,7 @@
       "manifest_sha256": "73ca3fd797bd3eaa90b6f8f00bd7664dc3dd675c44044e06e7e563102cb6b946"
     }
   },
+  "pseudocode_program_sha256": "c6ae082498157705847a113b490655201061c37d474e92c6f8b49c802e253e28",
   "pseudocode_sha256": "2f62f859ac820dd81b0638d500bc15a073edddc001b5b54154039c2251ef23c1",
   "scope": "23 named Skylake packs; no new hardware or all-input proof",
   "status": "PASS",

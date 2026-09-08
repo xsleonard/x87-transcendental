@@ -2,6 +2,7 @@
  * Each result contains values, arithmetic flags and instructions for updating
  * the registers. The caller checks the stack and handles exception delivery.
  */
+/* SPDX-License-Identifier: LGPL-3.0-only */
 #ifndef X87TRANS_H
 #define X87TRANS_H
 
