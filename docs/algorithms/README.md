@@ -1,26 +1,40 @@
 # Reading the numerical programs
 
-Each root instruction source contains its entry policy. Private arithmetic
-spells out intermediate widths and rounding destinations. Keep those cuts and
-operation order when changing the code: ordinary host arithmetic is not an
-interchangeable implementation.
+Start with an instruction's pseudocode to see its numerical steps, then follow
+the C implementation. The walkthroughs explain the mathematics, branch choices
+and rounding operations. Python specifications use exact fractions and explicit
+precision cuts; the C implementations use integer arithmetic.
 
-Use the [code documentation guideline](../code-documentation-guidelines.md)
-when reading or updating production comments. It gives repository examples of
-mathematical explanations, finite-precision contracts, boundaries and provenance.
+| Instruction | Pseudocode | C implementation | Walkthrough |
+| --- | --- | --- | --- |
+| FSIN | [Sine/cosine](trig.md) | [sin_cos.c](../../src/trig/sin_cos.c) | [Reduction and approximation](trig.md) |
+| FCOS | [Sine/cosine](trig.md) | [sin_cos.c](../../src/trig/sin_cos.c) | [Reduction and approximation](trig.md) |
+| FSINCOS | [Paired sine/cosine](trig.md) | [sincos.c](../../src/trig/sincos.c) | [Reduction and approximation](trig.md) |
+| FPTAN | [Executable Python](../../tests/reference/sibling_reference.py) | [fptan.c](../../src/fptan.c) | [Tangent and exponential](siblings.md) |
+| F2XM1 | [Executable Python](../../tests/reference/sibling_reference.py) | [f2xm1.c](../../src/f2xm1.c) | [Tangent and exponential](siblings.md) |
+| FPATAN | [Arctangent](../../tests/reference/fpatan.md) | [fpatan.c](../../src/fpatan.c) | [Arctangent](fpatan.md) |
+| FYL2X | [Executable Python](../../tests/reference/log_reference.py) | [logarithm.c](../../src/log/logarithm.c) | [Logarithms](logarithms.md) |
+| FYL2XP1 | [Executable Python](../../tests/reference/log_reference.py) | [logarithm.c](../../src/log/logarithm.c) | [Logarithms](logarithms.md) |
 
-| Family | Current program | Preserved derivation |
-| --- | --- | --- |
-| FSIN/FCOS | [Evaluator and polynomial](../../src/trig/sin_cos.c), shared table/tiny/reducer | [Trig pseudocode](trig.md) |
-| FSINCOS | [Paired evaluator and polynomial](../../src/trig/sincos.c), shared table/tiny/reducer | [Paired correction](../../research/fsincos-re/notes/h1717-policy2-promotion.md) |
-| FPTAN | `src/fptan.c` | [Sibling pseudocode](../../research/fsincos-re/docs/SIBLING-PSEUDOCODE.md) |
-| F2XM1 | `src/f2xm1.c` | [Storage correction](../../research/fsincos-re/docs/verification-expansion/f2xm1-integration.md) |
-| FPATAN | `src/fpatan.c` | [Algorithm](../../research/fsincos-re/fpatan-re/ALGORITHM.md) |
-| FYL2X/FYL2XP1 | `src/log/logarithm.c` | [Algorithm](../../research/fsincos-re/fyl2x-re/ALGORITHM.md) |
+## Following the C code
+
+The C links lead to the numerical implementations. Each root instruction source
+also contains its public entry policy; [SOURCE.md](../../SOURCE.md) maps those
+entry points and the shared helpers. Private arithmetic spells out intermediate
+widths and rounding destinations. Keep those cuts and operation order when
+changing the code: ordinary host arithmetic is not an interchangeable implementation.
 
 Each trig evaluator presents classification, one argument reduction and the
 tiny/polynomial/table choice in order. Its polynomial follows in the same file.
 Shared precision operations live in [wide.c](../../src/arithmetic/wide.c).
+
+For tangent, start at `x87t_internal_fptan_core`; for the exponential, start at
+`x87t_internal_f2xm1_core`. Their polynomial, table and final-rounding helpers
+are in the same respective files. For arctangent, `fpatan_candidate` computes
+the finite angle and `x87t_fpatan` handles the public instruction contract.
+For both logarithm instructions, `logarithm` computes the retained logarithm
+and `x87t_internal_evaluate_log` applies the operand policy, final multiplication
+and result handling.
 
 FSIN/FCOS multiplication truncates its X and Y input ports to 67 and 64 bits,
 respectively. Its two interleaved coefficient chains differ from the paired
@@ -34,20 +48,20 @@ final sum until architectural quantization; logarithms retain their exact final
 product. Their different tininess/exception policies remain in the instruction
 kernels. See [bounds and rounding](../finite-arithmetic.md).
 
-The source archive carries standalone algorithm descriptions in this directory;
-the links above additionally connect a full checkout to the historical evidence.
+Use the [code documentation guideline](../code-documentation-guidelines.md)
+when updating numerical explanations. The source archive includes the pseudocode,
+walkthroughs and C programs linked above.
 
-The local walkthroughs cover [trigonometry](trig.md), [FPTAN and F2XM1](siblings.md),
-[FPATAN](fpatan.md), and [logarithms](logarithms.md). Implementation comments
-explain the numerical reasoning in place; the evidence map below preserves the
-supporting derivations and tests without requiring source readers to follow links.
-The [validation record](../validation.md) describes the current scope. Historical
+## Supporting evidence
+
+The [validation record](../validation.md) describes the current checks and their
+scope. The evidence map below links the supporting numerical studies. Historical
 acceptance documents retain their original scope and may describe older APIs.
 
 | Numerical choice | Supporting evidence and its scope |
 | --- | --- |
 | Trig reduction and polynomial operand widths | The [residual-grid argument](../../research/fsincos-re/notes/h1627-h1629-polynomial-domain-transfer.md) bounds the significand widths reachable after reduction and explains which operand cuts can discard bits. The [shared polynomial study](../../research/fsincos-re/notes/h1630-h1632-shared-polynomial.md) gives the two coefficient chains and distinct sine/cosine terminals. The [standalone integration record](../../research/fsincos-re/notes/h1707-h1708-standalone-promotion.md) checks the combined dispatch without changing the paired schedule. |
-| Trig table and tiny paths | The [table study](../../research/fsincos-re/notes/h1633-h1635-shared-table.md) shows that inserting a 67-bit chop before the RN64 product changes retained results and C1. The [tiny-path study](../../research/fsincos-re/notes/h1638-h1643-tiny-and-remaining-scope.md) tests the predecessor rule and the separate direct-input bypass. The paired correction linked above records why earlier FSINCOS product cuts also matter. |
+| Trig table and tiny paths | The [table study](../../research/fsincos-re/notes/h1633-h1635-shared-table.md) shows that inserting a 67-bit chop before the RN64 product changes retained results and C1. The [tiny-path study](../../research/fsincos-re/notes/h1638-h1643-tiny-and-remaining-scope.md) tests the predecessor rule and the separate direct-input bypass. The [paired correction](../../research/fsincos-re/notes/h1717-policy2-promotion.md) records why earlier FSINCOS product cuts also matter. |
 | FSINCOS special-result C1 | [Retained state rows A008–A013](../../research/fsincos-re/tmp/ledger33/current/h1401_single_shot/raw-state-output.txt) begin with C1=0 and end with C1=0. They support that endpoint for the recorded prestates; they do not establish behavior for incoming C1=1. |
 | FPTAN internal states and final quotient | The [reconstruction study](../../research/fsincos-re/notes/fptan-reconstruction.md) records the operation-class tests for chopped products/subtractions, RN64 additions, and the sine-state precision cut before division. These internal states differ from public FSIN/FCOS results. |
 | F2XM1 mixed precision | The [reconstruction study](../../research/fsincos-re/notes/f2xm1-reconstruction.md) explains the 67-bit chopped products, RN64 ordinary sums and selected RN64 products, including h254's operation-class search and h258's rejection of neighboring schedules. Its later addenda and the storage correction linked above qualify the earlier NaN and subnormal-store limitations. |

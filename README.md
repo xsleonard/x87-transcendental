@@ -2,7 +2,30 @@
 
 A C library implementing the reconstructed Skylake **FSIN, FCOS, FSINCOS,
 FPTAN, F2XM1, FPATAN, FYL2X and FYL2XP1** numerical programs for emulation.
-Each instruction has a named function and a source file under [src/](src/).
+
+## Algorithms
+
+Choose an instruction to read its pseudocode or C implementation. The numerical
+programs specify the intermediate approximations, operation order and rounding
+used to emulate these functions. The executable Python specifications use exact
+arithmetic with explicit rounding steps.
+
+| Instruction | Function | Pseudocode | C implementation |
+| --- | --- | --- | --- |
+| FSIN | sin(x) | [Sine/cosine pseudocode](docs/algorithms/trig.md) | [sin_cos.c](src/trig/sin_cos.c) |
+| FCOS | cos(x) | [Sine/cosine pseudocode](docs/algorithms/trig.md) | [sin_cos.c](src/trig/sin_cos.c) |
+| FSINCOS | sin(x) and cos(x) | [Paired sine/cosine pseudocode](docs/algorithms/trig.md) | [sincos.c](src/trig/sincos.c) |
+| FPTAN | tan(x) | [Executable Python](tests/reference/sibling_reference.py) | [fptan.c](src/fptan.c) |
+| F2XM1 | 2ˣ − 1 | [Executable Python](tests/reference/sibling_reference.py) | [f2xm1.c](src/f2xm1.c) |
+| FPATAN | atan2(y, x) | [Arctangent pseudocode](tests/reference/fpatan.md) | [fpatan.c](src/fpatan.c) |
+| FYL2X | y · log₂(x) | [Executable Python](tests/reference/log_reference.py) | [logarithm.c](src/log/logarithm.c) |
+| FYL2XP1 | y · log₂(1 + x) | [Executable Python](tests/reference/log_reference.py) | [logarithm.c](src/log/logarithm.c) |
+
+The [algorithm guide](docs/algorithms/README.md) explains how to read each
+program. The C links above lead to the numerical implementations;
+[SOURCE.md](SOURCE.md) also maps their public entry points and shared helpers.
+
+## Build and use
 
 The library takes raw 80-bit operands and explicit guest controls, and returns
 numerical values, arithmetic flags, C1/C2 and writeback information. The
@@ -45,6 +68,8 @@ For CMake consumers, link `x87trans::x87trans` through `add_subdirectory` or an
 installed package. Static consumers link only x87trans. [Integration instructions](docs/integration.md) cover C/C++,
 installation, pkg-config and the [Bochs adapter](docs/bochs.md).
 
+## Repository guide
+
 | Location | Contents |
 | --- | --- |
 | [include/x87trans/x87trans.h](include/x87trans/x87trans.h) | Public types and all eight functions |
@@ -55,11 +80,12 @@ installation, pkg-config and the [Bochs adapter](docs/bochs.md).
 | [docs/](docs/) | Contract, integration, algorithms, validation and provenance |
 | [research/](research/) | Preserved research sources, manuscripts and evidence |
 
-For maintainers, the [algorithm index](docs/algorithms/README.md) maps the
-numerical programs, and the [code documentation guideline](docs/code-documentation-guidelines.md)
+For maintainers, the [code documentation guideline](docs/code-documentation-guidelines.md)
 explains how to document their mathematics and finite-precision behavior.
 Keep temporary plans and task receipts in ignored `.scratch/` or `output/`;
 `docs/` contains maintained documentation.
+
+## Validation
 
 Tests include 1,800 numerical witnesses, 22,528 hardware outcome witnesses,
 independent rational references, concurrency and integration contracts. The Bochs
@@ -67,6 +93,8 @@ adapter passed 60,514 guest instruction/state checks. See
 [validation and limits](docs/validation.md). No hardware capture is part of a
 normal build or check. Agreement is scoped to the retained evidence and selected
 profile, without a universal claim across CPU generations.
+
+## License
 
 Original project material is licensed under the **GNU Lesser General Public
 License v3.0 only** (`LGPL-3.0-only`); see [the license notice](LICENSE.md),

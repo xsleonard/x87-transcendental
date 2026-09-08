@@ -4,8 +4,8 @@ This specifies the validated V7 numerical program, including raw80 classes,
 all four x87 rounding modes, C1 and masked arithmetic exception flags. It is
 not a call to mathematically correctly rounded `atan2`, a physical microcode
 decode, or a claim of exhaustive agreement with every possible raw80 input.
-The [paper](paper/skylake-fpatan.tex) uses these exact code blocks in its
-appendix. The production implementation is [fpatan_candidate.c](fpatan_candidate.c).
+The [paper](../../research/fsincos-re/fpatan-re/paper/skylake-fpatan.tex) uses these exact code blocks in its
+appendix. The production implementation is [fpatan.c](../../src/fpatan.c).
 
 The blocks are executable reference pseudocode using exact Python `Fraction`
 arithmetic. No host floating-point operation is used. `ROM` is the dictionary
