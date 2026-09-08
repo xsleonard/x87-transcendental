@@ -1,4 +1,11 @@
-/* Analysis-only C FPATAN candidate, NOT promoted or claimed complete.
+/* Skylake FPATAN reconstruction: the fixed V7 numerical program (D0027).
+ * D0023/D0024/D0026 provide 624,312 prospective observations with no misses.
+ * Exact GMP arithmetic, no operand ledger, native FPATAN or algorithm flags.
+ * The retained filename is historical. See ALGORITHM.md and ACCEPTANCE.md
+ * for the masked numerical contract, delivery checks and evidence limits.
+ * The following V4 notes are historical, not the current validation status.
+ */
+/* Historical V4: Analysis-only C FPATAN candidate, NOT promoted or claimed complete.
  * Exact rational arithmetic uses GMP; no host atan, FPATAN, float or double.
  * Public P5 ROM constants are from Ken Shirriff's physical decode (2025).
  * Finite graph_v4.PROGRAM passed the fresh D0004 campaign. Architectural
@@ -17,18 +24,52 @@
 #include <string.h>
 #include <gmp.h>
 
-enum mode { RN=0, RD=1, RU=2, RZ=3, CHOP=4 };
-typedef struct { uint16_t se; uint64_t sig; } raw80;
-typedef struct { mpq_t rom[157]; } fpatan_context;
-static const struct { int index,sign,scale; const char *sig; } constants[] = {
-{19, 0, -65, "6487ed5110b4611a6"},
+enum mode { RN = 0, RD = 1, RU = 2, RZ = 3, CHOP = 4 };
+
+typedef struct {
+    uint16_t se;
+    uint64_t sig;
+} raw80;
+
+typedef struct {
+    mpq_t rom[157];
+} fpatan_context;
+
+/* Literal P5 ROM data, not coefficients fitted to our FPATAN captures.
+ * Source: Ken Shirriff, "Pi in the Pentium", January 2025, ROM appendix:
+ * https://www.righto.com/2025/01/pentium-floating-point-ROM.html
+ * Local transcription: ../data/pentium-rom/rom-constants.tsv.
+ *
+ * Each entry preserves the published row index, sign and significand bits.
+ * Its exact value is (-1)^sign * integer(sig, 16) * 2^scale, where
+ * scale = published_exponent - 0x0ffff - 66. All selected flag bits are zero.
+ * The 67-bit significand is stored as a hex string to avoid a 64-bit cut.
+ *
+ * This is a physical decode of a P5 ROM, not a dump of the Skylake ROM.
+ * Use in this Skylake reconstruction is supported by the retained captures.
+ */
+static const struct {
+    int index, sign, scale;
+    const char *sig;
+} constants[] = {
+    /* Quadrant-restoration constants: pi and pi/2. */
+    {19, 0, -65, "6487ed5110b4611a6"},
     {20, 0, -66, "6487ed5110b4611a6"},
+    /* Short polynomial: z^3, z^5, z^7 and z^9 coefficients. */
+    {114, 1, -68, "555555555555535f0"},
+    {115, 0, -69, "6666666664208b016"},
+    {116, 1, -69, "492491e0653ac37b8"},
+    {117, 0, -70, "71b83f4133889b2f0"},
+    /* Long polynomial: z^3 through z^13, in ascending odd powers. */
     {118, 1, -68, "55555555555555543"},
     {119, 0, -69, "66666666666616b73"},
     {120, 1, -69, "4924924920fca4493"},
     {121, 0, -70, "71c71c4be6f662c91"},
     {122, 1, -70, "5d16e0bde0b12eee8"},
     {123, 0, -70, "4e403be3e3c725aa0"},
+    /* Table anchors: atan(n/32), n = 1..32, at ROM index 124 + n.
+     * The fixed V7 table path selects n >= 2; row 125 is retained as data.
+     */
     {125, 0, -72, "7ff556eea5d892a14"},
     {126, 0, -71, "7fd56edcb3f7a71b6"},
     {127, 0, -70, "5fb860980bc43a305"},
@@ -63,146 +104,293 @@ static const struct { int index,sign,scale; const char *sig; } constants[] = {
     {156, 0, -67, "6487ed5110b4611a6"},
 };
 
+/* Exact dyadic arithmetic and rounding primitives. */
+
 /* All scaling here is exact; exponent fields are never host FP exponents. */
-static void scale2(mpq_t out,const mpq_t in,int scale)
+static void scale2(mpq_t out, const mpq_t in, int scale)
 {
-    if(scale>=0) mpq_mul_2exp(out,in,(unsigned)scale);
-    else mpq_div_2exp(out,in,(unsigned)-scale);
+    if (scale >= 0)
+        mpq_mul_2exp(out, in, (unsigned)scale);
+    else
+        mpq_div_2exp(out, in, (unsigned)-scale);
 }
+
 static int qexp(const mpq_t in)
 {
-    mpz_t n,d;mpz_inits(n,d,NULL);mpz_abs(n,mpq_numref(in));mpz_set(d,mpq_denref(in));
-    int e=(int)mpz_sizeinbase(n,2)-(int)mpz_sizeinbase(d,2);
-    if(e>=0) mpz_mul_2exp(d,d,(unsigned)e);else mpz_mul_2exp(n,n,(unsigned)-e);
-    if(mpz_cmp(n,d)<0)e--;
-    mpz_clears(n,d,NULL);return e;
+    mpz_t n, d;
+    mpz_inits(n, d, NULL);
+    mpz_abs(n, mpq_numref(in));
+    mpz_set(d, mpq_denref(in));
+    int e = (int)mpz_sizeinbase(n, 2) - (int)mpz_sizeinbase(d, 2);
+    if (e >= 0)
+        mpz_mul_2exp(d, d, (unsigned)e);
+    else
+        mpz_mul_2exp(n, n, (unsigned)-e);
+    if (mpz_cmp(n, d) < 0)
+        e--;
+    mpz_clears(n, d, NULL);
+    return e;
 }
-static int increment(const mpz_t q,const mpz_t r,const mpz_t d,int negative,enum mode mode)
+
+static int increment(const mpz_t q, const mpz_t r, const mpz_t d, int negative, enum mode mode)
 {
-    if(!mpz_sgn(r))return 0;
-    if(mode==RD)return negative;
-    if(mode==RU)return !negative;
-    if(mode!=RN)return 0;
-    mpz_t twice;mpz_init(twice);mpz_mul_2exp(twice,r,1);
-    int cmp=mpz_cmp(twice,d);mpz_clear(twice);
-    return cmp>0 || (cmp==0 && mpz_odd_p(q));
+    if (!mpz_sgn(r))
+        return 0;
+    if (mode == RD)
+        return negative;
+    if (mode == RU)
+        return !negative;
+    if (mode != RN)
+        return 0;
+    mpz_t twice;
+    mpz_init(twice);
+    mpz_mul_2exp(twice, r, 1);
+    int cmp = mpz_cmp(twice, d);
+    mpz_clear(twice);
+    return cmp > 0 || (cmp == 0 && mpz_odd_p(q));
 }
-static void at_step(mpq_t out,const mpq_t in,int scale,enum mode mode)
+
+static void at_step(mpq_t out, const mpq_t in, int scale, enum mode mode)
 {
-    int negative=mpq_sgn(in)<0;
-    mpz_t n,d,q,r;mpz_inits(n,d,q,r,NULL);
-    mpz_abs(n,mpq_numref(in));mpz_set(d,mpq_denref(in));
-    if(scale<0)mpz_mul_2exp(n,n,(unsigned)-scale);else mpz_mul_2exp(d,d,(unsigned)scale);
-    mpz_fdiv_qr(q,r,n,d);
-    if(increment(q,r,d,negative,mode))mpz_add_ui(q,q,1);
-    if(negative)mpz_neg(q,q);
-    mpq_set_z(out,q);scale2(out,out,scale);
-    mpz_clears(n,d,q,r,NULL);
+    int negative = mpq_sgn(in) < 0;
+    mpz_t n, d, q, r;
+    mpz_inits(n, d, q, r, NULL);
+    mpz_abs(n, mpq_numref(in));
+    mpz_set(d, mpq_denref(in));
+    if (scale < 0)
+        mpz_mul_2exp(n, n, (unsigned)-scale);
+    else
+        mpz_mul_2exp(d, d, (unsigned)scale);
+    mpz_fdiv_qr(q, r, n, d);
+    if (increment(q, r, d, negative, mode))
+        mpz_add_ui(q, q, 1);
+    if (negative)
+        mpz_neg(q, q);
+    mpq_set_z(out, q);
+    scale2(out, out, scale);
+    mpz_clears(n, d, q, r, NULL);
 }
-static void rounded(mpq_t out,const mpq_t in,int bits,enum mode mode)
+
+static void rounded(mpq_t out, const mpq_t in, int bits, enum mode mode)
 {
-    if(!mpq_sgn(in)){mpq_set_ui(out,0,1);return;}
-    at_step(out,in,qexp(in)-bits+1,mode);
-}
-static void decode(mpq_t out,raw80 in)
-{
-    mpz_import(mpq_numref(out),1,1,sizeof(in.sig),0,0,&in.sig);
-    mpz_set_ui(mpq_denref(out),1);
-    scale2(out,out,((in.se&0x7fff)?(in.se&0x7fff):1)-16383-63);
-    if(in.se&0x8000)mpq_neg(out,out);
-}
-static raw80 encode(const mpq_t in,enum mode mode,int *c1)
-{
-    raw80 out={0,0};int sign=mpq_sgn(in)<0;mpq_t q,a,b;
-    mpq_inits(q,a,b,NULL);
-    int e=mpq_sgn(in)?qexp(in):-16382;if(e<-16382)e=-16382;
-    at_step(q,in,e-63,mode);mpq_abs(a,q);mpq_abs(b,in);*c1=mpq_cmp(a,b)>0;
-    if(mpq_sgn(q)){
-        e=qexp(q);if(e<-16382)e=-16382;
-        scale2(a,a,63-e);
-        if(mpz_cmp_ui(mpq_denref(a),1))abort();
-        if(mpz_sizeinbase(mpq_numref(a),2)>64)abort();
-        size_t count=0;mpz_export(&out.sig,&count,1,sizeof(out.sig),0,0,mpq_numref(a));
-        if(count>1)abort();
+    if (!mpq_sgn(in)) {
+        mpq_set_ui(out, 0, 1);
+        return;
     }
-    out.se=(uint16_t)((sign<<15)|(out.sig<(UINT64_C(1)<<63)?0:e+16383));
-    mpq_clears(q,a,b,NULL);return out;
+    at_step(out, in, qexp(in) - bits + 1, mode);
 }
+
+static void decode(mpq_t out, raw80 in)
+{
+    mpz_import(mpq_numref(out), 1, 1, sizeof(in.sig), 0, 0, &in.sig);
+    mpz_set_ui(mpq_denref(out), 1);
+    scale2(out, out, ((in.se & 0x7fff) ? (in.se & 0x7fff) : 1) - 16383 - 63);
+    if (in.se & 0x8000)
+        mpq_neg(out, out);
+}
+
+static raw80 encode(const mpq_t in, enum mode mode, int *c1)
+{
+    raw80 out = {0, 0};
+    int sign = mpq_sgn(in) < 0;
+    mpq_t q, a, b;
+    mpq_inits(q, a, b, NULL);
+    int e = mpq_sgn(in) ? qexp(in) : -16382;
+    if (e < -16382)
+        e = -16382;
+    at_step(q, in, e - 63, mode);
+    mpq_abs(a, q);
+    mpq_abs(b, in);
+    *c1 = mpq_cmp(a, b) > 0;
+    if (mpq_sgn(q)) {
+        e = qexp(q);
+        if (e < -16382)
+            e = -16382;
+        scale2(a, a, 63 - e);
+        if (mpz_cmp_ui(mpq_denref(a), 1))
+            abort();
+        if (mpz_sizeinbase(mpq_numref(a), 2) > 64)
+            abort();
+        size_t count = 0;
+        mpz_export(&out.sig, &count, 1, sizeof(out.sig), 0, 0, mpq_numref(a));
+        if (count > 1)
+            abort();
+    }
+    out.se = (uint16_t)((sign << 15) | (out.sig < (UINT64_C(1) << 63) ? 0 : e + 16383));
+    mpq_clears(q, a, b, NULL);
+    return out;
+}
+
 static void context_init(fpatan_context *ctx)
 {
-    for(int i=0;i<157;i++)mpq_init(ctx->rom[i]);
-    for(size_t i=0;i<sizeof(constants)/sizeof(constants[0]);i++){
-        int k=constants[i].index;
-        if(mpz_set_str(mpq_numref(ctx->rom[k]),constants[i].sig,16))abort();
-        if(constants[i].sign)mpq_neg(ctx->rom[k],ctx->rom[k]);
-        scale2(ctx->rom[k],ctx->rom[k],constants[i].scale);
+    for (int i = 0; i < 157; i++)
+        mpq_init(ctx->rom[i]);
+    for (size_t i = 0; i < sizeof(constants) / sizeof(constants[0]); i++) {
+        int k = constants[i].index;
+        if (mpz_set_str(mpq_numref(ctx->rom[k]), constants[i].sig, 16))
+            abort();
+        if (constants[i].sign)
+            mpq_neg(ctx->rom[k], ctx->rom[k]);
+        scale2(ctx->rom[k], ctx->rom[k], constants[i].scale);
     }
 }
+
 static void context_clear(fpatan_context *ctx)
 {
-    for(int i=0;i<157;i++)mpq_clear(ctx->rom[i]);
+    for (int i = 0; i < 157; i++)
+        mpq_clear(ctx->rom[i]);
 }
 
 /* A single global numerical graph, no operand ledger or fitted exceptions.
  * Nonzero finite normal/subnormal values only until the specials campaign.
  */
-static int fpatan_candidate(const fpatan_context *ctx,raw80 iy,raw80 ix,enum mode rc,raw80 *out,int *c1,int *tiny)
+static int fpatan_candidate(
+    const fpatan_context *ctx, raw80 iy, raw80 ix, enum mode rc, raw80 *out, int *c1, int *tiny)
 {
-    if(!iy.sig || !ix.sig || (iy.se&0x7fff)==0x7fff || (ix.se&0x7fff)==0x7fff ||
-       ((iy.se&0x7fff)&&!(iy.sig>>63)) || ((ix.se&0x7fff)&&!(ix.sig>>63)))return 2;
-    mpq_t y,x,r,z,square,h,tail,angle,t,u,c;
-    mpq_inits(y,x,r,z,square,h,tail,angle,t,u,c,NULL);
-    decode(y,iy);decode(x,ix);mpq_abs(y,y);mpq_abs(x,x);
-    int swap=mpq_cmp(y,x)>0;if(swap)mpq_swap(y,x);
-    mpq_div(r,y,x);int n=0;
-    if(qexp(r)<-40){
-        rounded(angle,r,67,CHOP);
-    }else{
-        if(mpq_cmp_ui(r,3,64)<0){
-            rounded(z,r,67,CHOP);
-        }else{
-            /* nearest table index; ties upwards, using the exact ratio. */
-            mpq_mul_2exp(t,r,5);mpq_set_ui(u,1,2);mpq_add(t,t,u);
-            mpz_t index;mpz_init(index);
-            mpz_fdiv_q(index,mpq_numref(t),mpq_denref(t));n=(int)mpz_get_ui(index);mpz_clear(index);
-            if(n<1||n>32)abort();
-            mpq_set_ui(c,(unsigned)n,32);mpq_canonicalize(c);
+    if (!iy.sig || !ix.sig || (iy.se & 0x7fff) == 0x7fff || (ix.se & 0x7fff) == 0x7fff ||
+        ((iy.se & 0x7fff) && !(iy.sig >> 63)) || ((ix.se & 0x7fff) && !(ix.sig >> 63)))
+        return 2;
+    mpq_t y, x, r, z, square, h, tail, angle, t, u, c, v, odd, even;
+    mpq_inits(y, x, r, z, square, h, tail, angle, t, u, c, v, odd, even, NULL);
+
+    /* Normalize magnitudes into the first octant; retain the swap for later.
+     * r is the exact ratio, z the reduced argument, and square/v are z^2/z^4
+     * after their specified cuts. t and u are reusable arithmetic temporaries.
+     */
+    decode(y, iy);
+    decode(x, ix);
+    mpq_abs(y, y);
+    mpq_abs(x, x);
+    int swap = mpq_cmp(y, x) > 0;
+    if (swap)
+        mpq_swap(y, x);
+    mpq_div(r, y, x);
+    int n = 0;
+    /* Tiny-ratio bypass, direct polynomial, or table-assisted reduction. */
+    if (qexp(r) < -40) {
+        rounded(angle, r, 67, CHOP);
+    } else {
+        if (mpq_cmp_ui(r, 3, 64) <= 0) {
+            rounded(z, r, 67, CHOP);
+        } else {
+            /* Historical V4: nearest table index; ties upwards, using the exact ratio.
+             * V7 replaces it with nearest/lower ties: ceil(32*r - 1/2).
+             */
+            mpq_mul_2exp(t, r, 5);
+            mpq_set_ui(u, 1, 2);
+            mpq_sub(t, t, u);
+            mpz_t index;
+            mpz_init(index);
+            mpz_cdiv_q(index, mpq_numref(t), mpq_denref(t));
+            n = (int)mpz_get_ui(index);
+            mpz_clear(index);
+            if (n < 1 || n > 32)
+                abort();
+            mpq_set_ui(c, (unsigned)n, 32);
+            mpq_canonicalize(c);
             /* These small-integer products are COMPLETE before subtraction. */
-            mpq_mul(t,c,x);mpq_sub(t,y,t);rounded(t,t,67,CHOP);
-            mpq_mul(u,c,y);mpq_add(u,x,u);rounded(u,u,67,CHOP);
-            mpq_div(z,t,u);rounded(z,z,67,CHOP);
+            mpq_mul(t, c, x);
+            mpq_sub(t, y, t);
+            rounded(t, t, 67, CHOP);
+            mpq_mul(u, c, y);
+            mpq_add(u, x, u);
+            rounded(u, u, 67, CHOP);
+            mpq_div(z, t, u);
+            rounded(z, z, 67, CHOP);
         }
-        mpq_mul(square,z,z);rounded(square,square,67,CHOP);
-        mpq_set(h,ctx->rom[123]);
-        for(int k=122;k>=118;k--){
-            mpq_mul(t,square,h);rounded(t,t,67,CHOP);
-            mpq_add(h,ctx->rom[k],t);rounded(h,h,64,RN);
+        /* Source-guided interleaved operation roles (D0021).
+         * Square uses X67/Y64 and RN64; ordinary products use CHOP67.
+         * RN64 and CHOP67 sums are distinct operation classes. Numerical
+         * transfer is verified on Skylake; Goldmont opcode meanings are
+         * not claimed as a physical decode of the Skylake implementation.
+         */
+        rounded(t, z, 64, CHOP);
+        mpq_mul(square, z, t);
+        rounded(square, square, 64, RN);
+        mpq_mul(v, square, square);
+        rounded(v, v, 67, CHOP);
+        if (n) {
+            /* Short kernel, with separate even/odd coefficient chains. */
+            mpq_mul(t, v, ctx->rom[116]);
+            rounded(t, t, 67, CHOP);
+            mpq_add(even, ctx->rom[114], t);
+            rounded(even, even, 67, CHOP);
+            mpq_mul(t, v, ctx->rom[117]);
+            rounded(t, t, 67, CHOP);
+            mpq_add(odd, ctx->rom[115], t);
+            rounded(odd, odd, 64, RN);
+        } else {
+            /* Long kernel, with the same interleaved evaluation structure. */
+            mpq_mul(t, v, ctx->rom[123]);
+            rounded(t, t, 67, CHOP);
+            mpq_add(odd, ctx->rom[121], t);
+            rounded(odd, odd, 64, RN);
+            mpq_mul(t, v, ctx->rom[122]);
+            rounded(t, t, 67, CHOP);
+            mpq_add(even, ctx->rom[120], t);
+            rounded(even, even, 64, RN);
+            mpq_mul(t, v, odd);
+            rounded(t, t, 67, CHOP);
+            mpq_add(odd, ctx->rom[119], t);
+            rounded(odd, odd, 67, CHOP);
+            mpq_mul(t, v, even);
+            rounded(t, t, 67, CHOP);
+            mpq_add(even, ctx->rom[118], t);
+            rounded(even, even, 67, CHOP);
         }
-        mpq_mul(t,square,h);rounded(t,t,67,CHOP);
-        mpq_mul(tail,t,z);rounded(tail,tail,67,CHOP);
-        mpq_add(angle,z,tail);
+        mpq_mul(t, square, odd);
+        rounded(t, t, 67, CHOP);
+        mpq_add(h, t, even);
+        rounded(h, h, 64, RN);
+        mpq_mul(t, z, square);
+        rounded(t, t, 67, CHOP);
+        mpq_mul(tail, t, h);
+        rounded(tail, tail, 67, CHOP);
+        mpq_add(angle, z, tail);
         /* The table kernel is intermediate, not the final architectural add. */
-        if(n){rounded(angle,angle,67,CHOP);mpq_add(angle,angle,ctx->rom[124+n]);}
+        if (n) {
+            rounded(angle, angle, 67, CHOP);
+            mpq_add(angle, angle, ctx->rom[124 + n]);
+        }
     }
-    if(swap || (ix.se&0x8000))rounded(angle,angle,67,CHOP);
-    if(swap){
-        if(ix.se&0x8000)mpq_add(angle,ctx->rom[20],angle);
-        else mpq_sub(angle,ctx->rom[20],angle);
-    }else if(ix.se&0x8000)mpq_sub(angle,ctx->rom[19],angle);
-    if(iy.se&0x8000)mpq_neg(angle,angle);
-    *tiny=mpq_sgn(angle) && qexp(angle)<-16382;
-    *out=encode(angle,rc,c1);
-    mpq_clears(y,x,r,z,square,h,tail,angle,t,u,c,NULL);return 0;
+    /* Restore the quadrant before applying the caller's architectural RC.
+     * Internal RN64/CHOP67 operations above do not depend on that RC.
+     */
+    if (swap || (ix.se & 0x8000))
+        rounded(angle, angle, 67, CHOP);
+    if (swap) {
+        if (ix.se & 0x8000)
+            mpq_add(angle, ctx->rom[20], angle);
+        else
+            mpq_sub(angle, ctx->rom[20], angle);
+    } else if (ix.se & 0x8000)
+        mpq_sub(angle, ctx->rom[19], angle);
+    if (iy.se & 0x8000)
+        mpq_neg(angle, angle);
+    *tiny = mpq_sgn(angle) && qexp(angle) < -16382;
+    *out = encode(angle, rc, c1);
+    mpq_clears(y, x, r, z, square, h, tail, angle, t, u, c, v, odd, even, NULL);
+    return 0;
 }
-enum operand_class { ZERO,NORMAL,DENORMAL,PSEUDO,INFINITY_VALUE,QNAN,SNAN,UNSUPPORTED };
+
+enum operand_class { ZERO, NORMAL, DENORMAL, PSEUDO, INFINITY_VALUE, QNAN, SNAN, UNSUPPORTED };
+
+/* Raw80 classification and masked architectural result/exception handling. */
 static enum operand_class classify(raw80 v)
 {
-    unsigned e=v.se&0x7fff;
-    if(!e){if(!v.sig)return ZERO;return v.sig>>63?PSEUDO:DENORMAL;}
-    if(!(v.sig>>63))return UNSUPPORTED;
-    if(e!=0x7fff)return NORMAL;
-    if(v.sig==(UINT64_C(1)<<63))return INFINITY_VALUE;
-    return v.sig&(UINT64_C(1)<<62)?QNAN:SNAN;
+    unsigned e = v.se & 0x7fff;
+    if (!e) {
+        if (!v.sig)
+            return ZERO;
+        return v.sig >> 63 ? PSEUDO : DENORMAL;
+    }
+    if (!(v.sig >> 63))
+        return UNSUPPORTED;
+    if (e != 0x7fff)
+        return NORMAL;
+    if (v.sig == (UINT64_C(1) << 63))
+        return INFINITY_VALUE;
+    return v.sig & (UINT64_C(1) << 62) ? QNAN : SNAN;
 }
 
 /* Masked instruction contract: valid two-deep stack, all exception latches
@@ -211,77 +399,155 @@ static enum operand_class classify(raw80 v)
  * This models numerical values and defined arithmetic flags, not hidden FPU
  * pointers, arbitrary restore histories, or undefined condition bits.
  */
-static int fpatan_raw80(const fpatan_context *ctx,raw80 y,raw80 x,enum mode rc,
-                       raw80 *out,int *c1,unsigned *exceptions)
+static int fpatan_raw80(const fpatan_context *ctx,
+                        raw80 y,
+                        raw80 x,
+                        enum mode rc,
+                        raw80 *out,
+                        int *c1,
+                        unsigned *exceptions)
 {
-    enum operand_class ky=classify(y),kx=classify(x);*c1=0;*exceptions=0;
-    if(ky==UNSUPPORTED || kx==UNSUPPORTED){
-        *out=(raw80){0xffff,UINT64_C(0xc000000000000000)};*exceptions=1;return 0;
+    enum operand_class ky = classify(y), kx = classify(x);
+    *c1 = 0;
+    *exceptions = 0;
+    if (ky == UNSUPPORTED || kx == UNSUPPORTED) {
+        *out = (raw80){0xffff, UINT64_C(0xc000000000000000)};
+        *exceptions = 1;
+        return 0;
     }
-    int ny=ky==QNAN || ky==SNAN,nx=kx==QNAN || kx==SNAN;
-    if(ny || nx){
+    int ny = ky == QNAN || ky == SNAN, nx = kx == QNAN || kx == SNAN;
+    if (ny || nx) {
         raw80 pick;
-        if(!ny)pick=x;else if(!nx)pick=y;
-        else if(ky==QNAN && kx==SNAN)pick=y;
-        else if(kx==QNAN && ky==SNAN)pick=x;
-        else pick=y.sig>x.sig || (y.sig==x.sig && y.se<x.se)?y:x;
-        pick.sig|=UINT64_C(1)<<62;*out=pick;*exceptions=(ky==SNAN || kx==SNAN);return 0;
+        if (!ny)
+            pick = x;
+        else if (!nx)
+            pick = y;
+        else if (ky == QNAN && kx == SNAN)
+            pick = y;
+        else if (kx == QNAN && ky == SNAN)
+            pick = x;
+        else
+            pick = y.sig > x.sig || (y.sig == x.sig && y.se < x.se) ? y : x;
+        pick.sig |= UINT64_C(1) << 62;
+        *out = pick;
+        *exceptions = (ky == SNAN || kx == SNAN);
+        return 0;
     }
     /* Both exponent-zero nonzero classes request the denormal assist.
      * A pseudo-denormal's numerical value still uses effective exponent 1.
      */
-    if(ky==DENORMAL || ky==PSEUDO || kx==DENORMAL || kx==PSEUDO)*exceptions=2;
-    int special=ky==ZERO || kx==ZERO || ky==INFINITY_VALUE || kx==INFINITY_VALUE;
-    if(!special){
-        int tiny=0,status=fpatan_candidate(ctx,y,x,rc,out,c1,&tiny);if(status)return status;
+    if (ky == DENORMAL || ky == PSEUDO || kx == DENORMAL || kx == PSEUDO)
+        *exceptions = 2;
+    int special = ky == ZERO || kx == ZERO || ky == INFINITY_VALUE || kx == INFINITY_VALUE;
+    if (!special) {
+        int tiny = 0, status = fpatan_candidate(ctx, y, x, rc, out, c1, &tiny);
+        if (status)
+            return status;
         /* Tininess is detected on the retained angle before final rounding,
          * even when directed rounding produces the minimum normal result.
          */
-        *exceptions|=32;if(tiny)*exceptions|=16;return 0;
+        *exceptions |= 32;
+        if (tiny)
+            *exceptions |= 16;
+        return 0;
     }
-    mpq_t angle;mpq_init(angle);int sx=(x.se>>15),sy=(y.se>>15);
-    if(ky==ZERO || kx==INFINITY_VALUE){
-        if(ky==INFINITY_VALUE){
-            mpq_div_2exp(angle,ctx->rom[20],1);
-            if(sx){mpq_t three;mpq_init(three);mpq_set_ui(three,3,1);mpq_mul(angle,angle,three);mpq_clear(three);}
-        }else if(sx)mpq_set(angle,ctx->rom[19]);
-    }else mpq_set(angle,ctx->rom[20]);
-    if(mpq_sgn(angle)){
-        if(sy)mpq_neg(angle,angle);
-        *out=encode(angle,rc,c1);*exceptions|=32;
-    }else *out=(raw80){(uint16_t)(sy<<15),0};
-    mpq_clear(angle);return 0;
+    mpq_t angle;
+    mpq_init(angle);
+    int sx = (x.se >> 15), sy = (y.se >> 15);
+    if (ky == ZERO || kx == INFINITY_VALUE) {
+        if (ky == INFINITY_VALUE) {
+            mpq_div_2exp(angle, ctx->rom[20], 1);
+            if (sx) {
+                mpq_t three;
+                mpq_init(three);
+                mpq_set_ui(three, 3, 1);
+                mpq_mul(angle, angle, three);
+                mpq_clear(three);
+            }
+        } else if (sx)
+            mpq_set(angle, ctx->rom[19]);
+    } else
+        mpq_set(angle, ctx->rom[20]);
+    if (mpq_sgn(angle)) {
+        if (sy)
+            mpq_neg(angle, angle);
+        *out = encode(angle, rc, c1);
+        *exceptions |= 32;
+    } else
+        *out = (raw80){(uint16_t)(sy << 15), 0};
+    mpq_clear(angle);
+    return 0;
 }
 
 #ifndef FPATAN_NO_MAIN
+/* Standalone synthetic self-test and line-oriented batch interface. */
 static void selftest(fpatan_context *ctx)
 {
-    raw80 zero={0,0},one={0x3fff,UINT64_C(1)<<63},out;int c1;unsigned flags;
-    if(fpatan_raw80(ctx,zero,one,RN,&out,&c1,&flags) || out.se || out.sig || c1 || flags)abort();
-    raw80 sn={0x7fff,(UINT64_C(1)<<63)|5},qn={0x7fff,(UINT64_C(3)<<62)|2};
-    if(fpatan_raw80(ctx,sn,qn,RN,&out,&c1,&flags) || out.se!=qn.se || out.sig!=qn.sig || c1 || flags!=1)abort();
-    raw80 pseudo={0,UINT64_C(1)<<63};
-    if(fpatan_raw80(ctx,zero,pseudo,RN,&out,&c1,&flags) || out.se || out.sig || flags!=2)abort();
+    raw80 zero = {0, 0}, one = {0x3fff, UINT64_C(1) << 63}, out;
+    int c1;
+    unsigned flags;
+    if (fpatan_raw80(ctx, zero, one, RN, &out, &c1, &flags) || out.se || out.sig || c1 || flags)
+        abort();
+    raw80 sn = {0x7fff, (UINT64_C(1) << 63) | 5}, qn = {0x7fff, (UINT64_C(3) << 62) | 2};
+    if (fpatan_raw80(ctx, sn, qn, RN, &out, &c1, &flags) || out.se != qn.se || out.sig != qn.sig ||
+        c1 || flags != 1)
+        abort();
+    raw80 pseudo = {0, UINT64_C(1) << 63};
+    if (fpatan_raw80(ctx, zero, pseudo, RN, &out, &c1, &flags) || out.se || out.sig || flags != 2)
+        abort();
     puts("PASS C candidate arithmetic/architecture synthetic selftest; no hardware");
 }
 
-int main(int argc,char **argv)
+int main(int argc, char **argv)
 {
-    fpatan_context ctx;context_init(&ctx);
-    if(argc==2 && !strcmp(argv[1],"--selftest")){selftest(&ctx);context_clear(&ctx);return 0;}
-    if(argc!=1){context_clear(&ctx);return 2;}
-    char line[256],id[64],mode[4],extra;unsigned pc,ys,xs;uint64_t ym,xm;
-    while(fgets(line,sizeof(line),stdin)){
-        if(sscanf(line,"%63s %3s %u %x %" SCNx64 " %x %" SCNx64 " %c",id,mode,&pc,&ys,&ym,&xs,&xm,&extra)!=7 ||
-           ys>65535 || xs>65535 || (pc!=24&&pc!=53&&pc!=64))return 2;
-        enum mode rc;
-        if(!strcmp(mode,"rn"))rc=RN;else if(!strcmp(mode,"rd"))rc=RD;
-        else if(!strcmp(mode,"ru"))rc=RU;else if(!strcmp(mode,"rz"))rc=RZ;else return 2;
-        raw80 y={(uint16_t)ys,ym},x={(uint16_t)xs,xm},result;int c1=0;unsigned flags=0;
-        int status=fpatan_raw80(&ctx,y,x,rc,&result,&c1,&flags);
-        if(status)printf("%s UNSUPPORTED\n",id);
-        else printf("%s %04x %016" PRIx64 " %d %02x 00\n",id,result.se,result.sig,c1,flags);
+    fpatan_context ctx;
+    context_init(&ctx);
+    if (argc == 2 && !strcmp(argv[1], "--selftest")) {
+        selftest(&ctx);
+        context_clear(&ctx);
+        return 0;
     }
-    context_clear(&ctx);return ferror(stdin)||fflush(stdout)?3:0;
+    if (argc != 1) {
+        context_clear(&ctx);
+        return 2;
+    }
+    char line[256], id[64], mode[4], extra;
+    unsigned pc, ys, xs;
+    uint64_t ym, xm;
+    while (fgets(line, sizeof(line), stdin)) {
+        if (sscanf(line,
+                   "%63s %3s %u %x %" SCNx64 " %x %" SCNx64 " %c",
+                   id,
+                   mode,
+                   &pc,
+                   &ys,
+                   &ym,
+                   &xs,
+                   &xm,
+                   &extra) != 7 ||
+            ys > 65535 || xs > 65535 || (pc != 24 && pc != 53 && pc != 64))
+            return 2;
+        enum mode rc;
+        if (!strcmp(mode, "rn"))
+            rc = RN;
+        else if (!strcmp(mode, "rd"))
+            rc = RD;
+        else if (!strcmp(mode, "ru"))
+            rc = RU;
+        else if (!strcmp(mode, "rz"))
+            rc = RZ;
+        else
+            return 2;
+        raw80 y = {(uint16_t)ys, ym}, x = {(uint16_t)xs, xm}, result;
+        int c1 = 0;
+        unsigned flags = 0;
+        int status = fpatan_raw80(&ctx, y, x, rc, &result, &c1, &flags);
+        if (status)
+            printf("%s UNSUPPORTED\n", id);
+        else
+            printf("%s %04x %016" PRIx64 " %d %02x 00\n", id, result.se, result.sig, c1, flags);
+    }
+    context_clear(&ctx);
+    return ferror(stdin) || fflush(stdout) ? 3 : 0;
 }
 #endif

@@ -1,0 +1,25 @@
+{
+  "files": {
+    "fsincos-re/fpatan-re/PSEUDOCODE.md": "2f62f859ac820dd81b0638d500bc15a073edddc001b5b54154039c2251ef23c1",
+    "fsincos-re/fpatan-re/fpatan_candidate.c": "b27bb22c4e59bf0788e7fcd42e2ad627062420133269a17509bdcae38fb4d420",
+    "fsincos-re/fpatan-re/paper/build_paper.py": "afe9f4d473a40c770d2fca01f94a1c14bd9ef41e9bd086e5aba6c5c712db89ac",
+    "fsincos-re/fpatan-re/paper/generated/campaign-table.tex": "62e4aa6e07c333efa4f87abacf273ea2b709c30a59b087c1c1ad951ae8292254",
+    "fsincos-re/fpatan-re/paper/generated/evidence-numbers.tex": "ca59cefd57ede0efe4399f130042c8c75038f2402f25bd340bb0878c5f108325",
+    "fsincos-re/fpatan-re/paper/generated/pseudocode-1.py": "ad32a1f2dbe685836bcd1d355442a68160ea5dda11397e8260cacfd7592ecfb3",
+    "fsincos-re/fpatan-re/paper/generated/pseudocode-2.py": "54d10aea6cb2112553d1c836db729f83764c5b2b6714640b8a645e11c761eaca",
+    "fsincos-re/fpatan-re/paper/generated/pseudocode-3.py": "e8bdca733e6c1394062d6d52e8222627eaa7fb9e4bdd259776f22971920cf91d",
+    "fsincos-re/fpatan-re/paper/generated/pseudocode-4.py": "0e01f54b039d8f355b792e278275bd13da0aae16b8aee985d82308edaab72685",
+    "fsincos-re/fpatan-re/paper/generated/pseudocode-5.py": "cd5d5bc5b74d79f6eb85bb256c90909f80e4195b678be1d650cbcfdd17cb1369",
+    "fsincos-re/fpatan-re/paper/generated/pseudocode.tex": "8dbad50df6fe528eda21552d051efae420ccee721eb1b96cf4db2ab79d019553",
+    "fsincos-re/fpatan-re/paper/generated/rom-table.tex": "a0fe1cc530570e5b0dba666b29a23e4cad71f064e96a6dcf08fd5d4eae0c15c4",
+    "fsincos-re/fpatan-re/paper/skylake-fpatan.tex": "8ba31a99aa4884a75819c01a2b9f282c2f9af2cd5598ef85c92cae827375e3b3",
+    "fsincos-re/fpatan-re/paper/verify_pseudocode.py": "4d9d1fe65a730f7a1f028b555cdede5ef3214fafc7e142e034b0d25820465855",
+    "fsincos-re/tmp/fpatan-re/d0027-delivery-checks.json": "2acd651a6ac935e47534779a19ec1793c13b8dd792c4851483469f57a5a38307",
+    "fsincos-re/tmp/fpatan-re/d0029-style-verification.json": "7528691b69382e4355b780a814b11a4f8a4a94be7081ee92183812a3f31fcdfa",
+    "fsincos-re/tmp/fpatan-re/d0030-pseudocode-replay-v2.json": "ac2f973692814718d1ef55d0bfc6f873f81ade47fd621dadb875efc9a78c353c"
+  },
+  "hardware_executed": false,
+  "observations": 2783208,
+  "prospective_observations": 624312,
+  "status": "VERIFIED_DOCUMENT_EXHIBITS"
+}
